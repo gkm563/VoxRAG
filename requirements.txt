@@ -1,0 +1,36 @@
+# ─── Core ────────────────────────────────────────────────────────────────────
+python-dotenv>=1.0.0
+
+# ─── Dataset ─────────────────────────────────────────────────────────────────
+datasets>=2.18.0          # HuggingFace datasets (MSMARCO-XI)
+huggingface-hub>=0.21.0
+
+# ─── Embeddings & Vector DB ──────────────────────────────────────────────────
+sentence-transformers>=2.7.0
+faiss-cpu>=1.8.0           # Use faiss-gpu if CUDA available
+numpy>=1.26.0
+
+# ─── Chunking / NLP ──────────────────────────────────────────────────────────
+nltk>=3.8.0
+tiktoken>=0.6.0            # Token counting for fixed-size chunks
+langdetect>=1.0.9
+
+# ─── Speech-to-Text (Sarvam AI) ──────────────────────────────────────────────
+requests>=2.31.0
+sounddevice>=0.4.6         # Microphone capture
+soundfile>=0.12.1
+scipy>=1.13.0
+
+# ─── LLM (Groq for fast inference / Gemini fallback) ─────────────────────────
+groq>=0.9.0
+google-generativeai>=0.5.0
+
+# ─── Guardrails ──────────────────────────────────────────────────────────────
+better-profanity>=0.7.0
+
+# ─── Structured output / Harness ─────────────────────────────────────────────
+pydantic>=2.7.0
+tenacity>=8.3.0            # Retries with exponential back-off
+
+# ─── Benchmarking ────────────────────────────────────────────────────────────
+tqdm>=4.66.0
