@@ -32,5 +32,8 @@ better-profanity>=0.7.0
 pydantic>=2.7.0
 tenacity>=8.3.0            # Retries with exponential back-off
 
+# ─── Web UI ──────────────────────────────────────────────────────────────────
+streamlit>=1.35.0
+
 # ─── Benchmarking ────────────────────────────────────────────────────────────
 tqdm>=4.66.0
