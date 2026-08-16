@@ -38,7 +38,7 @@ async def lifespan(app: FastAPI):
         print("[*] Loading VoxRAG pipeline ...")
         retriever = FAISSRetriever.load(config.INDEX_PATH)
         generator = AnswerGenerator()
-        guardrails= Guardrails()
+        guardrails= Guardrails(embed_model=retriever.model)
         _harness  = RAGHarness(retriever, generator, guardrails)
         _stt      = SpeechToText(mode="sarvam")
         _stats    = {

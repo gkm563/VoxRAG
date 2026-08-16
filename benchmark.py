@@ -18,8 +18,12 @@ Usage:
 import argparse
 import json
 import time
+import sys
 import statistics
 from pathlib import Path
+
+if sys.platform == "win32":
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
 import numpy as np
 from tqdm import tqdm
@@ -175,10 +179,10 @@ def main():
     parser.add_argument("--output", type=str,  default="benchmark_results.json", help="Output file")
     args = parser.parse_args()
 
-    print("⚙️   Loading pipeline …")
+    print("[*] Loading pipeline ...")
     retriever  = FAISSRetriever.load(config.INDEX_PATH)
     generator  = AnswerGenerator()
-    guardrails = Guardrails()
+    guardrails = Guardrails(embed_model=retriever.model)
     harness    = RAGHarness(retriever, generator, guardrails)
     print("✅  Pipeline loaded.\n")
 

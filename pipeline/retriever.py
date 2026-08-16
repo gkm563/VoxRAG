@@ -55,7 +55,7 @@ class FAISSRetriever:
         self.index.add(embeddings)
 
         if verbose:
-            print(f"✅  FAISS index built: {self.index.ntotal:,} vectors")
+            print(f"[+] FAISS index built: {self.index.ntotal:,} vectors")
 
     def save(self, index_path: Path = config.INDEX_PATH) -> None:
         """Persist FAISS index + chunk metadata."""
@@ -69,7 +69,7 @@ class FAISSRetriever:
             for chunk in self.chunks:
                 f.write(json.dumps(chunk, ensure_ascii=False) + "\n")
 
-        print(f"💾  Saved index → {index_path}")
+        print(f"[+] Saved index -> {index_path}")
 
     # ── Load ──────────────────────────────────────────────────────────────────
 
@@ -85,7 +85,7 @@ class FAISSRetriever:
         with open(index_path / "metadata.jsonl", encoding="utf-8") as f:
             instance.chunks = [json.loads(l) for l in f if l.strip()]
 
-        print(f"📂  Loaded FAISS index: {instance.index.ntotal:,} vectors")
+        print(f"[+] Loaded FAISS index: {instance.index.ntotal:,} vectors")
         return instance
 
     # ── Search ────────────────────────────────────────────────────────────────

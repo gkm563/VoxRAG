@@ -2,21 +2,24 @@
 main.py — VoxRAG Entry Point
 
 Modes:
-  --mode voice   : Record from mic → transcribe → RAG pipeline → print answer
-  --mode demo    : Run a set of hardcoded demo queries (no mic needed)
+  --mode demo    : Run a set of benchmark demo queries
   --mode text    : Accept typed query from stdin
+  --mode voice   : Record from mic -> transcribe -> RAG pipeline -> print answer
   --query "..."  : Run a single query directly (text mode)
 
 Usage:
   python main.py --mode demo
-  python main.py --mode voice
   python main.py --mode text
   python main.py --query "What is MSMARCO?"
 """
 
-import argparse
 import sys
+import argparse
 import json
+
+# Fix Windows console UTF-8 output
+if sys.platform == "win32":
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
 import config
 from pipeline.retriever  import FAISSRetriever
@@ -25,7 +28,6 @@ from pipeline.guardrails import Guardrails
 from pipeline.harness    import RAGHarness, PipelineInput
 
 
-# ── Demo queries ──────────────────────────────────────────────────────────────
 DEMO_QUERIES = [
     "What is the MSMARCO dataset used for?",
     "How does information retrieval work?",
@@ -37,14 +39,14 @@ DEMO_QUERIES = [
 
 def load_harness() -> RAGHarness:
     """Load all pipeline components and return a ready harness."""
-    print("⚙️   Loading VoxRAG pipeline …")
+    print("[*] Loading VoxRAG pipeline ...")
 
     retriever  = FAISSRetriever.load(config.INDEX_PATH)
     generator  = AnswerGenerator()
-    guardrails = Guardrails()
+    guardrails = Guardrails(embed_model=retriever.model)
     harness    = RAGHarness(retriever, generator, guardrails)
 
-    print("✅  Pipeline ready!\n")
+    print(f"[+] Pipeline ready! Indexed vectors: {retriever.index.ntotal:,}\n")
     return harness
 
 
@@ -53,28 +55,47 @@ def run_query(harness: RAGHarness, query: str, stt_latency: float = 0.0):
     inp = PipelineInput(query=query, stt_latency=stt_latency)
     out = harness.run(inp)
 
-    print("\n" + "═" * 60)
-    print(f"🔍  Query     : {out.query}")
-    print("═" * 60)
+    print("\n" + "=" * 60)
+    print(f" Query     : {out.query}")
+    print("=" * 60)
 
     if out.blocked:
-        print(f"🚫  BLOCKED   : {out.block_reason}")
+        print(f"[BLOCKED] Reason: {out.block_reason}")
     else:
-        print(f"💬  Answer    : {out.answer}")
-        print(f"📊  Confidence: {out.confidence:.0%}")
-        print(f"🔗  Grounded  : {'Yes' if out.grounded else 'No'}")
-        print(f"📎  Sources   : {', '.join(out.sources[:3])}")
+        print(f"[ANSWER]  : {out.answer}")
+        print(f"[CONF]    : {out.confidence:.0%}")
+        print(f"[GROUNDED]: {'Yes' if out.grounded else 'No'}")
+        if out.sources:
+            print(f"[SOURCES] : {', '.join(str(s) for s in out.sources[:3])}")
 
-    print("\n⏱️   Latency breakdown:")
+    print("\n[LATENCY BREAKDOWN]")
     for stage, ms in out.latency.items():
-        bar = "█" * max(1, int(ms / 5))
+        bar = "#" * max(1, int(ms / 5))
         print(f"   {stage:<20} {ms:7.1f} ms  {bar}")
 
     total = out.total_latency_ms
-    target_ok = "✅" if total < config.PIPELINE_TIMEOUT_MS else "⚠️ OVER TARGET"
-    print(f"\n   {'TOTAL':<20} {total:7.1f} ms  {target_ok}")
-    print("═" * 60 + "\n")
+    target_ok = "PASS (< 200ms)" if total < config.PIPELINE_TIMEOUT_MS else "OVER TARGET"
+    print(f"\n   {'TOTAL':<20} {total:7.1f} ms  [{target_ok}]")
+    print("=" * 60 + "\n")
     return out
+
+
+def mode_demo(harness: RAGHarness):
+    print("[*] Running demo queries ...\n")
+    for query in DEMO_QUERIES:
+        run_query(harness, query)
+
+
+def mode_text(harness: RAGHarness):
+    print("[*] Text mode — type your query (Ctrl+C to exit)\n")
+    while True:
+        try:
+            query = input("Query: ").strip()
+            if query:
+                run_query(harness, query)
+        except KeyboardInterrupt:
+            print("\nExiting.")
+            break
 
 
 def mode_voice(harness: RAGHarness):
@@ -82,34 +103,16 @@ def mode_voice(harness: RAGHarness):
     stt = SpeechToText()
 
     while True:
-        input("Press ENTER to start recording (Ctrl+C to exit) …")
+        input("Press ENTER to start recording (Ctrl+C to exit) ...")
         try:
             query, stt_ms = stt.from_mic()
-            print(f"\n📝  Transcribed: \"{query}\" ({stt_ms:.0f}ms)")
+            print(f"\n[TRANSCRIPT]: \"{query}\" ({stt_ms:.0f}ms)")
             run_query(harness, query, stt_latency=stt_ms)
         except KeyboardInterrupt:
-            print("\n👋  Exiting.")
+            print("\nExiting.")
             break
         except Exception as e:
-            print(f"❌  Error: {e}")
-
-
-def mode_demo(harness: RAGHarness):
-    print("🎯  Running demo queries …\n")
-    for query in DEMO_QUERIES:
-        run_query(harness, query)
-
-
-def mode_text(harness: RAGHarness):
-    print("💬  Text mode — type your query (Ctrl+C to exit)\n")
-    while True:
-        try:
-            query = input("Query: ").strip()
-            if query:
-                run_query(harness, query)
-        except KeyboardInterrupt:
-            print("\n👋  Exiting.")
-            break
+            print(f"[ERROR]: {e}")
 
 
 def main():
