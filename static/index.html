@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -7,16 +7,32 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
 <style>
-  *{margin:0;padding:0;box-sizing:border-box;}
-  :root{
+  *{margin:0;padding:0;box-sizing:border-box;transition:background-color 0.2s ease,border-color 0.2s ease,color 0.2s ease;}
+
+  /* ── Dark Theme (Default) ── */
+  :root[data-theme="dark"]{
     --bg-primary:#0d0f14;--bg-secondary:#12151c;--bg-card:#181c26;--bg-hover:#1e2330;
     --border:#232838;--border-light:#2a3045;
     --accent:#6c63ff;--accent-dim:#6c63ff22;--accent2:#00d4aa;--accent3:#ff6b6b;--accent4:#ffd93d;
     --text-primary:#e8eaf0;--text-secondary:#8892a4;--text-muted:#4a5568;
     --green:#00d4aa;--red:#ff6b6b;--yellow:#ffd93d;--blue:#4dabf7;
+    --card-shadow:0 4px 20px #00000040;
     --sidebar-w:210px;--right-w:320px;
     --radius:12px;--radius-sm:8px;
   }
+
+  /* ── Light Theme ── */
+  :root[data-theme="light"]{
+    --bg-primary:#f4f6fb;--bg-secondary:#ffffff;--bg-card:#ffffff;--bg-hover:#f1f4f9;
+    --border:#e2e8f0;--border-light:#cbd5e1;
+    --accent:#534bf3;--accent-dim:#6c63ff15;--accent2:#059669;--accent3:#dc2626;--accent4:#d97706;
+    --text-primary:#0f172a;--text-secondary:#475569;--text-muted:#94a3b8;
+    --green:#059669;--red:#dc2626;--yellow:#d97706;--blue:#2563eb;
+    --card-shadow:0 4px 16px #0000000a;
+    --sidebar-w:210px;--right-w:320px;
+    --radius:12px;--radius-sm:8px;
+  }
+
   html,body{height:100%;font-family:'Inter',sans-serif;background:var(--bg-primary);color:var(--text-primary);overflow:hidden;}
 
   /* ── Layout ── */
@@ -25,34 +41,40 @@
   /* ── Sidebar ── */
   .sidebar{background:var(--bg-secondary);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:20px 12px;user-select:none;}
   .logo{display:flex;align-items:center;gap:10px;padding:4px 8px;margin-bottom:28px;}
-  .logo-icon{width:36px;height:36px;background:linear-gradient(135deg,#6c63ff,#a855f7);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;}
+  .logo-icon{width:36px;height:36px;background:linear-gradient(135deg,var(--accent),#a855f7);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;color:white;}
   .logo-text h2{font-size:15px;font-weight:700;letter-spacing:-0.02em;}
   .logo-text p{font-size:10px;color:var(--text-muted);letter-spacing:0.05em;}
   .nav{flex:1;display:flex;flex-direction:column;gap:3px;}
-  .nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--radius-sm);cursor:pointer;transition:all 0.15s;font-size:13px;font-weight:500;color:var(--text-secondary);}
+  .nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--radius-sm);cursor:pointer;font-size:13px;font-weight:500;color:var(--text-secondary);}
   .nav-item:hover{background:var(--bg-hover);color:var(--text-primary);}
-  .nav-item.active{background:var(--accent-dim);color:var(--accent);border:1px solid #6c63ff30;font-weight:600;}
+  .nav-item.active{background:var(--accent-dim);color:var(--accent);border:1px solid var(--accent);font-weight:600;}
   .nav-item svg{width:16px;height:16px;flex-shrink:0;}
   .sidebar-bottom{border-top:1px solid var(--border);padding-top:14px;margin-top:8px;}
   .user-card{display:flex;align-items:center;gap:10px;padding:8px;border-radius:var(--radius-sm);cursor:pointer;}
-  .user-avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--accent),#a855f7);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;}
+  .user-avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--accent),#a855f7);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;color:white;}
   .user-info{flex:1;}
   .user-name{font-size:12.5px;font-weight:600;}
   .user-role{font-size:10px;color:var(--text-muted);}
-  .dark-toggle{display:flex;align-items:center;gap:8px;padding:8px;margin-top:6px;font-size:12px;color:var(--text-secondary);}
-  .toggle-pill{width:36px;height:20px;background:var(--accent);border-radius:99px;position:relative;cursor:pointer;}
-  .toggle-pill::after{content:'';position:absolute;top:2px;right:2px;width:16px;height:16px;background:white;border-radius:50%;}
+
+  /* Theme Switcher Toggle */
+  .theme-toggle-row{display:flex;align-items:center;justify-content:space-between;padding:8px;margin-top:6px;font-size:12px;color:var(--text-secondary);cursor:pointer;}
+  .toggle-switch{width:38px;height:20px;background:var(--accent);border-radius:99px;position:relative;cursor:pointer;}
+  .toggle-switch::after{content:'';position:absolute;top:2px;right:2px;width:16px;height:16px;background:white;border-radius:50%;transition:transform 0.2s;}
+  [data-theme="light"] .toggle-switch{background:#cbd5e1;}
+  [data-theme="light"] .toggle-switch::after{transform:translateX(-18px);background:white;}
 
   /* ── Main ── */
   .main{display:flex;flex-direction:column;overflow:hidden;background:var(--bg-primary);}
-  .top-bar{display:flex;align-items:center;justify-content:space-between;padding:16px 24px;border-bottom:1px solid var(--border);flex-shrink:0;}
+  .top-bar{display:flex;align-items:center;justify-content:space-between;padding:16px 24px;border-bottom:1px solid var(--border);flex-shrink:0;background:var(--bg-secondary);}
   .top-bar-left h1{font-size:18px;font-weight:700;letter-spacing:-0.02em;}
   .top-bar-left p{font-size:12px;color:var(--text-secondary);margin-top:2px;}
   .top-bar-right{display:flex;align-items:center;gap:12px;}
-  .status-pill{display:flex;align-items:center;gap:6px;padding:5px 12px;border-radius:99px;font-size:12px;font-weight:500;background:var(--bg-card);border:1px solid var(--border);}
+  .status-pill{display:flex;align-items:center;gap:6px;padding:5px 12px;border-radius:99px;font-size:12px;font-weight:500;background:var(--bg-hover);border:1px solid var(--border);}
   .status-dot{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green);animation:pulse 2s infinite;}
   @keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.5;}}
   .live-pill{display:flex;align-items:center;gap:6px;padding:5px 14px;border-radius:99px;font-size:12px;font-weight:600;background:var(--accent);color:white;}
+  .mode-badge-btn{display:flex;align-items:center;gap:6px;padding:5px 12px;border-radius:var(--radius-sm);font-size:12px;font-weight:600;background:var(--bg-hover);border:1px solid var(--border);color:var(--text-primary);cursor:pointer;}
+  .mode-badge-btn:hover{border-color:var(--accent);}
 
   /* ── Content Panes ── */
   .tab-pane{flex:1;overflow-y:auto;padding:20px 24px;display:none;flex-direction:column;gap:16px;}
@@ -61,11 +83,11 @@
   .tab-pane::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px;}
 
   /* ── Voice Card ── */
-  .voice-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:20px 24px;}
+  .voice-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:20px 24px;box-shadow:var(--card-shadow);}
   .voice-card-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px;}
   .voice-card-header h3{font-size:15px;font-weight:600;}
   .voice-card-header p{font-size:12px;color:var(--text-secondary);margin-top:2px;}
-  .type-toggle{display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--bg-hover);cursor:pointer;font-size:12px;color:var(--text-secondary);transition:all 0.15s;}
+  .type-toggle{display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--bg-hover);cursor:pointer;font-size:12px;color:var(--text-secondary);}
   .type-toggle:hover{color:var(--text-primary);border-color:var(--accent);}
   .voice-visualizer{display:flex;align-items:center;justify-content:center;gap:16px;margin-bottom:18px;}
   .waveform{display:flex;align-items:center;gap:3px;height:48px;}
@@ -80,8 +102,8 @@
   .wave-bar:nth-child(8){height:10px;animation-delay:0.7s;}
   @keyframes wave{0%,100%{transform:scaleY(0.4);}50%{transform:scaleY(1);opacity:0.9;}}
   .waveform.active .wave-bar{opacity:1;}
-  .mic-btn{width:64px;height:64px;border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:22px;position:relative;transition:transform 0.15s,box-shadow 0.2s;flex-shrink:0;
-    background:linear-gradient(135deg,#6c63ff,#a855f7);box-shadow:0 0 0 0 #6c63ff55;}
+  .mic-btn{width:64px;height:64px;border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:22px;position:relative;flex-shrink:0;color:white;
+    background:linear-gradient(135deg,var(--accent),#a855f7);box-shadow:0 0 0 0 #6c63ff55;}
   .mic-btn:hover{transform:scale(1.05);box-shadow:0 0 0 8px #6c63ff22;}
   .mic-btn.recording{animation:micPulse 1s infinite;background:linear-gradient(135deg,var(--red),#ff4444);}
   @keyframes micPulse{0%{box-shadow:0 0 0 0 #ff6b6b55;}70%{box-shadow:0 0 0 16px #ff6b6b00;}100%{box-shadow:0 0 0 0 #ff6b6b00;}}
@@ -90,26 +112,36 @@
 
   /* ── Text Input ── */
   .text-input-row{display:flex;gap:10px;align-items:flex-end;margin-top:8px;}
-  .text-input-row input{flex:1;background:var(--bg-hover);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 16px;font-size:14px;color:var(--text-primary);font-family:inherit;outline:none;transition:border-color 0.15s;}
+  .text-input-row input{flex:1;background:var(--bg-hover);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 16px;font-size:14px;color:var(--text-primary);font-family:inherit;outline:none;}
   .text-input-row input:focus{border-color:var(--accent);}
   .text-input-row input::placeholder{color:var(--text-muted);}
-  .send-btn{width:44px;height:44px;border-radius:var(--radius-sm);border:none;background:linear-gradient(135deg,#6c63ff,#a855f7);color:white;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:opacity 0.15s,transform 0.15s;font-size:16px;}
+  .send-btn{width:44px;height:44px;border-radius:var(--radius-sm);border:none;background:linear-gradient(135deg,var(--accent),#a855f7);color:white;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;}
   .send-btn:hover{opacity:0.85;transform:scale(1.05);}
   .send-btn:disabled{opacity:0.4;cursor:not-allowed;transform:none;}
 
-  /* ── Messages ── */
-  .msg-user{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:14px 18px;}
+  /* ── Messages with ChatGPT-style Edit System ── */
+  .msg-user{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:14px 18px;box-shadow:var(--card-shadow);position:relative;}
   .msg-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
-  .msg-sender{font-size:12px;font-weight:600;color:var(--text-secondary);}
-  .msg-time{font-size:11px;color:var(--text-muted);}
-  .msg-text{font-size:14px;line-height:1.6;}
-  .msg-ai{background:var(--bg-card);border:1px solid var(--border-light);border-radius:var(--radius);padding:14px 18px;}
+  .msg-sender{font-size:12px;font-weight:600;color:var(--text-secondary);display:flex;align-items:center;gap:6px;}
+  .msg-actions{display:flex;align-items:center;gap:8px;}
+  .msg-action-btn{background:transparent;border:none;color:var(--text-muted);cursor:pointer;font-size:11px;padding:2px 6px;border-radius:4px;}
+  .msg-action-btn:hover{color:var(--text-primary);background:var(--bg-hover);}
+  .msg-text{font-size:14px;line-height:1.6;color:var(--text-primary);}
+  
+  /* Edit mode box */
+  .edit-box-container{display:flex;flex-direction:column;gap:8px;margin-top:4px;}
+  .edit-textarea{width:100%;background:var(--bg-hover);border:1px solid var(--accent);border-radius:var(--radius-sm);padding:10px;font-size:13.5px;color:var(--text-primary);font-family:inherit;outline:none;resize:vertical;}
+  .edit-buttons{display:flex;gap:8px;justify-content:flex-end;}
+  .btn-save{background:var(--accent);color:white;border:none;padding:5px 12px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;}
+  .btn-cancel{background:var(--bg-hover);color:var(--text-secondary);border:1px solid var(--border);padding:5px 12px;border-radius:6px;font-size:12px;cursor:pointer;}
+
+  .msg-ai{background:var(--bg-card);border:1px solid var(--border-light);border-radius:var(--radius);padding:14px 18px;box-shadow:var(--card-shadow);}
   .msg-ai-header{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
-  .ai-icon{width:24px;height:24px;border-radius:6px;background:linear-gradient(135deg,#6c63ff,#a855f7);display:flex;align-items:center;justify-content:center;font-size:11px;}
+  .ai-icon{width:24px;height:24px;border-radius:6px;background:linear-gradient(135deg,var(--accent),#a855f7);display:flex;align-items:center;justify-content:center;font-size:11px;color:white;}
   .ai-name{font-size:13px;font-weight:600;color:var(--accent);}
   .sources-section{margin-top:12px;border-top:1px solid var(--border);padding-top:12px;}
   .sources-label{font-size:11px;color:var(--text-muted);margin-bottom:6px;font-weight:500;}
-  .source-chip{display:flex;justify-content:space-between;align-items:center;padding:7px 12px;background:var(--bg-hover);border:1px solid var(--border);border-radius:6px;margin-bottom:5px;cursor:pointer;transition:border-color 0.15s;}
+  .source-chip{display:flex;justify-content:space-between;align-items:center;padding:7px 12px;background:var(--bg-hover);border:1px solid var(--border);border-radius:6px;margin-bottom:5px;cursor:pointer;}
   .source-chip:hover{border-color:var(--accent);}
   .source-name{font-size:12px;color:var(--accent);font-family:'JetBrains Mono',monospace;}
   .source-score{font-size:11px;color:var(--text-muted);}
@@ -129,11 +161,11 @@
   .badge-green{background:#00d4aa22;color:var(--green);}
   .badge-red{background:#ff6b6b22;color:var(--red);}
 
-  /* ── Tab Panes: Analytics, Pipeline, Dataset, Guardrails, Settings, Logs ── */
+  /* ── Tab Panes ── */
   .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
   .grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;}
   .grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
-  .card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;}
+  .card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;box-shadow:var(--card-shadow);}
   .card-header-line{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;}
   .card-title{font-size:15px;font-weight:600;}
   .card-desc{font-size:12px;color:var(--text-secondary);margin-top:2px;}
@@ -148,6 +180,7 @@
 
   /* Log Stream */
   .log-console{background:#080a0f;border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px;font-family:'JetBrains Mono',monospace;font-size:11.5px;max-height:480px;overflow-y:auto;}
+  [data-theme="light"] .log-console{background:#1e293b;color:#f8fafc;}
   .log-line{padding:3px 0;display:flex;gap:12px;line-height:1.5;}
   .log-time{color:var(--text-muted);}
   .log-level-INFO{color:var(--green);font-weight:600;}
@@ -155,11 +188,12 @@
   .log-level-ERROR{color:var(--red);font-weight:600;}
   .log-stage{color:var(--accent);font-weight:500;}
   .log-msg{color:var(--text-primary);flex:1;}
+  [data-theme="light"] .log-msg{color:#f8fafc;}
 
   /* Interactive Elements */
   .input-field{background:var(--bg-hover);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 14px;font-size:13px;color:var(--text-primary);outline:none;font-family:inherit;width:100%;}
   .input-field:focus{border-color:var(--accent);}
-  .btn-primary{background:linear-gradient(135deg,#6c63ff,#a855f7);border:none;border-radius:var(--radius-sm);color:white;font-weight:600;padding:8px 16px;cursor:pointer;font-size:12.5px;transition:opacity 0.15s;}
+  .btn-primary{background:linear-gradient(135deg,var(--accent),#a855f7);border:none;border-radius:var(--radius-sm);color:white;font-weight:600;padding:8px 16px;cursor:pointer;font-size:12.5px;}
   .btn-primary:hover{opacity:0.85;}
   .btn-secondary{background:var(--bg-hover);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text-primary);padding:8px 16px;cursor:pointer;font-size:12.5px;}
 
@@ -172,7 +206,7 @@
   .right-panel{background:var(--bg-secondary);border-left:1px solid var(--border);overflow-y:auto;padding:16px;}
   .right-panel::-webkit-scrollbar{width:3px;}
   .right-panel::-webkit-scrollbar-thumb{background:var(--border);}
-  .panel-section{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:14px;}
+  .panel-section{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:14px;box-shadow:var(--card-shadow);}
   .panel-title{font-size:13px;font-weight:600;margin-bottom:4px;}
   .panel-subtitle{font-size:10px;color:var(--text-muted);margin-bottom:14px;}
 
@@ -271,10 +305,9 @@
           <div class="user-role">Developer</div>
         </div>
       </div>
-      <div class="dark-toggle">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/></svg>
-        Dark Mode
-        <div class="toggle-pill" style="margin-left:auto;"></div>
+      <div class="theme-toggle-row" onclick="toggleTheme()">
+        <span id="themeLabel">☀️ Light / 🌙 Dark</span>
+        <div class="toggle-switch" id="themeSwitch"></div>
       </div>
     </div>
   </aside>
@@ -287,6 +320,7 @@
         <p id="pageSubtitle">Speech to Answer with Retrieval Augmented Generation</p>
       </div>
       <div class="top-bar-right">
+        <button class="mode-badge-btn" onclick="toggleTheme()" id="topThemeBtn">🌓 Switch Mode</button>
         <div class="status-pill">
           <div class="status-dot"></div>
           <span id="systemStatus">All Systems Operational</span>
@@ -304,7 +338,7 @@
         <div class="voice-card-header">
           <div>
             <h3>Ask your question</h3>
-            <p>Speak or type your question</p>
+            <p>Speak or type your question below</p>
           </div>
           <button class="type-toggle" id="typeToggleBtn" onclick="toggleInputMode()">
             ⌨️ Type instead
@@ -342,7 +376,7 @@
         </div>
       </div>
 
-      <!-- Chat history area -->
+      <!-- Chat history area with ChatGPT-like edit support -->
       <div id="chatHistory" style="display:flex;flex-direction:column;gap:14px;"></div>
     </div>
 
@@ -644,6 +678,7 @@
 </div>
 
 <script>
+  let currentTheme = localStorage.getItem('voxrag_theme') || 'dark';
   let isRecording = false;
   let mediaRecorder = null;
   let audioChunks = [];
@@ -654,6 +689,7 @@
   let chartCtx = null;
 
   window.addEventListener('DOMContentLoaded', async () => {
+    applyTheme(currentTheme);
     initChart();
     await loadStats();
     await loadAnalytics();
@@ -662,6 +698,21 @@
     setInterval(loadLogs, 5000);
   });
 
+  // ── Theme Switcher ──
+  function toggleTheme() {
+    currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    applyTheme(currentTheme);
+  }
+
+  function applyTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('voxrag_theme', theme);
+    document.getElementById('themeLabel').textContent = theme === 'dark' ? '🌙 Dark Mode' : '☀️ Light Mode';
+    document.getElementById('topThemeBtn').textContent = theme === 'dark' ? '☀️ Light' : '🌙 Dark';
+    drawChart();
+  }
+
+  // ── Tab Navigation ──
   function setNav(el, tabName) {
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
     el.classList.add('active');
@@ -689,6 +740,7 @@
     if (tabName === 'logs') loadLogs();
   }
 
+  // ── Speech Recognition ──
   function initSpeechRecognition() {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (SpeechRecognition) {
@@ -826,7 +878,8 @@
     const max  = Math.max(...data, 250);
     const pts  = data.map((v,i) => [i/(data.length-1||1)*w, h - (v/max)*(h*0.85)]);
 
-    ctx.strokeStyle = '#232838'; ctx.lineWidth = 1;
+    const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+    ctx.strokeStyle = isLight ? '#e2e8f0' : '#232838'; ctx.lineWidth = 1;
     [0.25,0.5,0.75,1].forEach(p => {
       ctx.beginPath(); ctx.moveTo(0, h*p); ctx.lineTo(w, h*p); ctx.stroke();
     });
@@ -849,7 +902,7 @@
     ctx.stroke();
 
     const targetY = h - (200/max)*(h*0.85);
-    ctx.strokeStyle = '#ff6b6b55'; ctx.setLineDash([4,4]); ctx.lineWidth = 1;
+    ctx.strokeStyle = isLight ? '#ef444499' : '#ff6b6b55'; ctx.setLineDash([4,4]); ctx.lineWidth = 1;
     ctx.beginPath(); ctx.moveTo(0,targetY); ctx.lineTo(w,targetY); ctx.stroke();
     ctx.setLineDash([]);
   }
@@ -921,26 +974,8 @@
 
     if (liveTranscript.trim()) {
       const query = liveTranscript.trim();
-      addUserMessage(`🎙️ "${query}"`);
-      try {
-        const r = await fetch('/api/query/text', {
-          method: 'POST',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({query, top_k: 5})
-        });
-        const d = await r.json();
-        removeThinkingMessage();
-        if (!r.ok || d.error) addErrorMessage(d.error || 'Query failed');
-        else {
-          addAIMessage(d);
-          updateGuardrails(d.guardrails);
-          updatePipelineMs(d.latency);
-          await loadAnalytics();
-        }
-      } catch(e) {
-        removeThinkingMessage();
-        addErrorMessage('Query failed: ' + e.message);
-      }
+      addUserMessage(query);
+      await executeQuery(query);
       document.getElementById('voiceStatus').textContent = 'Click the microphone to start recording';
       return;
     }
@@ -955,7 +990,7 @@
       if (!r.ok || d.error) {
         addErrorMessage(d.error || 'Could not transcribe speech. Please speak clearly.');
       } else {
-        addUserMessage(`🎙️ "${d.transcript || d.query}"`);
+        addUserMessage(d.transcript || d.query || 'Voice query');
         addAIMessage(d);
         updateGuardrails(d.guardrails);
         updatePipelineMs(d.latency);
@@ -979,7 +1014,14 @@
 
     addUserMessage(query);
     addThinkingMessage();
+    await executeQuery(query);
 
+    input.disabled = false;
+    document.getElementById('sendBtn').disabled = false;
+    input.focus();
+  }
+
+  async function executeQuery(query) {
     try {
       const r = await fetch('/api/query/text', {
         method:'POST',
@@ -988,7 +1030,7 @@
       });
       const d = await r.json();
       removeThinkingMessage();
-      if (!r.ok || d.error) addErrorMessage(d.error || 'Query failed');
+      if (!r.ok || d.error) addErrorMessage(d.error || 'Query processing failed.');
       else {
         addAIMessage(d);
         updateGuardrails(d.guardrails);
@@ -999,18 +1041,62 @@
       removeThinkingMessage();
       addErrorMessage('Query failed: ' + e.message);
     }
-
-    input.disabled = false;
-    document.getElementById('sendBtn').disabled = false;
-    input.focus();
   }
 
+  // ── ChatGPT-Style Editable User Messages ──
+  let msgCounter = 0;
   function addUserMessage(text) {
+    msgCounter++;
+    const msgId = 'user-msg-' + msgCounter;
     const t = new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
     const el = document.createElement('div');
     el.className = 'msg-user';
-    el.innerHTML = `<div class="msg-header"><span class="msg-sender">You</span><span class="msg-time">${t}</span></div><div class="msg-text">${escHtml(text)}</div>`;
+    el.id = msgId;
+    el.innerHTML = `
+      <div class="msg-header">
+        <span class="msg-sender">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+          You
+        </span>
+        <div class="msg-actions">
+          <span class="msg-time">${t}</span>
+          <button class="msg-action-btn" onclick="startEditMessage('${msgId}')" title="Edit query">✏️ Edit</button>
+          <button class="msg-action-btn" onclick="copyText('${escAttr(text)}')" title="Copy">📋</button>
+        </div>
+      </div>
+      <div class="msg-text" id="${msgId}-text">${escHtml(text)}</div>
+      <div class="edit-box-container" id="${msgId}-edit" style="display:none;">
+        <textarea class="edit-textarea" id="${msgId}-textarea" rows="2">${escHtml(text)}</textarea>
+        <div class="edit-buttons">
+          <button class="btn-cancel" onclick="cancelEditMessage('${msgId}')">Cancel</button>
+          <button class="btn-save" onclick="saveAndSubmitMessage('${msgId}')">Save &amp; Submit</button>
+        </div>
+      </div>
+    `;
     insertMsg(el);
+  }
+
+  function startEditMessage(msgId) {
+    document.getElementById(msgId + '-text').style.display = 'none';
+    document.getElementById(msgId + '-edit').style.display = 'flex';
+    const ta = document.getElementById(msgId + '-textarea');
+    ta.focus();
+    ta.setSelectionRange(ta.value.length, ta.value.length);
+  }
+
+  function cancelEditMessage(msgId) {
+    document.getElementById(msgId + '-text').style.display = 'block';
+    document.getElementById(msgId + '-edit').style.display = 'none';
+  }
+
+  async function saveAndSubmitMessage(msgId) {
+    const newQuery = document.getElementById(msgId + '-textarea').value.trim();
+    if (!newQuery) return;
+    document.getElementById(msgId + '-text').textContent = newQuery;
+    cancelEditMessage(msgId);
+
+    addThinkingMessage();
+    await executeQuery(newQuery);
   }
 
   function addAIMessage(d) {
@@ -1122,7 +1208,7 @@
   }
   function showToast(msg, type='info') {
     const t = document.createElement('div');
-    t.style.cssText = `position:fixed;bottom:20px;right:20px;padding:10px 18px;border-radius:8px;font-size:13px;font-weight:500;z-index:9999;background:${type==='error'?'#ff6b6b22':'var(--bg-card)'};border:1px solid ${type==='error'?'var(--red)':'var(--border)'};color:${type==='error'?'var(--red)':'var(--text-primary)'};box-shadow:0 8px 24px #0006;`;
+    t.style.cssText = `position:fixed;bottom:20px;right:20px;padding:10px 18px;border-radius:8px;font-size:13px;font-weight:500;z-index:9999;background:${type==='error'?'#ff6b6b22':'var(--bg-card)'};border:1px solid ${type==='error'?'var(--red)':'var(--border)'};color:${type==='error'?'var(--red)':'var(--text-primary)'};box-shadow:var(--card-shadow);`;
     t.textContent = msg;
     document.body.appendChild(t);
     setTimeout(()=>t.remove(), 2500);
