@@ -1,6 +1,6 @@
 """
 build_index.py — One-time script to:
-  1. Download MSMARCO-XI dataset from HuggingFace
+  1. Download MSMARCO-XI dataset from HuggingFace (FREE)
   2. Apply multi-strategy chunking
   3. Build and persist FAISS index
 
@@ -10,6 +10,11 @@ Run once before using main.py:
 
 import sys
 import time
+
+# Fix Windows console encoding for progress output
+if sys.platform == "win32":
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+
 from datasets import load_dataset
 from tqdm import tqdm
 
@@ -20,7 +25,7 @@ from pipeline.retriever import FAISSRetriever
 
 def load_passages() -> list[dict]:
     """Stream MSMARCO-XI passages and return as list of dicts."""
-    print(f"📥  Loading dataset: {config.DATASET_NAME} (lang={config.DATASET_LANGUAGE}) …")
+    print(f"[*] Loading dataset: {config.DATASET_NAME} (lang={config.DATASET_LANGUAGE}) ...")
     t0 = time.perf_counter()
 
     ds = load_dataset(
@@ -50,7 +55,7 @@ def load_passages() -> list[dict]:
             break
 
     elapsed = time.perf_counter() - t0
-    print(f"✅  Loaded {len(passages):,} passages in {elapsed:.1f}s")
+    print(f"[+] Loaded {len(passages):,} passages in {elapsed:.1f}s")
     return passages
 
 
@@ -59,21 +64,21 @@ def main():
     passages = load_passages()
 
     # ── 2. Chunk ──────────────────────────────────────────────────────────────
-    print("\n✂️   Chunking with multi-strategy chunker …")
+    print("\n[*] Chunking with multi-strategy chunker ...")
     chunker    = MultiStrategyChunker(use_semantic=True)
     all_chunks = chunker.chunk_passages(passages, verbose=True)
-    print(f"📦  Total chunks produced: {len(all_chunks):,}")
+    print(f"[+] Total chunks produced: {len(all_chunks):,}")
 
     # Save chunks to disk
     MultiStrategyChunker.save(all_chunks, config.CHUNKS_PATH)
 
     # ── 3. Build FAISS index ──────────────────────────────────────────────────
-    print("\n🏗️   Building FAISS index …")
+    print("\n[*] Building FAISS index ...")
     retriever = FAISSRetriever()
     retriever.build(all_chunks, verbose=True)
     retriever.save(config.INDEX_PATH)
 
-    print("\n🎉  Index build complete!")
+    print("\n[DONE] Index build complete!")
     print(f"   Chunks : {len(all_chunks):,}")
     print(f"   Vectors: {retriever.index.ntotal:,}")
     print(f"   Index  : {config.INDEX_PATH}")

@@ -55,7 +55,9 @@ RETRY_WAIT_MAX  = 2.0
 # ── Latency ──────────────────────────────────────────────────────────────────
 PIPELINE_TIMEOUT_MS = 200   # hard target
 
-# ── Speech-to-Text (Sarvam AI) ───────────────────────────────────────────────
+# ── Speech-to-Text ───────────────────────────────────────────────────────────
+# Whisper (local, free, open-source) — "tiny"/"base"/"small"/"medium"/"large"
+WHISPER_MODEL     = "base"          # ~150MB, good accuracy, runs on CPU
 SARVAM_STT_URL    = "https://api.sarvam.ai/speech-to-text"
 SARVAM_STT_MODEL  = "saarika:v1"
 AUDIO_SAMPLE_RATE = 16000
