@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>VoxRAG — Voice-Enabled RAG System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  :root{
+    --bg-primary:#0d0f14;--bg-secondary:#12151c;--bg-card:#181c26;--bg-hover:#1e2330;
+    --border:#232838;--border-light:#2a3045;
+    --accent:#6c63ff;--accent-dim:#6c63ff22;--accent2:#00d4aa;--accent3:#ff6b6b;--accent4:#ffd93d;
+    --text-primary:#e8eaf0;--text-secondary:#8892a4;--text-muted:#4a5568;
+    --green:#00d4aa;--red:#ff6b6b;--yellow:#ffd93d;--blue:#4dabf7;
+    --sidebar-w:200px;--right-w:320px;
+    --radius:12px;--radius-sm:8px;
+  }
+  html,body{height:100%;font-family:'Inter',sans-serif;background:var(--bg-primary);color:var(--text-primary);overflow:hidden;}
+
+  /* ── Layout ── */
+  .layout{display:grid;grid-template-columns:var(--sidebar-w) 1fr var(--right-w);height:100vh;}
+
+  /* ── Sidebar ── */
+  .sidebar{background:var(--bg-secondary);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:20px 12px;}
+  .logo{display:flex;align-items:center;gap:10px;padding:4px 8px;margin-bottom:28px;}
+  .logo-icon{width:36px;height:36px;background:linear-gradient(135deg,#6c63ff,#a855f7);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;}
+  .logo-text h2{font-size:15px;font-weight:700;letter-spacing:-0.02em;}
+  .logo-text p{font-size:10px;color:var(--text-muted);letter-spacing:0.05em;}
+  .nav{flex:1;display:flex;flex-direction:column;gap:2px;}
+  .nav-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:var(--radius-sm);cursor:pointer;transition:all 0.15s;font-size:13.5px;font-weight:500;color:var(--text-secondary);}
+  .nav-item:hover{background:var(--bg-hover);color:var(--text-primary);}
+  .nav-item.active{background:var(--accent-dim);color:var(--accent);border:1px solid #6c63ff30;}
+  .nav-item svg{width:16px;height:16px;flex-shrink:0;}
+  .sidebar-bottom{border-top:1px solid var(--border);padding-top:16px;margin-top:8px;}
+  .user-card{display:flex;align-items:center;gap:10px;padding:8px;border-radius:var(--radius-sm);cursor:pointer;}
+  .user-avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--accent),#a855f7);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;}
+  .user-info{flex:1;}
+  .user-name{font-size:12.5px;font-weight:600;}
+  .user-role{font-size:10px;color:var(--text-muted);}
+  .dark-toggle{display:flex;align-items:center;gap:8px;padding:8px;margin-top:6px;font-size:12px;color:var(--text-secondary);}
+  .toggle-pill{width:36px;height:20px;background:var(--accent);border-radius:99px;position:relative;cursor:pointer;transition:background 0.2s;}
+  .toggle-pill::after{content:'';position:absolute;top:2px;right:2px;width:16px;height:16px;background:white;border-radius:50%;transition:right 0.2s;}
+
+  /* ── Main ── */
+  .main{display:flex;flex-direction:column;overflow:hidden;}
+  .top-bar{display:flex;align-items:center;justify-content:space-between;padding:16px 24px;border-bottom:1px solid var(--border);flex-shrink:0;}
+  .top-bar-left h1{font-size:18px;font-weight:700;letter-spacing:-0.02em;}
+  .top-bar-left p{font-size:12px;color:var(--text-secondary);margin-top:2px;}
+  .top-bar-right{display:flex;align-items:center;gap:12px;}
+  .status-pill{display:flex;align-items:center;gap:6px;padding:5px 12px;border-radius:99px;font-size:12px;font-weight:500;background:var(--bg-card);border:1px solid var(--border);}
+  .status-dot{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green);animation:pulse 2s infinite;}
+  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.5;}}
+  .live-pill{display:flex;align-items:center;gap:6px;padding:5px 14px;border-radius:99px;font-size:12px;font-weight:600;background:var(--accent);color:white;cursor:pointer;}
+
+  /* ── Chat area ── */
+  .chat-area{flex:1;overflow-y:auto;padding:20px 24px;display:flex;flex-direction:column;gap:16px;}
+  .chat-area::-webkit-scrollbar{width:4px;}
+  .chat-area::-webkit-scrollbar-track{background:transparent;}
+  .chat-area::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px;}
+
+  /* ── Voice card ── */
+  .voice-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:20px 24px;}
+  .voice-card-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;}
+  .voice-card-header h3{font-size:15px;font-weight:600;}
+  .voice-card-header p{font-size:12px;color:var(--text-secondary);margin-top:2px;}
+  .type-toggle{display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--bg-hover);cursor:pointer;font-size:12px;color:var(--text-secondary);transition:all 0.15s;}
+  .type-toggle:hover{color:var(--text-primary);border-color:var(--accent);}
+  .voice-visualizer{display:flex;align-items:center;justify-content:center;gap:16px;margin-bottom:20px;}
+  .waveform{display:flex;align-items:center;gap:3px;height:48px;}
+  .wave-bar{width:3px;border-radius:3px;background:var(--accent);opacity:0.4;transition:height 0.1s;animation:wave 1.2s ease-in-out infinite;}
+  .wave-bar:nth-child(1){height:8px;animation-delay:0s;}
+  .wave-bar:nth-child(2){height:20px;animation-delay:0.1s;}
+  .wave-bar:nth-child(3){height:32px;animation-delay:0.2s;}
+  .wave-bar:nth-child(4){height:44px;animation-delay:0.3s;}
+  .wave-bar:nth-child(5){height:38px;animation-delay:0.4s;}
+  .wave-bar:nth-child(6){height:28px;animation-delay:0.5s;}
+  .wave-bar:nth-child(7){height:18px;animation-delay:0.6s;}
+  .wave-bar:nth-child(8){height:10px;animation-delay:0.7s;}
+  @keyframes wave{0%,100%{transform:scaleY(0.4);}50%{transform:scaleY(1);opacity:0.9;}}
+  .waveform.active .wave-bar{opacity:1;}
+  .mic-btn{width:64px;height:64px;border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:22px;position:relative;transition:transform 0.15s,box-shadow 0.2s;flex-shrink:0;
+    background:linear-gradient(135deg,#6c63ff,#a855f7);
+    box-shadow:0 0 0 0 #6c63ff55;}
+  .mic-btn:hover{transform:scale(1.05);box-shadow:0 0 0 8px #6c63ff22;}
+  .mic-btn.recording{animation:micPulse 1s infinite;background:linear-gradient(135deg,var(--red),#ff4444);}
+  @keyframes micPulse{0%{box-shadow:0 0 0 0 #ff6b6b55;}70%{box-shadow:0 0 0 16px #ff6b6b00;}100%{box-shadow:0 0 0 0 #ff6b6b00;}}
+  .voice-status{text-align:center;font-size:12px;color:var(--text-secondary);}
+  .voice-status span{color:var(--green);}
+
+  /* ── Text input ── */
+  .text-input-row{display:flex;gap:10px;align-items:flex-end;margin-top:8px;}
+  .text-input-row input{flex:1;background:var(--bg-hover);border:1px solid var(--border);border-radius:var(--radius-sm);padding:11px 16px;font-size:14px;color:var(--text-primary);font-family:inherit;outline:none;transition:border-color 0.15s;}
+  .text-input-row input:focus{border-color:var(--accent);}
+  .text-input-row input::placeholder{color:var(--text-muted);}
+  .send-btn{width:42px;height:42px;border-radius:var(--radius-sm);border:none;background:linear-gradient(135deg,#6c63ff,#a855f7);color:white;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:opacity 0.15s,transform 0.15s;font-size:16px;}
+  .send-btn:hover{opacity:0.85;transform:scale(1.05);}
+  .send-btn:disabled{opacity:0.4;cursor:not-allowed;transform:none;}
+
+  /* ── Messages ── */
+  .msg-user{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:14px 18px;}
+  .msg-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
+  .msg-sender{font-size:12px;font-weight:600;color:var(--text-secondary);}
+  .msg-time{font-size:11px;color:var(--text-muted);}
+  .msg-text{font-size:14px;line-height:1.6;}
+  .msg-ai{background:var(--bg-card);border:1px solid var(--border-light);border-radius:var(--radius);padding:14px 18px;}
+  .msg-ai-header{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+  .ai-icon{width:24px;height:24px;border-radius:6px;background:linear-gradient(135deg,#6c63ff,#a855f7);display:flex;align-items:center;justify-content:center;font-size:11px;}
+  .ai-name{font-size:13px;font-weight:600;color:var(--accent);}
+  .sources-section{margin-top:12px;border-top:1px solid var(--border);padding-top:12px;}
+  .sources-label{font-size:11px;color:var(--text-muted);margin-bottom:6px;font-weight:500;}
+  .source-chip{display:flex;justify-content:space-between;align-items:center;padding:7px 12px;background:var(--bg-hover);border:1px solid var(--border);border-radius:6px;margin-bottom:5px;cursor:pointer;transition:border-color 0.15s;}
+  .source-chip:hover{border-color:var(--accent);}
+  .source-name{font-size:12px;color:var(--accent);font-family:'JetBrains Mono',monospace;}
+  .source-score{font-size:11px;color:var(--text-muted);}
+  .msg-footer{display:flex;justify-content:space-between;align-items:center;margin-top:10px;}
+  .msg-footer-note{font-size:11px;color:var(--text-muted);}
+  .copy-btn{padding:4px 8px;border-radius:4px;border:1px solid var(--border);background:transparent;color:var(--text-muted);cursor:pointer;font-size:11px;transition:all 0.15s;}
+  .copy-btn:hover{color:var(--text-primary);border-color:var(--text-secondary);}
+  .blocked-msg{background:#ff6b6b11;border:1px solid #ff6b6b33;border-radius:var(--radius);padding:14px 18px;}
+  .blocked-title{color:var(--red);font-weight:600;font-size:13px;margin-bottom:4px;}
+  .blocked-reason{font-size:13px;color:var(--text-secondary);}
+  .thinking-msg{display:flex;align-items:center;gap:10px;padding:14px 18px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);}
+  .thinking-dots span{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--accent);margin:0 2px;animation:blink 1.2s infinite;}
+  .thinking-dots span:nth-child(2){animation-delay:0.2s;}
+  .thinking-dots span:nth-child(3){animation-delay:0.4s;}
+  @keyframes blink{0%,100%{opacity:0.2;}50%{opacity:1;}}
+  .badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:99px;font-size:10px;font-weight:600;}
+  .badge-green{background:#00d4aa22;color:var(--green);}
+  .badge-red{background:#ff6b6b22;color:var(--red);}
+
+  /* ── Bottom status bar ── */
+  .status-bar{border-top:1px solid var(--border);padding:10px 24px;display:flex;align-items:center;gap:32px;flex-shrink:0;background:var(--bg-secondary);}
+  .stat-item label{font-size:10px;color:var(--text-muted);display:block;text-transform:uppercase;letter-spacing:0.06em;}
+  .stat-item span{font-size:12px;font-weight:600;color:var(--green);}
+
+  /* ── Right panel ── */
+  .right-panel{background:var(--bg-secondary);border-left:1px solid var(--border);overflow-y:auto;padding:16px;}
+  .right-panel::-webkit-scrollbar{width:3px;}
+  .right-panel::-webkit-scrollbar-thumb{background:var(--border);}
+  .panel-section{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:14px;}
+  .panel-title{font-size:13px;font-weight:600;margin-bottom:4px;}
+  .panel-subtitle{font-size:10px;color:var(--text-muted);margin-bottom:14px;}
+
+  /* Pipeline flow */
+  .pipeline-flow{display:flex;align-items:center;gap:4px;margin-bottom:16px;}
+  .pipe-step{flex:1;text-align:center;}
+  .pipe-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;margin:0 auto 6px;font-size:16px;}
+  .pipe-step:nth-child(1) .pipe-icon{background:#6c63ff22;border:1px solid #6c63ff44;}
+  .pipe-step:nth-child(3) .pipe-icon{background:#00d4aa22;border:1px solid #00d4aa44;}
+  .pipe-step:nth-child(5) .pipe-icon{background:#4dabf722;border:1px solid #4dabf744;}
+  .pipe-step:nth-child(7) .pipe-icon{background:#ffd93d22;border:1px solid #ffd93d44;}
+  .pipe-step p{font-size:9.5px;font-weight:600;color:var(--text-secondary);}
+  .pipe-step small{font-size:9px;color:var(--text-muted);display:block;}
+  .pipe-arrow{color:var(--text-muted);font-size:10px;flex-shrink:0;}
+  .pipe-ms{font-size:10px;color:var(--text-muted);text-align:center;margin-top:2px;}
+
+  /* Latency cards */
+  .latency-cards{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px;}
+  .lat-card{background:var(--bg-hover);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 8px;text-align:center;}
+  .lat-label{font-size:10px;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:0.05em;}
+  .lat-value{font-size:20px;font-weight:700;margin:4px 0 2px;font-family:'JetBrains Mono',monospace;}
+  .lat-card:nth-child(1) .lat-value{color:var(--green);}
+  .lat-card:nth-child(2) .lat-value{color:var(--yellow);}
+  .lat-card:nth-child(3) .lat-value{color:var(--red);}
+  .lat-status{font-size:9px;font-weight:600;}
+  .lat-card:nth-child(1) .lat-status{color:var(--green);}
+  .lat-card:nth-child(2) .lat-status{color:var(--yellow);}
+  .lat-card:nth-child(3) .lat-status{color:var(--red);}
+
+  /* Chart */
+  .chart-area{height:80px;position:relative;overflow:hidden;}
+  canvas#latChart{width:100%;height:100%;}
+  .chart-labels{display:flex;justify-content:space-between;margin-top:4px;}
+  .chart-labels span{font-size:9px;color:var(--text-muted);}
+
+  /* Guardrails */
+  .guardrail-row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--border);}
+  .guardrail-row:last-child{border-bottom:none;}
+  .guardrail-name{font-size:12.5px;display:flex;align-items:center;gap:8px;}
+  .guard-icon{width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;}
+  .guard-icon.pass{background:#00d4aa22;color:var(--green);}
+  .guard-icon.fail{background:#ff6b6b22;color:var(--red);}
+  .guard-status{font-size:11px;font-weight:600;}
+  .guard-status.pass{color:var(--green);}
+  .guard-status.fail{color:var(--red);}
+  .guard-all{font-size:11px;color:var(--green);font-weight:600;margin-bottom:10px;}
+</style>
+</head>
+<body>
+<div class="layout">
+
+  <!-- ── SIDEBAR ── -->
+  <aside class="sidebar">
+    <div class="logo">
+      <div class="logo-icon">🎙️</div>
+      <div class="logo-text">
+        <h2>VoxRAG</h2>
+        <p>Voice · Retrieve · Generate</p>
+      </div>
+    </div>
+    <nav class="nav">
+      <div class="nav-item active" onclick="setNav(this,'chat')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+        Chat
+      </div>
+      <div class="nav-item" onclick="setNav(this,'analytics')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        Analytics
+      </div>
+      <div class="nav-item" onclick="setNav(this,'pipeline')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Pipeline
+      </div>
+      <div class="nav-item" onclick="setNav(this,'guardrails')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        Guardrails
+      </div>
+      <div class="nav-item" onclick="setNav(this,'dataset')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+        Dataset
+      </div>
+      <div class="nav-item" onclick="setNav(this,'settings')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93l-1.41 1.41M5.34 18.66l-1.41 1.41M20 12h-2M6 12H4M19.07 19.07l-1.41-1.41M5.34 5.34L3.93 3.93M12 20v-2M12 6V4"/></svg>
+        Settings
+      </div>
+      <div class="nav-item" onclick="setNav(this,'logs')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+        Logs
+      </div>
+    </nav>
+    <div class="sidebar-bottom">
+      <div class="user-card">
+        <div class="user-avatar">G</div>
+        <div class="user-info">
+          <div class="user-name">Team VoxRAG</div>
+          <div class="user-role">Developer</div>
+        </div>
+      </div>
+      <div class="dark-toggle">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/></svg>
+        Dark Mode
+        <div class="toggle-pill" style="margin-left:auto;"></div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ── MAIN ── -->
+  <main class="main">
+    <div class="top-bar">
+      <div class="top-bar-left">
+        <h1>Voice-Enabled RAG System</h1>
+        <p>Speech to Answer with Retrieval Augmented Generation</p>
+      </div>
+      <div class="top-bar-right">
+        <div class="status-pill">
+          <div class="status-dot"></div>
+          <span id="systemStatus">Loading...</span>
+        </div>
+        <div class="live-pill">
+          <div class="status-dot" style="background:white;box-shadow:none;"></div>
+          Live
+        </div>
+      </div>
+    </div>
+
+    <!-- Chat area -->
+    <div class="chat-area" id="chatArea">
+
+      <!-- Voice input card -->
+      <div class="voice-card">
+        <div class="voice-card-header">
+          <div>
+            <h3>Ask your question</h3>
+            <p>Speak or type your question</p>
+          </div>
+          <button class="type-toggle" id="typeToggleBtn" onclick="toggleInputMode()">
+            ⌨️ Type instead
+          </button>
+        </div>
+
+        <!-- Voice UI -->
+        <div id="voiceUI">
+          <div class="voice-visualizer">
+            <div class="waveform" id="waveform">
+              <div class="wave-bar"></div><div class="wave-bar"></div>
+              <div class="wave-bar"></div><div class="wave-bar"></div>
+              <div class="wave-bar"></div><div class="wave-bar"></div>
+              <div class="wave-bar"></div><div class="wave-bar"></div>
+            </div>
+            <button class="mic-btn" id="micBtn" onclick="toggleRecording()" title="Click to record">
+              🎙️
+            </button>
+            <div class="waveform" id="waveform2">
+              <div class="wave-bar"></div><div class="wave-bar"></div>
+              <div class="wave-bar"></div><div class="wave-bar"></div>
+              <div class="wave-bar"></div><div class="wave-bar"></div>
+              <div class="wave-bar"></div><div class="wave-bar"></div>
+            </div>
+          </div>
+          <div class="voice-status" id="voiceStatus">
+            Click the microphone to start recording
+          </div>
+        </div>
+
+        <!-- Text UI (hidden by default) -->
+        <div id="textUI" style="display:none;">
+          <div class="text-input-row">
+            <input type="text" id="textInput" placeholder="Type your question here..." onkeydown="if(event.key==='Enter')sendText()"/>
+            <button class="send-btn" id="sendBtn" onclick="sendText()" title="Send">➤</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Status bar -->
+    <div class="status-bar">
+      <div class="stat-item"><label>Dataset</label><span id="statDataset">MSMARCO-XI</span></div>
+      <div class="stat-item"><label>Chunks Indexed</label><span id="statChunks">—</span></div>
+      <div class="stat-item"><label>Vector DB</label><span id="statVectorDB">FAISS</span></div>
+      <div class="stat-item"><label>Model</label><span id="statModel">—</span></div>
+      <div class="stat-item"><label>STT</label><span style="color:var(--blue)">Sarvam AI</span></div>
+      <div class="stat-item"><label>Status</label><span id="statStatus" style="color:var(--yellow)">Loading...</span></div>
+    </div>
+  </main>
+
+  <!-- ── RIGHT PANEL ── -->
+  <aside class="right-panel">
+
+    <!-- Pipeline Overview -->
+    <div class="panel-section">
+      <div class="panel-title">Pipeline Overview</div>
+      <div class="panel-subtitle">End-to-end Flow</div>
+      <div class="pipeline-flow">
+        <div class="pipe-step">
+          <div class="pipe-icon">🎙️</div>
+          <p>Voice Input</p>
+          <small>Sarvam STT</small>
+          <div class="pipe-ms" id="pipeMs1">~80ms</div>
+        </div>
+        <div class="pipe-arrow">›</div>
+        <div class="pipe-step">
+          <div class="pipe-icon">✂️</div>
+          <p>Chunking</p>
+          <small>Multi-Strategy</small>
+          <div class="pipe-ms" id="pipeMs2">~5ms</div>
+        </div>
+        <div class="pipe-arrow">›</div>
+        <div class="pipe-step">
+          <div class="pipe-icon">🔍</div>
+          <p>Retrieval</p>
+          <small>FAISS</small>
+          <div class="pipe-ms" id="pipeMs3">~10ms</div>
+        </div>
+        <div class="pipe-arrow">›</div>
+        <div class="pipe-step">
+          <div class="pipe-icon">⚡</div>
+          <p>Generation</p>
+          <small>Groq LLM</small>
+          <div class="pipe-ms" id="pipeMs4">~80ms</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Latency Analytics -->
+    <div class="panel-section">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+        <div class="panel-title">Latency Analytics</div>
+        <span style="font-size:10px;color:var(--text-muted);">ms</span>
+      </div>
+      <div class="panel-subtitle">Live measurements</div>
+      <div class="latency-cards">
+        <div class="lat-card">
+          <div class="lat-label">P50</div>
+          <div class="lat-value" id="p50">—</div>
+          <div class="lat-status" id="p50s">—</div>
+        </div>
+        <div class="lat-card">
+          <div class="lat-label">P70</div>
+          <div class="lat-value" id="p70">—</div>
+          <div class="lat-status" id="p70s">—</div>
+        </div>
+        <div class="lat-card">
+          <div class="lat-label">P100</div>
+          <div class="lat-value" id="p100">—</div>
+          <div class="lat-status" id="p100s">—</div>
+        </div>
+      </div>
+      <div class="chart-area">
+        <canvas id="latChart"></canvas>
+      </div>
+      <div class="chart-labels">
+        <span>0</span><span>20</span><span>40</span><span>60</span><span>80</span><span>100</span>
+      </div>
+    </div>
+
+    <!-- Guardrails -->
+    <div class="panel-section">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+        <div class="panel-title">Guardrails</div>
+        <div class="guard-all" id="guardAllStatus">All checks passed</div>
+      </div>
+      <div class="guardrail-row">
+        <div class="guardrail-name"><div class="guard-icon pass" id="g1i">✓</div>Off-topic Detection</div>
+        <div class="guard-status pass" id="g1s">Passed</div>
+      </div>
+      <div class="guardrail-row">
+        <div class="guardrail-name"><div class="guard-icon pass" id="g2i">✓</div>Safety &amp; Toxicity</div>
+        <div class="guard-status pass" id="g2s">Passed</div>
+      </div>
+      <div class="guardrail-row">
+        <div class="guardrail-name"><div class="guard-icon pass" id="g3i">✓</div>Hallucination Check</div>
+        <div class="guard-status pass" id="g3s">Passed</div>
+      </div>
+      <div class="guardrail-row">
+        <div class="guardrail-name"><div class="guard-icon pass" id="g4i">✓</div>Grounded in Context</div>
+        <div class="guard-status pass" id="g4s">Passed</div>
+      </div>
+    </div>
+
+  </aside>
+</div>
+
+<script>
+  // ── State ──────────────────────────────────────────────────────────────────
+  let isRecording   = false;
+  let mediaRecorder = null;
+  let audioChunks   = [];
+  let textMode      = false;
+  let latHistory    = [];
+  let chartCtx      = null;
+  const API         = ''; // same origin
+
+  // ── Init ──────────────────────────────────────────────────────────────────
+  window.addEventListener('DOMContentLoaded', async () => {
+    initChart();
+    await loadStats();
+    await loadAnalytics();
+    setInterval(loadAnalytics, 5000);
+  });
+
+  // ── Nav ───────────────────────────────────────────────────────────────────
+  function setNav(el, page) {
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    el.classList.add('active');
+    // For demo: only chat is fully functional
+    if (page !== 'chat') {
+      showToast(`${page.charAt(0).toUpperCase()+page.slice(1)} panel coming soon`);
+    }
+  }
+
+  // ── Stats ─────────────────────────────────────────────────────────────────
+  async function loadStats() {
+    try {
+      const r = await fetch('/api/stats');
+      const d = await r.json();
+      document.getElementById('statChunks').textContent  = d.chunks;
+      document.getElementById('statModel').textContent   = d.model.includes('llama') ? 'Llama 3 8B' : d.model;
+      document.getElementById('systemStatus').textContent= d.ready ? 'All Systems Operational' : 'Indexing...';
+      document.getElementById('statStatus').textContent  = d.ready ? 'Ready' : 'Building Index';
+      document.getElementById('statStatus').style.color  = d.ready ? 'var(--green)' : 'var(--yellow)';
+    } catch(e) {
+      document.getElementById('systemStatus').textContent = 'Backend Offline';
+      document.getElementById('statStatus').textContent   = 'Offline';
+      document.getElementById('statStatus').style.color   = 'var(--red)';
+    }
+  }
+
+  // ── Analytics ─────────────────────────────────────────────────────────────
+  async function loadAnalytics() {
+    try {
+      const r = await fetch('/api/analytics');
+      const d = await r.json();
+      const setVal = (id, v) => document.getElementById(id).textContent = v ? v+'ms' : '—';
+      setVal('p50', d.p50); setVal('p70', d.p70); setVal('p100', d.p100);
+      const check = v => v < 200 ? 'Good' : 'Over Target';
+      ['p50s','p70s','p100s'].forEach((id,i) => {
+        const v = [d.p50,d.p70,d.p100][i];
+        document.getElementById(id).textContent = v ? check(v) : '—';
+      });
+      if (d.history && d.history.length) {
+        latHistory = d.history;
+        drawChart();
+      }
+    } catch(e) {}
+  }
+
+  // ── Chart ─────────────────────────────────────────────────────────────────
+  function initChart() {
+    const canvas = document.getElementById('latChart');
+    chartCtx = canvas.getContext('2d');
+    canvas.width  = canvas.offsetWidth;
+    canvas.height = canvas.offsetHeight;
+    drawChart();
+  }
+
+  function drawChart() {
+    if (!chartCtx) return;
+    const canvas = document.getElementById('latChart');
+    const w = canvas.width = canvas.offsetWidth;
+    const h = canvas.height = canvas.offsetHeight;
+    const ctx = chartCtx;
+    ctx.clearRect(0, 0, w, h);
+
+    const data = latHistory.length ? latHistory : Array.from({length:20},()=>Math.random()*120+60);
+    const max  = Math.max(...data, 200);
+    const pts  = data.map((v,i) => [i/(data.length-1||1)*w, h - (v/max)*(h*0.85)]);
+
+    // Grid lines
+    ctx.strokeStyle = '#232838'; ctx.lineWidth = 1;
+    [0.25,0.5,0.75,1].forEach(p => {
+      ctx.beginPath(); ctx.moveTo(0, h*p); ctx.lineTo(w, h*p); ctx.stroke();
+    });
+
+    // Area fill
+    const grad = ctx.createLinearGradient(0, 0, 0, h);
+    grad.addColorStop(0, '#6c63ff44');
+    grad.addColorStop(1, '#6c63ff00');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.moveTo(pts[0][0], h);
+    pts.forEach(p => ctx.lineTo(p[0], p[1]));
+    ctx.lineTo(pts[pts.length-1][0], h);
+    ctx.closePath();
+    ctx.fill();
+
+    // Line
+    ctx.strokeStyle = '#6c63ff'; ctx.lineWidth = 2;
+    ctx.lineJoin = 'round';
+    ctx.beginPath();
+    pts.forEach((p,i) => i===0 ? ctx.moveTo(p[0],p[1]) : ctx.lineTo(p[0],p[1]));
+    ctx.stroke();
+
+    // 200ms target line
+    const targetY = h - (200/max)*(h*0.85);
+    ctx.strokeStyle = '#ff6b6b55'; ctx.setLineDash([4,4]); ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(0,targetY); ctx.lineTo(w,targetY); ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
+  // ── Input mode toggle ─────────────────────────────────────────────────────
+  function toggleInputMode() {
+    textMode = !textMode;
+    document.getElementById('voiceUI').style.display = textMode ? 'none' : 'block';
+    document.getElementById('textUI').style.display  = textMode ? 'block' : 'none';
+    document.getElementById('typeToggleBtn').innerHTML= textMode ? '🎙️ Voice instead' : '⌨️ Type instead';
+    if (textMode) setTimeout(() => document.getElementById('textInput').focus(), 50);
+  }
+
+  // ── Recording ─────────────────────────────────────────────────────────────
+  async function toggleRecording() {
+    if (!isRecording) await startRecording();
+    else               stopRecording();
+  }
+
+  async function startRecording() {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({audio:true});
+      mediaRecorder = new MediaRecorder(stream);
+      audioChunks   = [];
+      mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+      mediaRecorder.onstop = sendVoice;
+      mediaRecorder.start();
+      isRecording = true;
+
+      document.getElementById('micBtn').classList.add('recording');
+      document.getElementById('micBtn').textContent = '⏹️';
+      document.getElementById('voiceStatus').innerHTML = '<span>● Recording...</span> Click mic to stop';
+      document.getElementById('waveform').classList.add('active');
+      document.getElementById('waveform2').classList.add('active');
+    } catch(e) {
+      showToast('Microphone access denied. Use text mode instead.', 'error');
+    }
+  }
+
+  function stopRecording() {
+    if (!mediaRecorder) return;
+    mediaRecorder.stop();
+    mediaRecorder.stream.getTracks().forEach(t => t.stop());
+    isRecording = false;
+    document.getElementById('micBtn').classList.remove('recording');
+    document.getElementById('micBtn').textContent = '🎙️';
+    document.getElementById('voiceStatus').textContent = 'Processing...';
+    document.getElementById('waveform').classList.remove('active');
+    document.getElementById('waveform2').classList.remove('active');
+  }
+
+  async function sendVoice() {
+    const blob = new Blob(audioChunks, {type:'audio/webm'});
+    const fd   = new FormData();
+    fd.append('audio', blob, 'recording.webm');
+
+    addThinkingMessage();
+    try {
+      const r = await fetch('/api/query/voice', {method:'POST', body:fd});
+      const d = await r.json();
+      removeThinkingMessage();
+      addUserMessage(`🎙️ "${d.transcript}"`);
+      addAIMessage(d);
+      updateGuardrails(d.guardrails);
+      updatePipelineMs(d.latency);
+      await loadAnalytics();
+    } catch(e) {
+      removeThinkingMessage();
+      addErrorMessage('Voice query failed: ' + e.message);
+    }
+    document.getElementById('voiceStatus').textContent = 'Click the microphone to start recording';
+  }
+
+  // ── Text query ────────────────────────────────────────────────────────────
+  async function sendText() {
+    const input = document.getElementById('textInput');
+    const query = input.value.trim();
+    if (!query) return;
+
+    input.value = '';
+    input.disabled = true;
+    document.getElementById('sendBtn').disabled = true;
+
+    addUserMessage(query);
+    addThinkingMessage();
+
+    try {
+      const r = await fetch('/api/query/text', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({query, top_k: 5})
+      });
+      const d = await r.json();
+      removeThinkingMessage();
+      addAIMessage(d);
+      updateGuardrails(d.guardrails);
+      updatePipelineMs(d.latency);
+      await loadAnalytics();
+    } catch(e) {
+      removeThinkingMessage();
+      addErrorMessage('Query failed: ' + e.message);
+    }
+
+    input.disabled = false;
+    document.getElementById('sendBtn').disabled = false;
+    input.focus();
+  }
+
+  // ── Message renderers ─────────────────────────────────────────────────────
+  function addUserMessage(text) {
+    const t = new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+    const el = document.createElement('div');
+    el.className = 'msg-user';
+    el.innerHTML = `
+      <div class="msg-header">
+        <span class="msg-sender">You</span>
+        <span class="msg-time">${t}</span>
+      </div>
+      <div class="msg-text">${escHtml(text)}</div>`;
+    insertMsg(el);
+  }
+
+  function addAIMessage(d) {
+    const t = new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+    const el = document.createElement('div');
+
+    if (d.blocked) {
+      el.className = 'blocked-msg';
+      el.innerHTML = `<div class="blocked-title">🚫 Query Blocked</div><div class="blocked-reason">${escHtml(d.reason)}</div>`;
+    } else {
+      el.className = 'msg-ai';
+      const groundedBadge = d.grounded
+        ? '<span class="badge badge-green">✓ Grounded</span>'
+        : '<span class="badge badge-red">⚠ Ungrounded</span>';
+      const confPct = Math.round((d.confidence||0)*100);
+
+      let sourcesHtml = '';
+      if (d.chunks && d.chunks.length) {
+        sourcesHtml = `<div class="sources-section">
+          <div class="sources-label">Sources (${d.chunks.length})</div>
+          ${d.chunks.map(c => `
+            <div class="source-chip" title="${escHtml(c.text)}">
+              <span class="source-name">MSMARCO-XI Doc ${escHtml(c.passage||c.id)}</span>
+              <span class="source-score">Score: ${c.score}</span>
+            </div>`).join('')}
+        </div>`;
+      }
+
+      el.innerHTML = `
+        <div class="msg-ai-header">
+          <div class="ai-icon">✦</div>
+          <span class="ai-name">VoxRAG</span>
+          ${groundedBadge}
+          <span class="badge badge-green" style="margin-left:auto">${confPct}% conf</span>
+        </div>
+        <div class="msg-text">${escHtml(d.answer)}</div>
+        ${sourcesHtml}
+        <div class="msg-footer">
+          <span class="msg-footer-note">Answer generated based on retrieved context · ${d.total_ms}ms · ${t}</span>
+          <button class="copy-btn" onclick="copyText('${escAttr(d.answer)}')">📋 Copy</button>
+        </div>`;
+    }
+    insertMsg(el);
+  }
+
+  let thinkingEl = null;
+  function addThinkingMessage() {
+    thinkingEl = document.createElement('div');
+    thinkingEl.className = 'thinking-msg';
+    thinkingEl.innerHTML = `<div class="ai-icon" style="width:24px;height:24px;border-radius:6px;background:linear-gradient(135deg,#6c63ff,#a855f7);display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;">✦</div>
+      <span style="font-size:13px;color:var(--text-secondary);">VoxRAG is thinking</span>
+      <div class="thinking-dots"><span></span><span></span><span></span></div>`;
+    insertMsg(thinkingEl);
+  }
+  function removeThinkingMessage() {
+    if (thinkingEl) { thinkingEl.remove(); thinkingEl = null; }
+  }
+  function addErrorMessage(msg) {
+    const el = document.createElement('div');
+    el.className = 'blocked-msg';
+    el.innerHTML = `<div class="blocked-title">❌ Error</div><div class="blocked-reason">${escHtml(msg)}</div>`;
+    insertMsg(el);
+  }
+
+  function insertMsg(el) {
+    const area = document.getElementById('chatArea');
+    // Insert before the status bar / at end of chat
+    area.appendChild(el);
+    el.scrollIntoView({behavior:'smooth', block:'end'});
+  }
+
+  // ── Guardrails update ─────────────────────────────────────────────────────
+  function updateGuardrails(g) {
+    if (!g) return;
+    const map = [
+      ['g1i','g1s', g.off_topic],
+      ['g2i','g2s', g.safety],
+      ['g3i','g3s', g.hallucination],
+      ['g4i','g4s', g.grounded],
+    ];
+    let allPass = true;
+    map.forEach(([ii, si, pass]) => {
+      document.getElementById(ii).textContent = pass ? '✓' : '✗';
+      document.getElementById(ii).className   = `guard-icon ${pass?'pass':'fail'}`;
+      document.getElementById(si).textContent = pass ? 'Passed' : 'Failed';
+      document.getElementById(si).className   = `guard-status ${pass?'pass':'fail'}`;
+      if (!pass) allPass = false;
+    });
+    const el = document.getElementById('guardAllStatus');
+    el.textContent = allPass ? 'All checks passed' : 'Issues detected';
+    el.style.color = allPass ? 'var(--green)' : 'var(--red)';
+  }
+
+  // ── Pipeline ms update ────────────────────────────────────────────────────
+  function updatePipelineMs(lat) {
+    if (!lat) return;
+    const map = {
+      'stt':          'pipeMs1',
+      'input_guardrail':'pipeMs2',
+      'retrieval':    'pipeMs3',
+      'generation':   'pipeMs4',
+    };
+    Object.entries(map).forEach(([k,id]) => {
+      if (lat[k] !== undefined)
+        document.getElementById(id).textContent = Math.round(lat[k]) + 'ms';
+    });
+  }
+
+  // ── Utils ─────────────────────────────────────────────────────────────────
+  function escHtml(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+  function escAttr(s) {
+    return String(s).replace(/'/g,"\\'").replace(/\n/g,' ');
+  }
+  function copyText(t) {
+    navigator.clipboard.writeText(t).then(()=>showToast('Copied!'));
+  }
+  function showToast(msg, type='info') {
+    const t = document.createElement('div');
+    t.style.cssText = `position:fixed;bottom:20px;right:20px;padding:10px 18px;border-radius:8px;
+      font-size:13px;font-weight:500;z-index:9999;
+      background:${type==='error'?'#ff6b6b22':'var(--bg-card)'};
+      border:1px solid ${type==='error'?'var(--red)':'var(--border)'};
+      color:${type==='error'?'var(--red)':'var(--text-primary)'};
+      box-shadow:0 8px 24px #0006;`;
+    t.textContent = msg;
+    document.body.appendChild(t);
+    setTimeout(()=>t.remove(), 2500);
+  }
+
+  // Resize chart on window resize
+  window.addEventListener('resize', drawChart);
+</script>
+</body>
+</html>
