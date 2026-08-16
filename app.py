@@ -1,26 +1,14 @@
 """
-app.py — VoxRAG Streamlit Web UI
-Live demo interface for the voice-enabled RAG pipeline.
+app.py — VoxRAG Streamlit Cloud App
+Uses st.audio_input() for browser-native recording — no PortAudio needed.
 """
 
-import time
-import tempfile
-import os
+import os, sys, tempfile, time
 import streamlit as st
-import sounddevice as sd
-import soundfile as sf
-import numpy as np
-
-import config
-from pipeline.retriever  import FAISSRetriever
-from pipeline.generator  import AnswerGenerator
-from pipeline.guardrails import Guardrails
-from pipeline.harness    import RAGHarness, PipelineInput
-from pipeline.stt        import SpeechToText
 
 # ── Page config ───────────────────────────────────────────────────────────────
 st.set_page_config(
-    page_title="VoxRAG",
+    page_title="VoxRAG — Voice-Enabled RAG",
     page_icon="🎙️",
     layout="wide",
     initial_sidebar_state="expanded",
@@ -29,248 +17,425 @@ st.set_page_config(
 # ── CSS ───────────────────────────────────────────────────────────────────────
 st.markdown("""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 
-    html, body, [class*="css"] { font-family: 'Inter', sans-serif; }
+html, body, [class*="css"] { font-family: 'Inter', sans-serif !important; }
 
-    .main-title {
-        font-size: 2.8rem; font-weight: 700; letter-spacing: -0.03em;
-        background: linear-gradient(135deg, #6366f1, #8b5cf6);
-        -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-        margin-bottom: 0;
-    }
-    .subtitle {
-        font-size: 1.1rem; color: #64748b; margin-top: 0.2rem; margin-bottom: 2rem;
-    }
-    .answer-box {
-        background: linear-gradient(135deg, #f0fdf4, #dcfce7);
-        border: 1px solid #86efac; border-radius: 12px;
-        padding: 1.2rem 1.5rem; margin: 1rem 0;
-    }
-    .blocked-box {
-        background: linear-gradient(135deg, #fff7ed, #ffedd5);
-        border: 1px solid #fdba74; border-radius: 12px;
-        padding: 1.2rem 1.5rem; margin: 1rem 0;
-    }
-    .latency-bar {
-        background: #f1f5f9; border-radius: 8px;
-        padding: 0.8rem 1rem; margin: 0.3rem 0;
-        font-family: monospace; font-size: 0.85rem;
-    }
-    .metric-card {
-        background: white; border: 1px solid #e2e8f0;
-        border-radius: 10px; padding: 1rem; text-align: center;
-    }
-    .metric-value { font-size: 1.8rem; font-weight: 700; color: #6366f1; }
-    .metric-label { font-size: 0.8rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; }
-    .stButton > button {
-        background: linear-gradient(135deg, #6366f1, #8b5cf6) !important;
-        color: white !important; border: none !important;
-        border-radius: 10px !important; font-weight: 600 !important;
-        padding: 0.6rem 1.5rem !important; font-size: 1rem !important;
-        transition: opacity 0.2s !important;
-    }
-    .stButton > button:hover { opacity: 0.85 !important; }
-    .chunk-card {
-        background: #fafafa; border: 1px solid #e2e8f0;
-        border-radius: 8px; padding: 0.8rem 1rem;
-        margin: 0.4rem 0; font-size: 0.85rem;
-    }
-    .badge-green { background:#dcfce7; color:#166534; padding:2px 8px; border-radius:99px; font-size:0.75rem; font-weight:600; }
-    .badge-red   { background:#fee2e2; color:#991b1b; padding:2px 8px; border-radius:99px; font-size:0.75rem; font-weight:600; }
-    .badge-blue  { background:#dbeafe; color:#1e40af; padding:2px 8px; border-radius:99px; font-size:0.75rem; font-weight:600; }
+/* Hide Streamlit default chrome */
+#MainMenu, footer { visibility: hidden; }
+.block-container { padding-top: 1rem !important; padding-bottom: 0 !important; }
+
+.main-header {
+    background: linear-gradient(135deg, #0d0f14 0%, #12151c 100%);
+    border: 1px solid #232838;
+    border-radius: 14px;
+    padding: 20px 28px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.logo-area { display: flex; align-items: center; gap: 14px; }
+.logo-icon {
+    width: 44px; height: 44px;
+    background: linear-gradient(135deg, #6c63ff, #a855f7);
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+}
+.logo-title { font-size: 22px; font-weight: 700; letter-spacing: -0.03em; color: #e8eaf0; margin: 0; }
+.logo-sub { font-size: 12px; color: #8892a4; margin: 2px 0 0; }
+.status-area { display: flex; align-items: center; gap: 10px; }
+.status-chip {
+    display: flex; align-items: center; gap: 6px;
+    padding: 6px 14px; border-radius: 99px;
+    background: #12151c; border: 1px solid #232838;
+    font-size: 12px; font-weight: 500; color: #8892a4;
+}
+.dot-green { width: 7px; height: 7px; border-radius: 50%; background: #00d4aa;
+    box-shadow: 0 0 6px #00d4aa; display: inline-block; }
+.live-chip {
+    padding: 6px 16px; border-radius: 99px;
+    background: linear-gradient(135deg, #6c63ff, #a855f7);
+    font-size: 12px; font-weight: 700; color: white;
+}
+
+/* Cards */
+.vox-card {
+    background: #12151c;
+    border: 1px solid #232838;
+    border-radius: 14px;
+    padding: 20px;
+    margin-bottom: 16px;
+}
+.card-title { font-size: 14px; font-weight: 600; color: #e8eaf0; margin-bottom: 4px; }
+.card-sub   { font-size: 11px; color: #8892a4; margin-bottom: 16px; }
+
+/* Answer box */
+.answer-box {
+    background: linear-gradient(135deg, #00d4aa0d, #00d4aa06);
+    border: 1px solid #00d4aa33;
+    border-radius: 12px; padding: 16px 20px; margin: 12px 0;
+}
+.answer-box h4 { color: #00d4aa; font-size: 13px; margin: 0 0 8px; }
+.answer-text { color: #e8eaf0; font-size: 14px; line-height: 1.7; }
+
+/* Blocked box */
+.blocked-box {
+    background: #ff6b6b0d; border: 1px solid #ff6b6b33;
+    border-radius: 12px; padding: 16px 20px; margin: 12px 0;
+}
+.blocked-box h4 { color: #ff6b6b; font-size: 13px; margin: 0 0 8px; }
+
+/* Source chips */
+.source-chip {
+    display: flex; justify-content: space-between;
+    background: #181c26; border: 1px solid #2a3045;
+    border-radius: 8px; padding: 8px 12px; margin-bottom: 6px;
+    font-size: 12px;
+}
+.source-name { color: #6c63ff; font-family: 'JetBrains Mono', monospace; }
+.source-score { color: #8892a4; }
+
+/* Metrics */
+.metric-row { display: flex; gap: 10px; margin: 12px 0; }
+.met-card {
+    flex: 1; background: #181c26; border: 1px solid #232838;
+    border-radius: 10px; padding: 12px; text-align: center;
+}
+.met-val { font-size: 22px; font-weight: 700; color: #6c63ff; font-family: 'JetBrains Mono', monospace; }
+.met-lbl { font-size: 10px; color: #8892a4; text-transform: uppercase; letter-spacing: 0.06em; margin-top: 4px; }
+
+/* Latency bars */
+.lat-bar-row { margin: 6px 0; }
+.lat-label { display: flex; justify-content: space-between; font-size: 11px; color: #8892a4; margin-bottom: 3px; }
+.lat-track { background: #232838; border-radius: 4px; height: 6px; }
+.lat-fill  { height: 6px; border-radius: 4px; transition: width 0.4s; }
+
+/* Guardrail rows */
+.guard-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 9px 0; border-bottom: 1px solid #232838; font-size: 12.5px;
+}
+.guard-row:last-child { border-bottom: none; }
+.guard-pass { color: #00d4aa; font-weight: 600; font-size: 11px; }
+.guard-fail { color: #ff6b6b; font-weight: 600; font-size: 11px; }
+
+/* Pipeline flow */
+.pipe-flow { display: flex; align-items: center; gap: 4px; }
+.pipe-node { flex: 1; text-align: center; }
+.pipe-ico  { font-size: 22px; margin-bottom: 4px; }
+.pipe-name { font-size: 10px; font-weight: 600; color: #8892a4; }
+.pipe-ms   { font-size: 10px; color: #4a5568; margin-top: 2px; }
+.pipe-arr  { color: #4a5568; font-size: 12px; padding-bottom: 12px; }
+
+/* Status bar */
+.stat-bar {
+    background: #12151c; border: 1px solid #232838; border-radius: 10px;
+    padding: 10px 20px; display: flex; gap: 28px; align-items: center; margin-top: 8px;
+}
+.stat-item label { font-size: 10px; color: #4a5568; display: block; text-transform: uppercase; letter-spacing: 0.06em; }
+.stat-item span  { font-size: 12px; font-weight: 600; color: #00d4aa; }
+
+/* Override Streamlit button */
+.stButton > button {
+    background: linear-gradient(135deg, #6c63ff, #a855f7) !important;
+    color: white !important; border: none !important;
+    border-radius: 10px !important; font-weight: 600 !important;
+    padding: 8px 20px !important; transition: opacity 0.15s !important;
+}
+.stButton > button:hover { opacity: 0.85 !important; }
+div[data-testid="stAudioInput"] { background: #181c26 !important; border: 1px solid #2a3045 !important; border-radius: 12px !important; }
 </style>
 """, unsafe_allow_html=True)
 
 
 # ── Load pipeline (cached) ────────────────────────────────────────────────────
-@st.cache_resource(show_spinner="⚙️ Loading VoxRAG pipeline …")
+@st.cache_resource(show_spinner=False)
 def load_pipeline():
-    retriever  = FAISSRetriever.load(config.INDEX_PATH)
-    generator  = AnswerGenerator()
-    guardrails = Guardrails()
-    harness    = RAGHarness(retriever, generator, guardrails)
-    stt        = SpeechToText()
-    return harness, stt
+    """Load all pipeline components. Returns None if index not built yet."""
+    try:
+        import config
+        from pipeline.retriever  import FAISSRetriever
+        from pipeline.generator  import AnswerGenerator
+        from pipeline.guardrails import Guardrails
+        from pipeline.harness    import RAGHarness
 
+        retriever  = FAISSRetriever.load(config.INDEX_PATH)
+        generator  = AnswerGenerator()
+        guardrails = Guardrails()
+        harness    = RAGHarness(retriever, generator, guardrails)
+        return harness, {
+            "chunks":  len(retriever.chunks),
+            "vectors": retriever.index.ntotal,
+        }
+    except Exception as e:
+        return None, {"error": str(e)}
+
+
+@st.cache_resource(show_spinner=False)
+def load_stt():
+    """Load STT (Sarvam API — no system deps needed on cloud)."""
+    try:
+        from pipeline.stt import SpeechToText
+        return SpeechToText(mode="sarvam")
+    except Exception:
+        return None
+
+
+# ── Load ──────────────────────────────────────────────────────────────────────
+with st.spinner("⚙️ Loading VoxRAG pipeline…"):
+    harness, pipe_info = load_pipeline()
+    stt = load_stt()
+
+pipeline_ready = harness is not None
 
 # ── Header ────────────────────────────────────────────────────────────────────
-st.markdown('<p class="main-title">🎙️ VoxRAG</p>', unsafe_allow_html=True)
-st.markdown('<p class="subtitle">Voice-Enabled Retrieval-Augmented Generation · MSMARCO-XI Dataset · Built for HH Goa 2026</p>', unsafe_allow_html=True)
+status_label = "All Systems Operational" if pipeline_ready else "Building Index…"
+st.markdown(f"""
+<div class="main-header">
+  <div class="logo-area">
+    <div class="logo-icon">🎙️</div>
+    <div>
+      <p class="logo-title">VoxRAG</p>
+      <p class="logo-sub">Voice · Retrieve · Generate · #RAGInGoa</p>
+    </div>
+  </div>
+  <div class="status-area">
+    <div class="status-chip"><span class="dot-green"></span>{status_label}</div>
+    <div class="live-chip">● Live</div>
+  </div>
+</div>
+""", unsafe_allow_html=True)
 
-# ── Sidebar ───────────────────────────────────────────────────────────────────
-with st.sidebar:
-    st.markdown("## ⚙️ Settings")
-    top_k       = st.slider("Retrieved chunks (Top-K)", 1, 10, config.TOP_K)
-    record_secs = st.slider("Recording duration (sec)", 2, 10, config.AUDIO_RECORD_SECS)
-    show_chunks = st.toggle("Show retrieved chunks", value=True)
-    show_latency= st.toggle("Show latency breakdown", value=True)
+# ── If pipeline not ready ─────────────────────────────────────────────────────
+if not pipeline_ready:
+    st.warning(f"""
+    **⏳ Pipeline index not built yet.**
 
-    st.markdown("---")
-    st.markdown("## 📊 About")
-    st.markdown("""
-    **VoxRAG Pipeline:**
-    - 🎙️ STT: Sarvam AI (saarika:v1)
-    - ✂️ Chunking: Fixed + Sentence + Paragraph + Semantic
-    - 🗃️ Vector DB: FAISS (cosine similarity)
-    - 🤖 LLM: Groq (llama3-8b-8192)
-    - 🛡️ Guardrails: Input + Output
-    - 🏗️ Harness: Pydantic + Tenacity
+    Run this command locally to build the FAISS index, then redeploy:
+    ```bash
+    python build_index.py
+    ```
+    Or add `data/` folder to your repo after building.
+
+    Error: `{pipe_info.get('error','Unknown')}`
     """)
-    st.markdown("---")
-    st.markdown("**Target latency:** `< 200ms`")
-    st.markdown("[GitHub Repo](https://github.com/gkm563/VoxRAG) · #RAGInGoa")
 
-# ── Load pipeline ─────────────────────────────────────────────────────────────
-try:
-    harness, stt = load_pipeline()
-    pipeline_ready = True
-except Exception as e:
-    st.error(f"❌ Pipeline not ready: {e}\n\nRun `python build_index.py` first to build the FAISS index.")
-    pipeline_ready = False
+# ── Main layout ───────────────────────────────────────────────────────────────
+col_main, col_right = st.columns([1.8, 1], gap="large")
 
-if pipeline_ready:
-    # ── Input tabs ────────────────────────────────────────────────────────────
-    tab1, tab2 = st.tabs(["🎙️ Voice Input", "⌨️ Text Input"])
+with col_main:
+    # ── Voice / Text input ────────────────────────────────────────────────────
+    st.markdown("""<div class="vox-card">
+      <div class="card-title">🎙️ Ask your question</div>
+      <div class="card-sub">Record voice or type below — powered by Sarvam AI STT + Groq LLM</div>
+    </div>""", unsafe_allow_html=True)
+
+    tab_voice, tab_text = st.tabs(["🎙️ Voice Input", "⌨️ Text Input"])
 
     query      = None
-    stt_latency= 0.0
+    stt_ms     = 0.0
+    transcript = None
 
-    with tab1:
-        st.markdown("### Record your question")
-        col1, col2 = st.columns([1, 2])
-        with col1:
-            record_btn = st.button("🔴 Record & Ask", use_container_width=True)
-        with col2:
-            st.caption(f"Will record for {record_secs} seconds. Speak clearly after clicking.")
-
-        if record_btn:
-            with st.spinner(f"🎙️ Recording for {record_secs}s … speak now!"):
-                audio = sd.rec(
-                    int(record_secs * config.AUDIO_SAMPLE_RATE),
-                    samplerate=config.AUDIO_SAMPLE_RATE,
-                    channels=config.AUDIO_CHANNELS,
-                    dtype="int16",
-                )
-                sd.wait()
-
-            with st.spinner("📝 Transcribing with Sarvam AI …"):
-                with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as f:
-                    tmp_path = f.name
-                sf.write(tmp_path, audio, config.AUDIO_SAMPLE_RATE)
-                try:
-                    query, stt_latency = stt.from_file(tmp_path)
-                    st.success(f"📝 Transcribed: **\"{query}\"** *(STT: {stt_latency:.0f}ms)*")
-                except Exception as e:
-                    st.error(f"STT Error: {e}")
-                finally:
-                    os.unlink(tmp_path)
-
-        # Upload audio file
-        st.markdown("---")
-        st.markdown("**Or upload an audio file:**")
-        audio_file = st.file_uploader("Upload WAV/MP3", type=["wav", "mp3"])
-        if audio_file:
-            with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as f:
-                f.write(audio_file.read())
-                tmp_path = f.name
-            with st.spinner("📝 Transcribing …"):
-                try:
-                    query, stt_latency = stt.from_file(tmp_path)
-                    st.success(f"📝 Transcribed: **\"{query}\"** *(STT: {stt_latency:.0f}ms)*")
-                except Exception as e:
-                    st.error(f"STT Error: {e}")
-                finally:
-                    os.unlink(tmp_path)
-
-    with tab2:
-        st.markdown("### Type your question")
-        text_query = st.text_input(
-            "Query", placeholder="e.g. What is the MSMARCO dataset used for?", label_visibility="collapsed"
+    # ── Voice tab ─────────────────────────────────────────────────────────────
+    with tab_voice:
+        st.markdown("<br>", unsafe_allow_html=True)
+        audio_bytes = st.audio_input(
+            "Click the mic button to record your question",
+            key="voice_recorder",
         )
-        ask_btn = st.button("🔍 Ask", use_container_width=False)
+        if audio_bytes and pipeline_ready:
+            if stt is None:
+                st.error("STT not loaded. Check SARVAM_API_KEY in secrets.")
+            else:
+                with st.spinner("📝 Transcribing with Sarvam AI…"):
+                    with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as f:
+                        f.write(audio_bytes.getvalue())
+                        tmp = f.name
+                    try:
+                        transcript, stt_ms = stt.from_file(tmp)
+                        st.success(f"📝 Transcribed: **\"{transcript}\"** *(STT: {stt_ms:.0f}ms)*")
+                        query = transcript
+                    except Exception as e:
+                        st.error(f"STT Error: {e}")
+                    finally:
+                        try: os.unlink(tmp)
+                        except: pass
+
+    # ── Text tab ──────────────────────────────────────────────────────────────
+    with tab_text:
+        st.markdown("<br>", unsafe_allow_html=True)
+        col_inp, col_btn = st.columns([5, 1])
+        with col_inp:
+            text_query = st.text_input(
+                "Query",
+                placeholder="e.g. What is the MSMARCO dataset used for?",
+                label_visibility="collapsed",
+            )
+        with col_btn:
+            ask_btn = st.button("Ask ➤", use_container_width=True)
         if ask_btn and text_query.strip():
             query = text_query.strip()
 
     # ── Run pipeline ──────────────────────────────────────────────────────────
-    if query:
-        st.markdown("---")
-        with st.spinner("🔍 Retrieving and generating answer …"):
-            inp = PipelineInput(query=query, top_k=top_k, stt_latency=stt_latency)
+    if query and pipeline_ready:
+        with st.spinner("🔍 Retrieving context and generating answer…"):
+            from pipeline.harness import PipelineInput
+            inp = PipelineInput(query=query, top_k=5, stt_latency=stt_ms)
+            t0  = time.perf_counter()
             out = harness.run(inp)
+            total_ms = out.total_latency_ms
 
-        # ── Results ───────────────────────────────────────────────────────────
-        st.markdown("## 💬 Result")
+        st.markdown("---")
 
+        # ── Answer ────────────────────────────────────────────────────────────
         if out.blocked:
-            st.markdown(f"""
-            <div class="blocked-box">
-                <b>🚫 Query Blocked</b><br>
-                {out.block_reason}
-            </div>
-            """, unsafe_allow_html=True)
+            st.markdown(f"""<div class="blocked-box">
+              <h4>🚫 Query Blocked by Guardrails</h4>
+              <div>{out.block_reason}</div>
+            </div>""", unsafe_allow_html=True)
         else:
-            grounded_badge = '<span class="badge-green">✓ Grounded</span>' if out.grounded else '<span class="badge-red">⚠ Ungrounded</span>'
+            grounded_icon = "✅" if out.grounded else "⚠️"
+            st.markdown(f"""<div class="answer-box">
+              <h4>✦ VoxRAG Answer &nbsp; {grounded_icon} {'Grounded' if out.grounded else 'Check sources'}</h4>
+              <div class="answer-text">{out.answer}</div>
+            </div>""", unsafe_allow_html=True)
+
+            # Metrics
             conf_pct = int(out.confidence * 100)
+            under    = total_ms < 200
+            st.markdown(f"""<div class="metric-row">
+              <div class="met-card"><div class="met-val">{conf_pct}%</div><div class="met-lbl">Confidence</div></div>
+              <div class="met-card"><div class="met-val" style="color:{'#00d4aa' if under else '#ff6b6b'}">{total_ms:.0f}ms</div><div class="met-lbl">{'✅ Under 200ms' if under else '⚠️ Over 200ms'}</div></div>
+              <div class="met-card"><div class="met-val">{len(out.sources)}</div><div class="met-lbl">Sources Cited</div></div>
+            </div>""", unsafe_allow_html=True)
 
-            st.markdown(f"""
-            <div class="answer-box">
-                <b>Answer</b> &nbsp; {grounded_badge}<br><br>
-                {out.answer}
-            </div>
-            """, unsafe_allow_html=True)
-
-            # Metrics row
-            m1, m2, m3, m4 = st.columns(4)
-            with m1:
-                st.metric("Confidence", f"{conf_pct}%")
-            with m2:
-                total = out.total_latency_ms
-                st.metric("Total Latency", f"{total:.0f}ms", delta="✅ Under 200ms" if total < 200 else "⚠️ Over 200ms")
-            with m3:
-                st.metric("Chunks Retrieved", str(top_k))
-            with m4:
-                st.metric("Sources Cited", str(len(out.sources)))
+            # Sources
+            retrieved, _ = harness.retriever.search(query, 5)
+            if retrieved:
+                st.markdown("**📚 Retrieved Context Chunks**")
+                for i, c in enumerate(retrieved, 1):
+                    with st.expander(f"Chunk {i} · score={c.get('score',0):.3f} · {c.get('strategy','—')} · passage {c.get('passage_id','—')}"):
+                        st.write(c["text"])
 
         # ── Latency breakdown ─────────────────────────────────────────────────
-        if show_latency and out.latency:
-            st.markdown("### ⏱️ Latency Breakdown")
-            max_ms = max(out.latency.values()) or 1
-            for stage, ms in out.latency.items():
-                if stage == "total":
-                    continue
-                bar_pct = int((ms / 200) * 100)  # out of 200ms target
-                bar_pct = min(bar_pct, 100)
-                color = "#6366f1" if ms < 100 else "#f59e0b" if ms < 180 else "#ef4444"
-                st.markdown(f"""
-                <div class="latency-bar">
-                    <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
-                        <span>{stage}</span><span style="font-weight:600">{ms:.1f}ms</span>
-                    </div>
-                    <div style="background:#e2e8f0; border-radius:4px; height:6px;">
-                        <div style="background:{color}; width:{bar_pct}%; height:6px; border-radius:4px; transition:width 0.5s;"></div>
-                    </div>
-                </div>
-                """, unsafe_allow_html=True)
+        st.markdown("**⏱️ Latency Breakdown**")
+        for stage, ms in out.latency.items():
+            if stage == "total": continue
+            pct   = min(int((ms / 200) * 100), 100)
+            color = "#6c63ff" if ms < 80 else "#ffd93d" if ms < 160 else "#ff6b6b"
+            st.markdown(f"""<div class="lat-bar-row">
+              <div class="lat-label"><span>{stage}</span><span>{ms:.1f}ms</span></div>
+              <div class="lat-track"><div class="lat-fill" style="width:{pct}%;background:{color};"></div></div>
+            </div>""", unsafe_allow_html=True)
 
-            total = out.total_latency_ms
-            target_color = "#16a34a" if total < 200 else "#dc2626"
-            st.markdown(f"""
-            <div style="margin-top:0.5rem; padding:0.5rem 1rem; background:{target_color}15;
-                        border:1px solid {target_color}40; border-radius:8px;
-                        color:{target_color}; font-weight:600; font-size:0.9rem;">
-                Total: {total:.1f}ms {'✅ Under 200ms target' if total < 200 else '⚠️ Exceeds 200ms target'}
-            </div>
-            """, unsafe_allow_html=True)
+        # Copy answer button
+        if not out.blocked:
+            st.code(out.answer, language=None)
 
-        # ── Retrieved chunks ──────────────────────────────────────────────────
-        if show_chunks and not out.blocked:
-            st.markdown("### 📚 Retrieved Context Chunks")
-            # Re-run retrieval to show chunks (already done in harness, display only)
-            chunks, _ = harness.retriever.search(query, top_k)
-            for i, chunk in enumerate(chunks, 1):
-                strategy = chunk.get("strategy", "unknown")
-                score    = chunk.get("score", 0)
-                pid      = chunk.get("passage_id", "—")
-                with st.expander(f"Chunk {i} · score={score:.3f} · strategy={strategy} · passage={pid}"):
-                    st.write(chunk["text"])
+    elif query and not pipeline_ready:
+        st.info("⏳ Pipeline index not built yet. Run `python build_index.py` locally first.")
+
+    # ── Status bar ────────────────────────────────────────────────────────────
+    chunks_label  = f"{pipe_info.get('chunks', 0):,}"  if pipeline_ready else "Building…"
+    vectors_label = f"{pipe_info.get('vectors', 0):,}" if pipeline_ready else "Building…"
+    st.markdown(f"""<div class="stat-bar">
+      <div class="stat-item"><label>Dataset</label><span>MSMARCO-XI</span></div>
+      <div class="stat-item"><label>Chunks</label><span>{chunks_label}</span></div>
+      <div class="stat-item"><label>Vectors</label><span>{vectors_label}</span></div>
+      <div class="stat-item"><label>LLM</label><span>Groq Llama 3</span></div>
+      <div class="stat-item"><label>STT</label><span style="color:#4dabf7">Sarvam AI</span></div>
+      <div class="stat-item"><label>Status</label><span>{'Ready' if pipeline_ready else 'Indexing'}</span></div>
+    </div>""", unsafe_allow_html=True)
+
+
+# ── Right panel ───────────────────────────────────────────────────────────────
+with col_right:
+
+    # Pipeline overview
+    st.markdown("""<div class="vox-card">
+      <div class="card-title">Pipeline Overview</div>
+      <div class="card-sub">End-to-end flow</div>
+      <div class="pipe-flow">
+        <div class="pipe-node"><div class="pipe-ico">🎙️</div><div class="pipe-name">Voice Input</div><div class="pipe-ms">Sarvam STT</div></div>
+        <div class="pipe-arr">›</div>
+        <div class="pipe-node"><div class="pipe-ico">✂️</div><div class="pipe-name">Chunking</div><div class="pipe-ms">4 Strategies</div></div>
+        <div class="pipe-arr">›</div>
+        <div class="pipe-node"><div class="pipe-ico">🔍</div><div class="pipe-name">Retrieval</div><div class="pipe-ms">FAISS</div></div>
+        <div class="pipe-arr">›</div>
+        <div class="pipe-node"><div class="pipe-ico">⚡</div><div class="pipe-name">Generate</div><div class="pipe-ms">Groq LLM</div></div>
+      </div>
+    </div>""", unsafe_allow_html=True)
+
+    # Latency analytics (session-based)
+    if "lat_history" not in st.session_state:
+        st.session_state.lat_history = []
+
+    lats = st.session_state.lat_history
+    if "out" in dir() and 'out' in locals() and not out.blocked:
+        lats.append(out.total_latency_ms)
+        st.session_state.lat_history = lats[-50:]
+
+    import numpy as np
+    p50  = round(float(np.percentile(lats, 50)), 1)  if lats else 0
+    p70  = round(float(np.percentile(lats, 70)), 1)  if lats else 0
+    p100 = round(float(np.percentile(lats, 100)), 1) if lats else 0
+
+    st.markdown(f"""<div class="vox-card">
+      <div class="card-title">Latency Analytics</div>
+      <div class="card-sub">{len(lats)} queries measured</div>
+      <div class="metric-row">
+        <div class="met-card">
+          <div class="met-val" style="color:#00d4aa">{p50 or '—'}</div>
+          <div class="met-lbl">P50</div>
+        </div>
+        <div class="met-card">
+          <div class="met-val" style="color:#ffd93d">{p70 or '—'}</div>
+          <div class="met-lbl">P70</div>
+        </div>
+        <div class="met-card">
+          <div class="met-val" style="color:#ff6b6b">{p100 or '—'}</div>
+          <div class="met-lbl">P100</div>
+        </div>
+      </div>
+    </div>""", unsafe_allow_html=True)
+
+    if lats:
+        import pandas as pd
+        chart_data = pd.DataFrame({"Latency (ms)": lats})
+        st.line_chart(chart_data, color="#6c63ff", height=100, use_container_width=True)
+        st.caption("200ms target line not shown — aim for all bars below 200ms")
+
+    # Guardrails
+    guards = {"off_topic": True, "safety": True, "hallucination": True, "grounded": True}
+    if "out" in dir() and 'out' in locals() and query:
+        if out.blocked:
+            guards = {"off_topic": False, "safety": False, "hallucination": True, "grounded": True}
+        else:
+            guards["hallucination"] = out.grounded
+            guards["grounded"]      = out.grounded
+
+    all_pass     = all(guards.values())
+    guard_labels = {
+        "off_topic":     "Off-topic Detection",
+        "safety":        "Safety & Toxicity",
+        "hallucination": "Hallucination Check",
+        "grounded":      "Grounded in Context",
+    }
+    rows = "".join([
+        f"""<div class="guard-row">
+          <span>{'✅' if v else '❌'} {guard_labels[k]}</span>
+          <span class="{'guard-pass' if v else 'guard-fail'}">{'Passed' if v else 'Failed'}</span>
+        </div>"""
+        for k, v in guards.items()
+    ])
+    st.markdown(f"""<div class="vox-card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+        <div class="card-title" style="margin:0">Guardrails</div>
+        <span style="font-size:11px;font-weight:600;color:{'#00d4aa' if all_pass else '#ff6b6b'}">
+          {'All checks passed' if all_pass else 'Issues detected'}
+        </span>
+      </div>
+      {rows}
+    </div>""", unsafe_allow_html=True)
