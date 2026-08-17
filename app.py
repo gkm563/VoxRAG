@@ -163,7 +163,7 @@ def load_pipeline():
 
         retriever  = FAISSRetriever.load(config.INDEX_PATH)
         generator  = AnswerGenerator()
-        guardrails = Guardrails()
+        guardrails = Guardrails(embed_model=retriever.model)
         harness    = RAGHarness(retriever, generator, guardrails)
         return harness, {
             "chunks":  len(retriever.chunks),
