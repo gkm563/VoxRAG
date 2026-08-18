@@ -1164,7 +1164,9 @@
   }
 
   let isAiSpeaking = false;
-  let activeTypewriterTimer = null;
+  let isSubmitting = false;
+  let speechSilenceTimer = null;
+  let accumulatedVoiceText = "";
 
   function interruptSpeaking() {
     stopAnySpeech();
@@ -1193,7 +1195,7 @@
     if (transcriptText) document.getElementById('callTranscriptBox').innerText = transcriptText;
   }
 
-  // ── Voice Input (Speech Recognition with Barge-In Support) ──
+  // ── Voice Input (Speech Recognition with Single-Turn VAD & Barge-In) ──
   function toggleVoiceInput() {
     if (isAiSpeaking) {
       // Barge-in: user clicked mic while AI is talking -> STOP AI immediately & listen to user!
@@ -1224,12 +1226,15 @@
 
     if (recognition) {
       try { recognition.abort(); } catch(e) {}
+      recognition = null;
     }
 
+    accumulatedVoiceText = "";
     recognition = new SpeechRec();
     recognition.lang = 'en-IN';
-    recognition.continuous = true;
+    recognition.continuous = false; // Fast single-turn VAD for ultra-responsive turn-taking
     recognition.interimResults = true;
+    recognition.maxAlternatives = 1;
 
     const micBtn = document.getElementById('micBtn');
 
@@ -1239,78 +1244,124 @@
       if (isVoiceCallModalOpen && !isAiSpeaking) {
         setOrbState('listening', 'Listening to you…', 'Listening… speak your query now');
       } else if (!isAiSpeaking) {
-        showToast('🎙️ Listening... Speak your question');
+        showToast('🎙️ Listening... Speak now');
       }
     };
 
     recognition.onresult = (e) => {
-      const t = Array.from(e.results).map(r => r[0].transcript).join('').trim();
-      if (!t) return;
+      let interim = '';
+      let final = '';
+      for (let i = 0; i < e.results.length; ++i) {
+        if (e.results[i].isFinal) {
+          final += e.results[i][0].transcript;
+        } else {
+          interim += e.results[i][0].transcript;
+        }
+      }
+      const text = (final || interim).trim();
+      if (!text) return;
+
+      accumulatedVoiceText = text;
+      document.getElementById('chatInput').value = text;
 
       // ── BARGE-IN INTERRUPTION DETECTED ──
-      // If user starts speaking while AI is playing voice -> CUT OFF AI IMMEDIATELY!
       if (isAiSpeaking) {
         stopAnySpeech();
         if (isVoiceCallModalOpen) {
-          setOrbState('listening', 'Interruption Detected · Listening…', `"${t}"`);
+          setOrbState('listening', 'Interruption Detected · Listening…', `"${text}"`);
         }
         showToast('⚡ Interrupted — Listening to your query');
       }
 
-      document.getElementById('chatInput').value = t;
       if (isVoiceCallModalOpen) {
-        document.getElementById('callTranscriptBox').innerText = `"${t}"`;
+        document.getElementById('callTranscriptBox').innerText = `"${text}"`;
       }
 
-      // Fast responsive silence detector (650ms after speech pause -> immediate trigger)
+      // Fast responsive silence detector (500ms after speech pause -> immediate trigger)
       if (speechSilenceTimer) clearTimeout(speechSilenceTimer);
       speechSilenceTimer = setTimeout(() => {
-        const q = document.getElementById('chatInput').value.trim();
-        if (q && isListening) {
+        if (accumulatedVoiceText && isListening && !isSubmitting) {
+          const q = accumulatedVoiceText;
+          accumulatedVoiceText = "";
           stopListening();
           lastQuerySource = 'voice';
           if (isVoiceCallModalOpen) {
             setOrbState('thinking', 'Retrieving & Generating…', `"${q}"`);
           }
-          submitQuery('voice');
+          submitQuery('voice', q);
         }
-      }, 650);
+      }, 500);
     };
 
     recognition.onend = () => {
-      stopListening();
-      if (speechSilenceTimer) { clearTimeout(speechSilenceTimer); speechSilenceTimer = null; }
-      const q = document.getElementById('chatInput').value.trim();
-      if (q) {
-        lastQuerySource = 'voice'; // VOICE QUERY
+      isListening = false;
+      micBtn.classList.remove('recording');
+      if (speechSilenceTimer) {
+        clearTimeout(speechSilenceTimer);
+        speechSilenceTimer = null;
+      }
+
+      const q = accumulatedVoiceText || document.getElementById('chatInput').value.trim();
+      accumulatedVoiceText = "";
+
+      if (q && !isSubmitting) {
+        lastQuerySource = 'voice';
         if (isVoiceCallModalOpen) {
           setOrbState('thinking', 'Retrieving & Generating…', `"${q}"`);
         }
-        submitQuery('voice');
+        submitQuery('voice', q);
       } else {
-        if (isVoiceCallModalOpen && !isCallMuted && !isAiSpeaking) {
+        if (isVoiceCallModalOpen && !isCallMuted && !isAiSpeaking && !isSubmitting) {
           // Re-arm listening if silence in Voice Call mode
-          setTimeout(() => { if (isVoiceCallModalOpen && !isListening && !isAiSpeaking) startListening(); }, 400);
+          setTimeout(() => {
+            if (isVoiceCallModalOpen && !isListening && !isAiSpeaking && !isSubmitting) {
+              startListening();
+            }
+          }, 300);
         }
       }
     };
 
-    recognition.onerror = () => {
-      stopListening();
-      if (speechSilenceTimer) { clearTimeout(speechSilenceTimer); speechSilenceTimer = null; }
-      if (isVoiceCallModalOpen && !isCallMuted && !isAiSpeaking) {
-        setTimeout(() => { if (isVoiceCallModalOpen && !isListening && !isAiSpeaking) startListening(); }, 600);
+    recognition.onerror = (e) => {
+      isListening = false;
+      micBtn.classList.remove('recording');
+      if (speechSilenceTimer) {
+        clearTimeout(speechSilenceTimer);
+        speechSilenceTimer = null;
+      }
+
+      const q = accumulatedVoiceText || document.getElementById('chatInput').value.trim();
+      accumulatedVoiceText = "";
+
+      if (q && !isSubmitting) {
+        lastQuerySource = 'voice';
+        if (isVoiceCallModalOpen) {
+          setOrbState('thinking', 'Retrieving & Generating…', `"${q}"`);
+        }
+        submitQuery('voice', q);
+      } else if (isVoiceCallModalOpen && !isCallMuted && !isAiSpeaking && !isSubmitting) {
+        setTimeout(() => {
+          if (isVoiceCallModalOpen && !isListening && !isAiSpeaking && !isSubmitting) {
+            startListening();
+          }
+        }, 500);
       }
     };
 
-    try { recognition.start(); } catch(e) { stopListening(); }
+    try {
+      recognition.start();
+    } catch(e) {
+      stopListening();
+    }
   }
 
   function stopListening() {
     isListening = false;
     if (speechSilenceTimer) { clearTimeout(speechSilenceTimer); speechSilenceTimer = null; }
     document.getElementById('micBtn').classList.remove('recording');
-    if (recognition) { try { recognition.stop(); } catch(e) {} }
+    if (recognition) {
+      try { recognition.stop(); } catch(e) {}
+    }
   }
 
   // ── Sarvam AI Bulbul:v3 Neural Text-to-Speech Engine with Barge-In ──
@@ -1335,10 +1386,18 @@
       
       if (isVoiceCallModalOpen) {
         setOrbState('listening', 'Listening to you…', 'Speak your next question…');
-        setTimeout(() => { if (isVoiceCallModalOpen && !isCallMuted && !isListening) startListening(); }, 300);
-      } else if (lastQuerySource === 'voice' && autoVoiceReply && !isListening) {
+        setTimeout(() => {
+          if (isVoiceCallModalOpen && !isCallMuted && !isListening && !isAiSpeaking && !isSubmitting) {
+            startListening();
+          }
+        }, 300);
+      } else if (lastQuerySource === 'voice' && autoVoiceReply && !isListening && !isSubmitting) {
         // Continuous hands-free loop for voice queries
-        setTimeout(() => { startListening(); }, 400);
+        setTimeout(() => {
+          if (!isListening && !isAiSpeaking && !isSubmitting) {
+            startListening();
+          }
+        }, 400);
       }
 
       if (onCompleteCallback) onCompleteCallback();
@@ -1411,12 +1470,19 @@
   }
 
   // ── Query Engine ──
-  async function submitQuery(source = lastQuerySource) {
+  async function submitQuery(source = lastQuerySource, queryOverride = null) {
+    if (isSubmitting) return;
+    isSubmitting = true;
+
     const inp = document.getElementById('chatInput');
-    const q = inp.value.trim();
-    if (!q) return;
+    const q = (queryOverride !== null ? queryOverride : inp.value).trim();
+    if (!q) {
+      isSubmitting = false;
+      return;
+    }
 
     inp.value = '';
+    accumulatedVoiceText = "";
     queryCount++;
     document.getElementById('queryCountVal').innerText = queryCount;
     const realTime = getRealTimestamp();
@@ -1512,6 +1578,8 @@
 
     conversationHistory.push({ role: 'user', content: q });
     conversationHistory.push({ role: 'assistant', content: answerText });
+
+    isSubmitting = false;
 
     // ONLY AUTOMATICALLY SPEAK IF QUERY WAS TRIGGERED VIA VOICE OR IN VOICE CALL MODE!
     if (source === 'voice' || isVoiceCallModalOpen) {
