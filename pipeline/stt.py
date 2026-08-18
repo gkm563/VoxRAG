@@ -69,6 +69,22 @@ class SpeechToText:
         latency_ms = (time.perf_counter() - t0) * 1000
         return transcript, latency_ms
 
+    def _clean_transcript(self, text: str) -> str:
+        if not text:
+            return ""
+        t = text.strip()
+        lower = t.lower().rstrip(".!?, ")
+        hallucinations = {
+            "thank you", "thank you very much", "thanks for watching",
+            "thank you for watching", "thanks", "you", "bye", "subtitles",
+            "subtitles by", "amara.org", "please subscribe", "subscribe",
+            "watching", "thank you.", "thank you!", "thank you so much",
+            "okay", "ok"
+        }
+        if lower in hallucinations:
+            return ""
+        return t
+
     def _sarvam_transcribe(self, audio_path: str) -> str:
         """POST audio to Sarvam AI STT API."""
         headers = {"api-subscription-key": config.SARVAM_API_KEY}
@@ -92,9 +108,10 @@ class SpeechToText:
 
         resp.raise_for_status()
         payload = resp.json()
-        transcript = payload.get("transcript", "").strip()
+        raw = payload.get("transcript", "").strip()
+        transcript = self._clean_transcript(raw)
         if not transcript:
-            raise ValueError(f"Empty transcript from Sarvam: {payload}")
+            raise ValueError(f"No clear speech detected in audio")
         return transcript
 
     def _groq_transcribe(self, audio_path: str) -> str:
@@ -108,12 +125,14 @@ class SpeechToText:
                 file=(os.path.basename(audio_path), f.read()),
                 model="whisper-large-v3-turbo",
                 language="en",
+                prompt="The user is asking a question about corporations, technology, MSMARCO, or general knowledge.",
                 response_format="json",
                 temperature=0.0,
             )
-        text = transcription.text.strip() if hasattr(transcription, "text") else str(transcription).strip()
+        raw = transcription.text.strip() if hasattr(transcription, "text") else str(transcription).strip()
+        text = self._clean_transcript(raw)
         if not text:
-            raise ValueError("Groq Whisper returned empty transcript")
+            raise ValueError("Whisper detected background silence or unclear speech.")
         return text
 
     def _local_whisper_transcribe(self, audio_path: str) -> str:
@@ -126,9 +145,11 @@ class SpeechToText:
         result = self._whisper_model.transcribe(
             audio_path,
             language="en",
+            prompt="The user is asking a question about corporations, technology, MSMARCO, or general knowledge.",
             fp16=False,
         )
-        text = result.get("text", "").strip()
+        raw = result.get("text", "").strip()
+        text = self._clean_transcript(raw)
         if not text:
-            raise ValueError("Whisper could not detect speech in audio.")
+            raise ValueError("Whisper could not detect clear speech in audio.")
         return text

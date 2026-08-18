@@ -264,20 +264,23 @@ with col_center:
 
             if audio_hash != st.session_state.get("last_audio_hash"):
                 st.session_state.last_audio_hash = audio_hash
-                if stt and harness:
+                if len(raw_audio) < 3000:
+                    st.warning("🎙️ Recording was too brief. Please click record, speak your full question, and then stop.")
+                elif stt and harness:
                     with st.spinner("📝 Transcribing speech with Sarvam AI / Groq Whisper…"):
                         with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as f:
                             f.write(raw_audio)
                             tmp = f.name
                         try:
                             transcript, stt_ms = stt.from_file(tmp)
-                            if transcript and transcript.strip():
-                                st.session_state.pending_query = transcript.strip()
+                            clean_q = stt._clean_transcript(transcript) if hasattr(stt, "_clean_transcript") else transcript.strip()
+                            if clean_q and len(clean_q) > 2:
+                                st.session_state.pending_query = clean_q
                                 st.rerun()
                             else:
-                                st.warning("Could not detect clear words. Please speak again.")
+                                st.warning("🎙️ No clear question detected. Please speak closer to your microphone.")
                         except Exception as e:
-                            st.error(f"Voice Transcription Error: {e}")
+                            st.warning(f"🎙️ Voice Note: {e}. Please speak clearly or type your question below.")
                         finally:
                             try: os.unlink(tmp)
                             except: pass
