@@ -229,15 +229,27 @@ with st.sidebar:
     c2.metric("P70", f"{p70}ms")
 
     st.markdown("---")
-    st.caption("[📊 Architecture Guide (Vercel)](https://docs-three-dusky-37.vercel.app)")
-    st.caption("[📂 GitHub Repository](https://github.com/gkm563/VoxRAG)")
-    st.caption("[📝 Submission Form](https://forms.gle/MNvCjcv23Hn2Eeu58)")
+    st.caption("🔗 **Resources & Docs**")
+    st.markdown("[📊 Technical Documentation (Vercel)](https://docs-three-dusky-37.vercel.app)")
+    st.markdown("[📂 Open Source GitHub Repo](https://github.com/gkm563/VoxRAG)")
 
     st.markdown("---")
+    st.caption("👥 **Engineering Team**")
     st.markdown("""
-    <div style="font-size:11px;color:#6ee7b7;">
-      <b>Gautam Maurya</b> · HH Goa 2026<br/>
-      <code>#RAGInGoa</code>
+    <div style="background:#092115;border:1px solid #144d32;border-radius:8px;padding:10px;margin-bottom:8px;">
+      <div style="font-size:12px;font-weight:700;color:#f0fdf4;">Gautam Kumar Maurya</div>
+      <div style="font-size:10px;color:#38bdf8;font-weight:600;margin-bottom:4px;">Lead Architect &amp; Primary Developer</div>
+      <div style="font-size:10.5px;">
+        <a href="https://www.linkedin.com/in/gkm563/" target="_blank" style="color:#facc15;text-decoration:none;">LinkedIn ↗</a> • 
+        <a href="https://github.com/gkm563" target="_blank" style="color:#6ee7b7;text-decoration:none;">GitHub ↗</a>
+      </div>
+    </div>
+    <div style="background:#092115;border:1px solid #144d32;border-radius:8px;padding:10px;">
+      <div style="font-size:12px;font-weight:700;color:#f0fdf4;">Praveen Singh</div>
+      <div style="font-size:10px;color:#a7f3d0;margin-bottom:4px;">Research &amp; Data Collaborator</div>
+      <div style="font-size:10.5px;">
+        <a href="https://www.linkedin.com/in/praveen-singh-463231309/" target="_blank" style="color:#38bdf8;text-decoration:none;">LinkedIn ↗</a>
+      </div>
     </div>
     """, unsafe_allow_html=True)
 
