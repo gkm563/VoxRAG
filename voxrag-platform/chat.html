@@ -963,7 +963,7 @@
       <button class="btn-mic" id="micBtn" onclick="toggleVoiceInput()" title="Click to Speak">
         <svg class="icon" style="width:20px;height:20px;" viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
       </button>
-      <input type="text" class="text-box" id="chatInput" placeholder="Speak with microphone or type any question..." onkeydown="if(event.key==='Enter')onTextInputSubmit()"/>
+      <input type="text" class="text-box" id="chatInput" placeholder="Speak with microphone or type any question..." oninput="if(isAiSpeaking)stopAnySpeech()" onkeydown="if(event.key==='Enter')onTextInputSubmit()"/>
       <button class="btn-send" onclick="onTextInputSubmit()">
         <span>Ask</span>
         <svg class="icon" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
@@ -1163,6 +1163,9 @@
     }
   }
 
+  let isAiSpeaking = false;
+  let activeTypewriterTimer = null;
+
   function interruptSpeaking() {
     stopAnySpeech();
     setOrbState('listening', 'Listening to you…', 'Spoken playback interrupted. Speak your next question…');
@@ -1170,6 +1173,7 @@
   }
 
   function stopAnySpeech() {
+    isAiSpeaking = false;
     if (currentAudioPlayer) {
       try {
         currentAudioPlayer.pause();
@@ -1189,18 +1193,28 @@
     if (transcriptText) document.getElementById('callTranscriptBox').innerText = transcriptText;
   }
 
-  // ── Voice Input (Speech Recognition) ──
+  // ── Voice Input (Speech Recognition with Barge-In Support) ──
   function toggleVoiceInput() {
+    if (isAiSpeaking) {
+      // Barge-in: user clicked mic while AI is talking -> STOP AI immediately & listen to user!
+      stopAnySpeech();
+      lastQuerySource = 'voice';
+      startListening();
+      showToast('⚡ AI Interrupted — Listening to your query');
+      return;
+    }
     if (isListening) {
       stopListening();
     } else {
-      lastQuerySource = 'voice'; // User activated mic -> WILL SPEAK ALOUD
+      lastQuerySource = 'voice';
       startListening();
     }
   }
 
-  function startListening() {
-    stopAnySpeech();
+  function startListening(isBargeInMode = false) {
+    if (!isBargeInMode) {
+      stopAnySpeech();
+    }
 
     const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRec) {
@@ -1214,7 +1228,7 @@
 
     recognition = new SpeechRec();
     recognition.lang = 'en-IN';
-    recognition.continuous = false;
+    recognition.continuous = true;
     recognition.interimResults = true;
 
     const micBtn = document.getElementById('micBtn');
@@ -1222,15 +1236,27 @@
     recognition.onstart = () => {
       isListening = true;
       micBtn.classList.add('recording');
-      if (isVoiceCallModalOpen) {
+      if (isVoiceCallModalOpen && !isAiSpeaking) {
         setOrbState('listening', 'Listening to you…', 'Listening… speak your query now');
-      } else {
+      } else if (!isAiSpeaking) {
         showToast('🎙️ Listening... Speak your question');
       }
     };
 
     recognition.onresult = (e) => {
-      const t = Array.from(e.results).map(r => r[0].transcript).join('');
+      const t = Array.from(e.results).map(r => r[0].transcript).join('').trim();
+      if (!t) return;
+
+      // ── BARGE-IN INTERRUPTION DETECTED ──
+      // If user starts speaking while AI is playing voice -> CUT OFF AI IMMEDIATELY!
+      if (isAiSpeaking) {
+        stopAnySpeech();
+        if (isVoiceCallModalOpen) {
+          setOrbState('listening', 'Interruption Detected · Listening…', `"${t}"`);
+        }
+        showToast('⚡ Interrupted — Listening to your query');
+      }
+
       document.getElementById('chatInput').value = t;
       if (isVoiceCallModalOpen) {
         document.getElementById('callTranscriptBox').innerText = `"${t}"`;
@@ -1262,9 +1288,9 @@
         }
         submitQuery('voice');
       } else {
-        if (isVoiceCallModalOpen && !isCallMuted) {
+        if (isVoiceCallModalOpen && !isCallMuted && !isAiSpeaking) {
           // Re-arm listening if silence in Voice Call mode
-          setTimeout(() => { if (isVoiceCallModalOpen && !isListening) startListening(); }, 400);
+          setTimeout(() => { if (isVoiceCallModalOpen && !isListening && !isAiSpeaking) startListening(); }, 400);
         }
       }
     };
@@ -1272,8 +1298,8 @@
     recognition.onerror = () => {
       stopListening();
       if (speechSilenceTimer) { clearTimeout(speechSilenceTimer); speechSilenceTimer = null; }
-      if (isVoiceCallModalOpen && !isCallMuted) {
-        setTimeout(() => { if (isVoiceCallModalOpen && !isListening) startListening(); }, 600);
+      if (isVoiceCallModalOpen && !isCallMuted && !isAiSpeaking) {
+        setTimeout(() => { if (isVoiceCallModalOpen && !isListening && !isAiSpeaking) startListening(); }, 600);
       }
     };
 
@@ -1287,24 +1313,29 @@
     if (recognition) { try { recognition.stop(); } catch(e) {} }
   }
 
-  // ── Sarvam AI Bulbul:v3 Neural Text-to-Speech Engine ──
+  // ── Sarvam AI Bulbul:v3 Neural Text-to-Speech Engine with Barge-In ──
   async function speakAnswer(text, btnEl, onCompleteCallback) {
     stopAnySpeech();
     const clean = text.replace(/[*#`_~>\[\]\(\)\\]/g, '').trim();
     if (!clean) return;
 
+    isAiSpeaking = true;
+
     if (btnEl) btnEl.innerHTML = '<svg class="icon" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12"/></svg> Stop';
     
     if (isVoiceCallModalOpen) {
       setOrbState('speaking', 'VoxRAG Speaking (Sarvam AI)…', clean);
+      // Arm continuous barge-in listener during speech playback
+      startListening(true);
     }
 
     const onPlaybackComplete = () => {
+      isAiSpeaking = false;
       if (btnEl) btnEl.innerHTML = '<svg class="icon" viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg> Listen';
       
       if (isVoiceCallModalOpen) {
         setOrbState('listening', 'Listening to you…', 'Speak your next question…');
-        setTimeout(() => { if (isVoiceCallModalOpen && !isCallMuted) startListening(); }, 300);
+        setTimeout(() => { if (isVoiceCallModalOpen && !isCallMuted && !isListening) startListening(); }, 300);
       } else if (lastQuerySource === 'voice' && autoVoiceReply && !isListening) {
         // Continuous hands-free loop for voice queries
         setTimeout(() => { startListening(); }, 400);
@@ -1324,11 +1355,13 @@
       if (resp.ok) {
         const data = await resp.json();
         if (data && data.audio_base64) {
+          if (!isAiSpeaking) return; // Interrupted while waiting for audio
           const audio = new Audio('data:audio/wav;base64,' + data.audio_base64);
           currentAudioPlayer = audio;
 
           audio.onended = () => {
             currentAudioPlayer = null;
+            isAiSpeaking = false;
             onPlaybackComplete();
           };
 
@@ -1345,8 +1378,9 @@
       console.warn("Sarvam TTS fallback:", e);
     }
 
-    // 2. Fallback to browser SpeechSynthesis if Sarvam AI unavailable
-    fallbackBrowserSpeech(clean, btnEl, onPlaybackComplete);
+    if (isAiSpeaking) {
+      fallbackBrowserSpeech(clean, btnEl, onPlaybackComplete);
+    }
   }
 
   function fallbackBrowserSpeech(cleanText, btnEl, finishHandler) {
