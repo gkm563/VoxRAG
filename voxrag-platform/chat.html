@@ -4,11 +4,11 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>VoxRAG Studio — Voice &amp; Conversational Workspace</title>
-<meta name="description" content="Interactive Voice & Text Conversational Workspace for VoxRAG. Engineered by Gautam Kumar Maurya."/>
+<meta name="description" content="Interactive Voice & Text Conversational Workspace for VoxRAG with continuous ChatGPT-style 2-way Voice Call mode. Engineered by Gautam Kumar Maurya."/>
 <meta name="author" content="Gautam Kumar Maurya"/>
 <link rel="icon" type="image/png" href="favicon.png"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet"/>
 <style>
   *{margin:0;padding:0;box-sizing:border-box;}
 
@@ -48,9 +48,9 @@
     --accent-cyan: #0284c7;
     --accent-indigo: #4f46e5;
     --text-primary: #0f172a;
-    --text-secondary: #475569;
-    --text-muted: #94a3b8;
-    --user-bubble-bg: linear-gradient(135deg, #4f46e5, #6366f1);
+    --text-secondary: #334155;
+    --text-muted: #64748b;
+    --user-bubble-bg: linear-gradient(135deg, #059669, #10b981);
     --sidebar-w: 260px;
     --right-w: 300px;
   }
@@ -105,17 +105,39 @@
   }
   .logo-text p {
     font-size: 10px;
-    color: var(--accent-cyan);
+    color: var(--accent-green);
     font-weight: 600;
   }
 
-  .btn-new-chat-side {
+  .btn-voice-call-primary {
     background: linear-gradient(135deg, #059669, #10b981);
     border: none;
     color: #fff;
+    font-weight: 800;
+    font-size: 13px;
+    padding: 12px 14px;
+    border-radius: 10px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 12px;
+    transition: all 0.25s;
+    box-shadow: 0 4px 18px rgba(16, 185, 129, 0.35);
+  }
+  .btn-voice-call-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 25px rgba(16, 185, 129, 0.55);
+  }
+
+  .btn-new-chat-side {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    color: var(--text-primary);
     font-weight: 700;
     font-size: 12.5px;
-    padding: 10px 14px;
+    padding: 9px 14px;
     border-radius: 8px;
     cursor: pointer;
     display: flex;
@@ -125,8 +147,8 @@
     transition: all 0.2s;
   }
   .btn-new-chat-side:hover {
-    filter: brightness(1.1);
-    transform: translateY(-1px);
+    border-color: var(--accent-green);
+    background: var(--bg-hover);
   }
 
   .nav-list {
@@ -181,6 +203,7 @@
     height: 100vh;
     overflow: hidden;
     background: var(--bg-main);
+    position: relative;
   }
   .top-bar {
     background: var(--bg-sidebar);
@@ -233,7 +256,12 @@
   }
   .btn-top-action:hover {
     color: var(--text-primary);
-    border-color: var(--accent-cyan);
+    border-color: var(--accent-green);
+  }
+  .btn-top-action.active-voice-btn {
+    background: rgba(16, 185, 129, 0.15);
+    border-color: var(--accent-green);
+    color: var(--accent-green);
   }
 
   .chat-stream-container {
@@ -321,7 +349,7 @@
   .sug-pill {
     background: var(--bg-input);
     border: 1px solid var(--border-light);
-    color: var(--accent-cyan);
+    color: var(--accent-green);
     padding: 5px 12px;
     border-radius: 99px;
     font-size: 11.5px;
@@ -333,8 +361,8 @@
     gap: 4px;
   }
   .sug-pill:hover {
-    background: rgba(56, 189, 248, 0.15);
-    border-color: var(--accent-cyan);
+    background: rgba(16, 185, 129, 0.15);
+    border-color: var(--accent-green);
   }
   :root[data-theme="light"] .sug-pill {
     background: #f0fdf4;
@@ -399,12 +427,12 @@
   .btn-mic:hover { transform: scale(1.06); }
   .btn-mic.recording {
     background: #f43f5e !important;
-    box-shadow: 0 0 20px rgba(244, 63, 94, 0.8) !important;
+    box-shadow: 0 0 25px rgba(244, 63, 94, 0.9) !important;
     animation: micPulse 1s infinite;
   }
   @keyframes micPulse {
     0% { transform: scale(1); }
-    50% { transform: scale(1.1); }
+    50% { transform: scale(1.12); }
     100% { transform: scale(1); }
   }
 
@@ -437,7 +465,7 @@
   }
   .btn-send:hover { filter: brightness(1.1); }
 
-  /* ── RIGHT PANEL (Metrics & Quick Nav) ── */
+  /* ── RIGHT PANEL ── */
   .right-pane {
     background: var(--bg-sidebar);
     border-left: 1px solid var(--border);
@@ -474,6 +502,181 @@
   .stat-val { font-size: 16px; font-weight: 800; color: var(--text-primary); font-family: var(--font-mono); }
   .stat-lbl { font-size: 9.5px; color: var(--text-muted); font-weight: 600; }
 
+  /* ── FULLSCREEN CHATGPT-STYLE LIVE VOICE CALL OVERLAY ── */
+  #voiceCallOverlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(3, 7, 5, 0.94);
+    backdrop-filter: blur(24px);
+    z-index: 1000;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    padding: 40px 24px;
+    text-align: center;
+    animation: fadeInModal 0.3s ease;
+  }
+  #voiceCallOverlay.active { display: flex; }
+  @keyframes fadeInModal {
+    from { opacity: 0; transform: scale(0.98); }
+    to { opacity: 1; transform: scale(1); }
+  }
+
+  .call-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    max-width: 600px;
+  }
+  .call-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .call-brand-title {
+    font-size: 16px;
+    font-weight: 800;
+    color: #fff;
+  }
+  .call-badge-live {
+    background: rgba(16, 185, 129, 0.2);
+    border: 1px solid rgba(16, 185, 129, 0.5);
+    color: var(--emerald-400);
+    padding: 3px 10px;
+    border-radius: 99px;
+    font-size: 11px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  /* Pulsing Siri / ChatGPT Voice Orb */
+  .call-center-stage {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 28px;
+    flex: 1;
+  }
+  .voice-orb-wrapper {
+    position: relative;
+    width: 180px;
+    height: 180px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .voice-orb {
+    width: 130px;
+    height: 130px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 30% 30%, #34d399, #059669, #064e3b);
+    box-shadow: 0 0 60px rgba(16, 185, 129, 0.6);
+    transition: all 0.3s ease;
+    animation: orbIdle 3s infinite ease-in-out;
+  }
+  @keyframes orbIdle {
+    0% { transform: scale(0.96); box-shadow: 0 0 40px rgba(16, 185, 129, 0.4); }
+    50% { transform: scale(1.04); box-shadow: 0 0 70px rgba(52, 211, 153, 0.7); }
+    100% { transform: scale(0.96); box-shadow: 0 0 40px rgba(16, 185, 129, 0.4); }
+  }
+
+  .voice-orb-wrapper.listening .voice-orb {
+    background: radial-gradient(circle at 30% 30%, #38bdf8, #0284c7, #0369a1);
+    box-shadow: 0 0 80px rgba(56, 189, 248, 0.8);
+    animation: orbListening 1s infinite alternate ease-in-out;
+  }
+  @keyframes orbListening {
+    0% { transform: scale(0.95); }
+    100% { transform: scale(1.15); }
+  }
+
+  .voice-orb-wrapper.speaking .voice-orb {
+    background: radial-gradient(circle at 30% 30%, #a7f3d0, #10b981, #047857);
+    box-shadow: 0 0 90px rgba(16, 185, 129, 0.9);
+    animation: orbSpeaking 0.6s infinite alternate ease-in-out;
+  }
+  @keyframes orbSpeaking {
+    0% { transform: scale(0.92); }
+    100% { transform: scale(1.18); }
+  }
+
+  .voice-orb-wrapper.thinking .voice-orb {
+    background: radial-gradient(circle at 30% 30%, #fbbf24, #d97706, #92400e);
+    box-shadow: 0 0 70px rgba(251, 191, 36, 0.8);
+    animation: orbThinking 1.5s infinite linear;
+  }
+  @keyframes orbThinking {
+    0% { transform: rotate(0deg) scale(1); }
+    50% { transform: rotate(180deg) scale(1.1); }
+    100% { transform: rotate(360deg) scale(1); }
+  }
+
+  .call-status-label {
+    font-size: 20px;
+    font-weight: 800;
+    color: #fff;
+    letter-spacing: -0.01em;
+  }
+  .call-transcript-box {
+    max-width: 540px;
+    font-size: 15px;
+    color: var(--text-secondary);
+    min-height: 48px;
+    line-height: 1.6;
+    background: rgba(0,0,0,0.3);
+    padding: 12px 20px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+  }
+
+  .call-controls {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+  .btn-call-action {
+    width: 58px;
+    height: 58px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background: var(--bg-card);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 20px;
+  }
+  .btn-call-action:hover {
+    transform: scale(1.08);
+    border-color: var(--accent-green);
+  }
+  .btn-call-end {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: #ef4444;
+    border: none;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 24px;
+    box-shadow: 0 0 25px rgba(239, 68, 68, 0.6);
+    transition: all 0.2s;
+  }
+  .btn-call-end:hover {
+    transform: scale(1.1);
+    background: #dc2626;
+  }
+
   #toast {
     position: fixed;
     bottom: 24px;
@@ -488,7 +691,7 @@
     font-weight: 600;
     box-shadow: 0 10px 30px rgba(0,0,0,0.5);
     transition: transform 0.3s ease;
-    z-index: 999;
+    z-index: 2000;
   }
   #toast.show { transform: translateX(-50%) translateY(0); }
 </style>
@@ -505,6 +708,12 @@
         <p>Voice · Retrieve · Generate</p>
       </div>
     </a>
+
+    <!-- ChatGPT Live Voice Call Mode Launch Button -->
+    <button class="btn-voice-call-primary" onclick="openVoiceCallModal()">
+      <svg class="icon" viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+      Start Live Voice Call
+    </button>
 
     <button class="btn-new-chat-side" onclick="startNewChat()">
       <svg class="icon" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
@@ -569,6 +778,15 @@
         </span>
       </div>
       <div class="top-bar-right">
+        <!-- Auto Voice Toggle Switch -->
+        <button class="btn-top-action" id="autoVoiceToggleBtn" onclick="toggleAutoVoiceReply()">
+          <svg class="icon" viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
+          <span id="autoVoiceLabel">Auto-Voice: ON</span>
+        </button>
+        <button class="btn-top-action" onclick="openVoiceCallModal()" style="color:var(--accent-green);border-color:var(--accent-green);">
+          <svg class="icon" viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/></svg>
+          Voice Call Mode
+        </button>
         <a href="/docs" class="btn-top-action">
           <svg class="icon" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
           Whitepaper
@@ -588,7 +806,7 @@
           <span class="badge-grounded">✓ Ready</span>
         </div>
         <div class="msg-ai-text">
-          Welcome to the <strong>VoxRAG Conversational Studio</strong>. Click the microphone button to ask via voice or type below to test continuous multi-turn retrieval with dynamic pronoun disambiguation.
+          Welcome to the <strong>VoxRAG Conversational Studio</strong>. Click the microphone button below or hit <strong>"Start Live Voice Call"</strong> for hands-free, continuous ChatGPT-style voice conversations!
         </div>
         <div class="sug-chips-row">
           <button class="sug-pill" onclick="askPreset('What is a corporation?')">
@@ -605,7 +823,7 @@
           </button>
         </div>
         <div class="ai-footer-bar">
-          <button class="btn-action-sm" onclick="speakAnswer('Welcome to the VoxRAG Conversational Studio. Click the microphone button to ask via voice or type below.', this)">
+          <button class="btn-action-sm" onclick="speakAnswer('Welcome to the VoxRAG Conversational Studio. Click the microphone button or start live voice call for hands-free voice conversations.', this)">
             <svg class="icon" viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
             Listen
           </button>
@@ -617,7 +835,7 @@
       <button class="btn-mic" id="micBtn" onclick="toggleVoiceInput()" title="Click to Speak">
         <svg class="icon" style="width:20px;height:20px;" viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
       </button>
-      <input type="text" class="text-box" id="chatInput" placeholder="Ask any question (e.g. What is a corporation? / Who is Narendra Modi?)..." onkeydown="if(event.key==='Enter')submitQuery()"/>
+      <input type="text" class="text-box" id="chatInput" placeholder="Speak with microphone or ask any question..." onkeydown="if(event.key==='Enter')submitQuery()"/>
       <button class="btn-send" onclick="submitQuery()">
         <span>Ask</span>
         <svg class="icon" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
@@ -642,8 +860,17 @@
     </div>
 
     <div class="stat-card">
+      <h4>🎙️ Voice Conversational Mode</h4>
+      <div style="font-size:12px;color:var(--text-secondary);line-height:1.6;">
+        <div>• <strong>Hands-Free Loop</strong>: Speaks answer &amp; auto-rearms mic</div>
+        <div>• <strong>Multi-Turn Memory</strong>: Preserves pronouns seamlessly</div>
+        <div>• <strong>Speech Engine</strong>: Web Speech STT + Neural TTS</div>
+      </div>
+    </div>
+
+    <div class="stat-card">
       <h4>📚 MSMARCO-XI Corpus</h4>
-      <div style="font-size:12.5px;color:var(--text-secondary);line-height:1.7;">
+      <div style="font-size:12px;color:var(--text-secondary);line-height:1.6;">
         <div>• <strong>48,995</strong> FAISS Vectors</div>
         <div>• <strong>4</strong> Chunking Paradigms</div>
         <div>• <strong>384-dim</strong> Dense Semantic Space</div>
@@ -651,12 +878,48 @@
     </div>
 
     <div class="stat-card" style="text-align:center;">
-      <a href="/docs" style="font-size:12px;font-weight:700;color:var(--accent-cyan);text-decoration:none;display:inline-flex;align-items:center;gap:6px;">
+      <a href="/docs" style="font-size:12px;font-weight:700;color:var(--accent-green);text-decoration:none;display:inline-flex;align-items:center;gap:6px;">
         <svg class="icon" viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
         Read Full Technical Whitepaper ↗
       </a>
     </div>
   </aside>
+</div>
+
+<!-- ── CHATGPT-STYLE LIVE VOICE CALL MODAL OVERLAY ── -->
+<div id="voiceCallOverlay">
+  <div class="call-header">
+    <div class="call-brand">
+      <img src="logo.png" style="width:32px;height:32px;border-radius:8px;" alt="VoxRAG Logo"/>
+      <span class="call-brand-title">VoxRAG Live Voice Call</span>
+    </div>
+    <div class="call-badge-live">
+      <span style="width:8px;height:8px;border-radius:50%;background:var(--accent-green);animation:pulseGlow 1.5s infinite;"></span>
+      2-Way Voice Active
+    </div>
+  </div>
+
+  <div class="call-center-stage">
+    <div class="voice-orb-wrapper" id="callOrbWrapper">
+      <div class="voice-orb" id="callOrb"></div>
+    </div>
+    <div class="call-status-label" id="callStatusLabel">Listening to you…</div>
+    <div class="call-transcript-box" id="callTranscriptBox">
+      Speak naturally. VoxRAG will retrieve context and speak the answer back immediately.
+    </div>
+  </div>
+
+  <div class="call-controls">
+    <button class="btn-call-action" id="btnCallMute" onclick="toggleCallMute()" title="Mute / Unmute">
+      <svg class="icon" viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+    </button>
+    <button class="btn-call-end" onclick="closeVoiceCallModal()" title="End Voice Call">
+      <svg class="icon" viewBox="0 0 24 24"><path d="M10.68 13.31a16 16 0 0 0 3.41 2.6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7 2 2 0 0 1 1.72 2v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.42 19.42 0 0 1-6-6 19.8 19.8 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91"/></svg>
+    </button>
+    <button class="btn-call-action" onclick="interruptSpeaking()" title="Stop AI Speaking">
+      <svg class="icon" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12"/></svg>
+    </button>
+  </div>
 </div>
 
 <div id="toast"></div>
@@ -666,6 +929,9 @@
   let recognition = null;
   let conversationHistory = [];
   let queryCount = 0;
+  let autoVoiceReply = true;
+  let isVoiceCallModalOpen = false;
+  let isCallMuted = false;
 
   function getRealTimestamp() {
     return new Date().toLocaleTimeString('en-US', {
@@ -687,6 +953,21 @@
     const html = document.documentElement;
     const next = html.getAttribute('data-theme') === 'goa' ? 'light' : 'goa';
     html.setAttribute('data-theme', next);
+  }
+
+  function toggleAutoVoiceReply() {
+    autoVoiceReply = !autoVoiceReply;
+    const lbl = document.getElementById('autoVoiceLabel');
+    const btn = document.getElementById('autoVoiceToggleBtn');
+    if (autoVoiceReply) {
+      lbl.innerText = 'Auto-Voice: ON';
+      btn.classList.add('active-voice-btn');
+      showToast('🔊 Auto-Voice Reply Enabled');
+    } else {
+      lbl.innerText = 'Auto-Voice: OFF';
+      btn.classList.remove('active-voice-btn');
+      showToast('🔇 Auto-Voice Reply Disabled');
+    }
   }
 
   function startNewChat() {
@@ -713,17 +994,70 @@
     submitQuery();
   }
 
-  // ── Voice Input ──
+  // ── ChatGPT-Style Voice Call Mode ──
+  function openVoiceCallModal() {
+    isVoiceCallModalOpen = true;
+    autoVoiceReply = true;
+    document.getElementById('voiceCallOverlay').classList.add('active');
+    setOrbState('listening', 'Listening to you…', 'Speak your question now…');
+    startListening();
+  }
+
+  function closeVoiceCallModal() {
+    isVoiceCallModalOpen = false;
+    document.getElementById('voiceCallOverlay').classList.remove('active');
+    stopListening();
+    if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+    showToast('Voice Call Ended');
+  }
+
+  function toggleCallMute() {
+    isCallMuted = !isCallMuted;
+    const btn = document.getElementById('btnCallMute');
+    if (isCallMuted) {
+      stopListening();
+      btn.style.color = '#ef4444';
+      setOrbState('idle', 'Microphone Muted', 'Click Unmute to resume speaking');
+      showToast('Microphone Muted');
+    } else {
+      btn.style.color = '#fff';
+      startListening();
+      showToast('Microphone Active');
+    }
+  }
+
+  function interruptSpeaking() {
+    if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+    setOrbState('listening', 'Listening to you…', 'Spoken playback interrupted. Speak your next question…');
+    startListening();
+  }
+
+  function setOrbState(state, statusText, transcriptText) {
+    const wrap = document.getElementById('callOrbWrapper');
+    wrap.className = 'voice-orb-wrapper ' + state;
+    if (statusText) document.getElementById('callStatusLabel').innerText = statusText;
+    if (transcriptText) document.getElementById('callTranscriptBox').innerText = transcriptText;
+  }
+
+  // ── Voice Input (Speech Recognition) ──
   function toggleVoiceInput() {
     if (isListening) stopListening();
     else startListening();
   }
 
   function startListening() {
+    if (window.speechSynthesis && window.speechSynthesis.speaking) {
+      window.speechSynthesis.cancel();
+    }
+
     const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRec) {
-      showToast('Speech API not supported in this browser.');
+      showToast('Speech Recognition not supported in this browser.');
       return;
+    }
+
+    if (recognition) {
+      try { recognition.abort(); } catch(e) {}
     }
 
     recognition = new SpeechRec();
@@ -736,21 +1070,44 @@
     recognition.onstart = () => {
       isListening = true;
       micBtn.classList.add('recording');
-      showToast('Listening... Speak your question');
+      if (isVoiceCallModalOpen) {
+        setOrbState('listening', 'Listening to you…', 'Listening… speak your query now');
+      } else {
+        showToast('🎙️ Listening... Speak your question');
+      }
     };
 
     recognition.onresult = (e) => {
       const t = Array.from(e.results).map(r => r[0].transcript).join('');
       document.getElementById('chatInput').value = t;
+      if (isVoiceCallModalOpen) {
+        document.getElementById('callTranscriptBox').innerText = `"${t}"`;
+      }
     };
 
     recognition.onend = () => {
       stopListening();
       const q = document.getElementById('chatInput').value.trim();
-      if (q) submitQuery();
+      if (q) {
+        if (isVoiceCallModalOpen) {
+          setOrbState('thinking', 'Retrieving & Generating…', `"${q}"`);
+        }
+        submitQuery();
+      } else {
+        if (isVoiceCallModalOpen && !isCallMuted) {
+          // Re-arm listening if silence
+          setTimeout(() => { if (isVoiceCallModalOpen && !isListening) startListening(); }, 600);
+        }
+      }
     };
 
-    recognition.onerror = () => { stopListening(); };
+    recognition.onerror = () => {
+      stopListening();
+      if (isVoiceCallModalOpen && !isCallMuted) {
+        setTimeout(() => { if (isVoiceCallModalOpen && !isListening) startListening(); }, 800);
+      }
+    };
+
     try { recognition.start(); } catch(e) { stopListening(); }
   }
 
@@ -760,30 +1117,43 @@
     if (recognition) { try { recognition.stop(); } catch(e) {} }
   }
 
-  // ── Speech Synthesis ──
-  function speakAnswer(text, btnEl) {
+  // ── Speech Synthesis (Continuous Voice Speaker) ──
+  function speakAnswer(text, btnEl, onCompleteCallback) {
     if (!('speechSynthesis' in window)) return;
-
-    if (window.speechSynthesis.speaking) {
-      window.speechSynthesis.cancel();
-      if (btnEl) btnEl.innerHTML = '<svg class="icon" viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg> Listen';
-      return;
-    }
 
     window.speechSynthesis.cancel();
     const clean = text.replace(/[*#`_~>]/g, '').trim();
     if (!clean) return;
 
     const u = new SpeechSynthesisUtterance(clean);
-    u.rate = 1.0;
+    u.rate = 1.05;
 
     const voices = window.speechSynthesis.getVoices();
-    const eng = voices.find(v => v.lang.includes('en')) || voices[0];
+    const eng = voices.find(v => v.lang.includes('en-US') || v.lang.includes('en')) || voices[0];
     if (eng) u.voice = eng;
 
     if (btnEl) btnEl.innerHTML = '<svg class="icon" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12"/></svg> Stop';
-    u.onend = () => { if (btnEl) btnEl.innerHTML = '<svg class="icon" viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg> Listen'; };
-    u.onerror = () => { if (btnEl) btnEl.innerHTML = '<svg class="icon" viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg> Listen'; };
+    
+    if (isVoiceCallModalOpen) {
+      setOrbState('speaking', 'VoxRAG Speaking…', clean);
+    }
+
+    const finishHandler = () => {
+      if (btnEl) btnEl.innerHTML = '<svg class="icon" viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg> Listen';
+      
+      if (isVoiceCallModalOpen) {
+        setOrbState('listening', 'Listening to you…', 'Speak your next question…');
+        setTimeout(() => { if (isVoiceCallModalOpen && !isCallMuted) startListening(); }, 300);
+      } else if (autoVoiceReply && !isListening) {
+        // Continuous hands-free loop in standard studio mode
+        setTimeout(() => { startListening(); }, 400);
+      }
+
+      if (onCompleteCallback) onCompleteCallback();
+    };
+
+    u.onend = finishHandler;
+    u.onerror = finishHandler;
 
     window.speechSynthesis.speak(u);
   }
@@ -852,6 +1222,11 @@
 
     conversationHistory.push({ role: 'user', content: q });
     conversationHistory.push({ role: 'assistant', content: answerText });
+
+    // Auto-Speak in Voice Call mode or if auto-voice is enabled
+    if (autoVoiceReply || isVoiceCallModalOpen) {
+      speakAnswer(answerText);
+    }
   }
 
   function renderUserBubble(text, timeStr) {
