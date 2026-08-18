@@ -87,7 +87,7 @@ class SpeechToText:
                 headers=headers,
                 files=files,
                 data=data,
-                timeout=10,
+                timeout=4,
             )
 
         resp.raise_for_status()

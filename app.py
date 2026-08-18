@@ -220,21 +220,30 @@ st.markdown("""
 with st.expander("🎙️ Record Voice with Microphone", expanded=False):
     st.caption("Click to record your question using your microphone:")
     audio_voice = st.audio_input("Record Question", key="mic_recorder")
-    if audio_voice and stt and harness:
-        with st.spinner("📝 Transcribing speech…"):
-            with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as f:
-                f.write(audio_voice.getvalue())
-                tmp = f.name
-            try:
-                transcript, stt_ms = stt.from_file(tmp)
-                if transcript and transcript.strip():
-                    st.session_state.pending_query = transcript.strip()
-                    st.rerun()
-            except Exception as e:
-                st.error(f"Voice Error: {e}")
-            finally:
-                try: os.unlink(tmp)
-                except: pass
+    if audio_voice:
+        import hashlib
+        raw_audio = audio_voice.getvalue()
+        audio_hash = hashlib.md5(raw_audio).hexdigest()
+
+        if audio_hash != st.session_state.get("last_audio_hash"):
+            st.session_state.last_audio_hash = audio_hash
+            if stt and harness:
+                with st.spinner("📝 Transcribing speech…"):
+                    with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as f:
+                        f.write(raw_audio)
+                        tmp = f.name
+                    try:
+                        transcript, stt_ms = stt.from_file(tmp)
+                        if transcript and transcript.strip():
+                            st.session_state.pending_query = transcript.strip()
+                            st.rerun()
+                        else:
+                            st.warning("Could not detect clear words. Please try speaking again.")
+                    except Exception as e:
+                        st.error(f"Voice Error: {e}")
+                    finally:
+                        try: os.unlink(tmp)
+                        except: pass
 
 
 # ── Initial Starter Questions (When chat is fresh) ────────────────────────────
