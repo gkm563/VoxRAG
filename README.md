@@ -37,18 +37,13 @@
 
 ```mermaid
 flowchart TD
-    classDef startNode fill:#072316,stroke:#10b981,stroke-width:2px,color:#f0fdf4;
-    classDef processNode fill:#0f172a,stroke:#38bdf8,stroke-width:1.5px,color:#f8fafc;
-    classDef dbNode fill:#1e1b4b,stroke:#818cf8,stroke-width:2px,color:#fff;
-    classDef guardNode fill:#31101e,stroke:#f43f5e,stroke-width:1.5px,color:#fff;
-
-    A[🎙️ User Voice / Text Query] :::startNode --> B[📝 Speech-to-Text: Sarvam AI / Whisper Turbo] :::processNode
-    B --> C[🛡️ Input Guardrail & Injection Filter] :::guardNode
-    C --> D[🔄 Context Formulator & Pronoun Resolver] :::processNode
-    D --> E[🔍 FAISS FlatIP 384-dim Vector Search] :::dbNode
-    E --> F[⚡ Fast LPU Inference: allam-2-7b / gpt-oss] :::processNode
-    F --> G[🛡️ Output Grounding & Cosine Audit] :::guardNode
-    G --> H[🔊 Audio TTS + Streamed Grounded Answer] :::startNode
+    A["🎙️ User Voice / Text Query"] --> B["📝 Speech-to-Text (Sarvam AI / Whisper Turbo)"]
+    B --> C["🛡️ Input Guardrail & Injection Filter"]
+    C --> D["🔄 Context Formulator & Pronoun Resolver"]
+    D --> E["🔍 FAISS FlatIP 384-dim Vector Retrieval"]
+    E --> F["⚡ Fast LPU Inference (allam-2-7b / gpt-oss)"]
+    F --> G["🛡️ Output Grounding & Cosine Audit"]
+    G --> H["🔊 Audio TTS + Streamed Grounded Answer"]
 ```
 
 ---
