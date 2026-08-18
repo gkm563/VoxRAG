@@ -39,13 +39,18 @@ class AnswerGenerator:
     def generate(
         self,
         question: str,
-        chunks:   list[dict],
+        chunks:   list[dict] | tuple,
         history:  Optional[list[dict]] = None,
     ) -> tuple[RAGAnswer, float]:
         """
         Generate an answer given retrieved chunks and conversation history.
         Returns: (RAGAnswer, latency_ms)
         """
+        if isinstance(chunks, tuple):
+            chunks = chunks[0]
+        if not isinstance(chunks, list):
+            chunks = [chunks] if chunks else []
+
         context = self._format_context(chunks)
         
         prompt_content = f"Context passages from MSMARCO-XI:\n{context}\n\nQuestion: {question}\n\nAnswer the question directly and concisely in 2-3 sentences based on the context:"
@@ -68,13 +73,20 @@ class AnswerGenerator:
         answer = self._parse(raw, chunks, question)
         return answer, latency_ms
 
-    def _format_context(self, chunks: list[dict]) -> str:
+    def _format_context(self, chunks: list[dict] | tuple) -> str:
+        if isinstance(chunks, tuple):
+            chunks = chunks[0]
+        if not isinstance(chunks, list):
+            chunks = [chunks] if chunks else []
+
         parts = []
         for i, c in enumerate(chunks, 1):
-            score = c.get('score', 0)
-            parts.append(
-                f"[{i}] {c['text']}"
-            )
+            if isinstance(c, dict):
+                text = c.get('text', '')
+                if text:
+                    parts.append(f"[{i}] {text}")
+            elif isinstance(c, str):
+                parts.append(f"[{i}] {c}")
         return "\n\n".join(parts)
 
     def _call_groq(self, messages: list[dict]) -> Optional[str]:
@@ -89,10 +101,18 @@ class AnswerGenerator:
                 return None
 
         candidate_models = [
-            "allam-2-7b",
+            "openai/gpt-oss-20b",
             "openai/gpt-oss-120b",
+            "groq/compound-mini",
             "qwen/qwen3.6-27b",
-            config.GROQ_MODEL,
+            "allam-2-7b",
+        ]
+
+        refusal_phrases = [
+            "unable to generate",
+            "cannot generate",
+            "i am unable",
+            "please try again",
         ]
 
         for mdl in candidate_models:
@@ -107,7 +127,7 @@ class AnswerGenerator:
                 if content and content.strip():
                     # Clean <think> tags if present
                     clean = re.sub(r'<think>.*?</think>', '', content, flags=re.DOTALL).strip()
-                    if clean:
+                    if clean and not any(p in clean.lower() for p in refusal_phrases):
                         return clean
             except Exception as e:
                 continue
@@ -117,6 +137,8 @@ class AnswerGenerator:
     def _parse(self, raw: Optional[str], chunks: list[dict], question: str) -> RAGAnswer:
         source_ids = [c["chunk_id"] for c in chunks[:3] if "chunk_id" in c]
         suggestions = self._generate_suggestions(question, chunks)
+
+        refusal_phrases = ["unable to generate", "cannot generate", "i am unable", "please try again"]
 
         if raw and raw.strip():
             # Clean formatting
@@ -130,13 +152,14 @@ class AnswerGenerator:
                 except Exception:
                     pass
 
-            return RAGAnswer(
-                answer      = clean_ans,
-                confidence  = 0.94,
-                sources     = source_ids,
-                grounded    = True,
-                suggestions = suggestions,
-            )
+            if not any(p in clean_ans.lower() for p in refusal_phrases):
+                return RAGAnswer(
+                    answer      = clean_ans,
+                    confidence  = 0.94,
+                    sources     = source_ids,
+                    grounded    = True,
+                    suggestions = suggestions,
+                )
 
         # Resilient synthesis fallback directly from top retrieved chunks
         if chunks:
