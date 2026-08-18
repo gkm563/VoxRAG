@@ -218,7 +218,7 @@ def build_pdf(filename="VoxRAG_Team_Submission_Guide.pdf"):
         "1. <b>Voice Query:</b> Click mic, ask <i>\"What is a corporation?\"</i> -> Watch voice transcription, source retrieval, and grounded response.<br/>"
         "2. <b>Multi-Turn Follow-Up:</b> Ask <i>\"What are its main types?\"</i> -> Show conversational memory and pronoun resolution.<br/>"
         "3. <b>Smart Suggestions:</b> Click one of the 💡 Suggested Follow-ups to show zero-effort continuation.<br/>"
-        "4. <b>ChatGPT Inline Edit:</b> Edit an earlier query with ✏️ Edit and re-run.<br/>"
+        "4. <b>VoxRAG Inline Edit:</b> Edit an earlier query with ✏️ Edit and re-run.<br/>"
         "5. <b>Social Post:</b> Post demo video on LinkedIn, X (Twitter), and Instagram with hashtag <b>#RAGInGoa</b>.",
         body_style
     ))
