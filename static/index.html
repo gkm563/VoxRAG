@@ -1103,17 +1103,43 @@
     if (recognition) { try { recognition.stop(); } catch(e) {} }
   }
 
+  let currentSpeechUtterance = null;
+
   // ── Text-to-Speech (Voice Output / "Bolne Wala") ──
-  function speakAnswer(text) {
-    if (!('speechSynthesis' in window)) return;
+  function speakAnswer(text, btnEl) {
+    if (!('speechSynthesis' in window)) {
+      showToast('Speech synthesis not supported on this browser.');
+      return;
+    }
+
+    // If already speaking, stop and reset
+    if (window.speechSynthesis.speaking) {
+      window.speechSynthesis.cancel();
+      if (btnEl) btnEl.innerHTML = '<span>🔊</span> Listen (Voice)';
+      return;
+    }
+
     window.speechSynthesis.cancel();
     const clean = text.replace(/[*#`_~>]/g, '').trim();
     if (!clean) return;
+
     const u = new SpeechSynthesisUtterance(clean);
-    u.rate = 1.05;
+    u.rate = 1.0;
+    u.pitch = 1.0;
+
     const voices = window.speechSynthesis.getVoices();
-    const eng = voices.find(v => v.lang.includes('en')) || voices[0];
+    const eng = voices.find(v => v.lang.includes('en') && (v.name.includes('Google') || v.name.includes('Natural') || v.name.includes('India'))) || voices[0];
     if (eng) u.voice = eng;
+
+    if (btnEl) btnEl.innerHTML = '<span>⏹️</span> Stop Speaking';
+
+    u.onend = () => {
+      if (btnEl) btnEl.innerHTML = '<span>🔊</span> Listen (Voice)';
+    };
+    u.onerror = () => {
+      if (btnEl) btnEl.innerHTML = '<span>🔊</span> Listen (Voice)';
+    };
+
     window.speechSynthesis.speak(u);
   }
 
@@ -1122,7 +1148,7 @@
   }
 
   // ── Query Execution ──
-  async function submitQuery(autoSpeak = true) {
+  async function submitQuery(autoSpeak = false) {
     const inp = document.getElementById('centerInput');
     const q = inp.value.trim();
     if (!q) return;

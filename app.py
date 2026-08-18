@@ -393,20 +393,25 @@ with col_center:
             </div>
             """, unsafe_allow_html=True)
 
-            # Voice Speech Output (Bolne wala audio player)
+            # Voice Speech Output (Bolne wala audio player - Speak once on click)
             clean_text_for_js = msg['content'].replace("'", "\\'").replace('"', '\\"').replace("\n", " ").replace("\r", "")
             speech_widget_html = f"""
-            <div style="margin-top:-6px;margin-bottom:10px;">
-              <button onclick="
-                window.speechSynthesis.cancel();
-                var u = new SpeechSynthesisUtterance('{clean_text_for_js}');
-                u.rate = 1.05;
-                window.speechSynthesis.speak(u);
+            <div style="margin-top:-6px;margin-bottom:8px;">
+              <button id="btn_tts_{m_idx}" onclick="
+                if (window.speechSynthesis.speaking) {{
+                  window.speechSynthesis.cancel();
+                  document.getElementById('btn_tts_{m_idx}').innerHTML = '<span>🔊</span> <b>Listen (Speak Aloud)</b>';
+                }} else {{
+                  window.speechSynthesis.cancel();
+                  var u = new SpeechSynthesisUtterance('{clean_text_for_js}');
+                  u.rate = 1.0;
+                  u.onend = function() {{ document.getElementById('btn_tts_{m_idx}').innerHTML = '<span>🔊</span> <b>Listen (Speak Aloud)</b>'; }};
+                  u.onerror = function() {{ document.getElementById('btn_tts_{m_idx}').innerHTML = '<span>🔊</span> <b>Listen (Speak Aloud)</b>'; }};
+                  document.getElementById('btn_tts_{m_idx}').innerHTML = '<span>⏹️</span> <b>Stop Speaking</b>';
+                  window.speechSynthesis.speak(u);
+                }}
               " style="background:#0f3d28;color:#facc15;border:1px solid #1f6e4a;padding:5px 14px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px;">
                 <span>🔊</span> <b>Listen (Speak Aloud)</b>
-              </button>
-              <button onclick="window.speechSynthesis.cancel();" style="background:#0f3d28;color:#a7f3d0;border:1px solid #1f6e4a;padding:5px 10px;border-radius:6px;font-size:12px;cursor:pointer;margin-left:6px;">
-                <span>⏹️</span> Stop
               </button>
             </div>
             """
