@@ -237,7 +237,7 @@ with st.sidebar:
     st.caption("👥 **Engineering Team**")
     st.markdown("""
     <div style="background:#092115;border:1px solid #144d32;border-radius:8px;padding:10px;margin-bottom:8px;display:flex;gap:10px;align-items:center;">
-      <img src="https://github.com/gkm563.png" style="width:36px;height:36px;border-radius:50%;" alt="Gautam" />
+      <img src="https://prayagrajrooms.in/images/Gautam_Kumar-Maurya(GKM).jpg" style="width:36px;height:36px;border-radius:50%;object-fit:cover;" alt="Gautam" />
       <div>
         <div style="font-size:12px;font-weight:700;color:#f0fdf4;">Gautam Kumar Maurya</div>
         <div style="font-size:10px;color:#38bdf8;font-weight:600;margin-bottom:3px;">Lead Architect &amp; Developer</div>

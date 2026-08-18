@@ -121,7 +121,7 @@ Access the application at `http://localhost:8000` or `http://localhost:8501`.
   <tr>
     <td align="center" width="280">
       <a href="https://www.linkedin.com/in/gkm563/">
-        <img src="https://github.com/gkm563.png" width="110px;" style="border-radius:50%;box-shadow:0 4px 14px rgba(0,0,0,0.25);" alt="Gautam Kumar Maurya"/><br />
+        <img src="https://raw.githubusercontent.com/gkm563/VoxRAG/main/assets/gautam.jpg" width="110px;" height="110px;" style="border-radius:50%;object-fit:cover;box-shadow:0 4px 14px rgba(0,0,0,0.25);" alt="Gautam Kumar Maurya"/><br />
         <sub><b>Gautam Kumar Maurya</b></sub>
       </a>
       <br />
