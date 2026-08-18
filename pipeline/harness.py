@@ -9,10 +9,18 @@ Responsibilities:
   - Error recovery and graceful degradation
 """
 
+import sys
 import time
 import traceback
 from dataclasses import dataclass
 from typing import Optional, Callable
+
+if sys.platform == "win32":
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+        sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
 
 from tenacity import (
     retry,

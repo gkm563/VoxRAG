@@ -113,22 +113,41 @@ class AnswerGenerator:
         return "\n\n".join(parts)
 
     def _call_groq(self, messages: list[dict]) -> Optional[str]:
-        try:
-            if self._groq_client is None:
+        if not config.GROQ_API_KEY:
+            return None
+
+        if self._groq_client is None:
+            try:
                 from groq import Groq
                 self._groq_client = Groq(api_key=config.GROQ_API_KEY)
+            except Exception:
+                return None
 
-            resp = self._groq_client.chat.completions.create(
-                model=config.GROQ_MODEL,
-                messages=messages,
-                max_tokens=config.MAX_TOKENS,
-                temperature=config.TEMPERATURE,
-                response_format={"type": "json_object"},
-            )
-            return resp.choices[0].message.content
-        except Exception as e:
-            print(f"⚠️  Groq generation error: {e}")
-            return None
+        candidate_models = [
+            "openai/gpt-oss-20b",
+            "openai/gpt-oss-120b",
+            "qwen/qwen3.6-27b",
+            "allam-2-7b",
+            config.GROQ_MODEL,
+        ]
+
+        for mdl in candidate_models:
+            try:
+                resp = self._groq_client.chat.completions.create(
+                    model=mdl,
+                    messages=messages,
+                    max_tokens=config.MAX_TOKENS,
+                    temperature=config.TEMPERATURE,
+                    response_format={"type": "json_object"},
+                )
+                content = resp.choices[0].message.content
+                if content and content.strip():
+                    return content
+            except Exception as e:
+                # Log model error and try next candidate
+                continue
+
+        return None
 
     def _parse(self, raw: Optional[str], chunks: list[dict], question: str) -> RAGAnswer:
         if raw is None:

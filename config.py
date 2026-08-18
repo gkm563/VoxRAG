@@ -42,7 +42,7 @@ EMBED_DIM   = 384
 TOP_K = int(os.getenv("TOP_K", "5"))
 
 # ── LLM ──────────────────────────────────────────────────────────────────────
-GROQ_MODEL      = "groq/compound-mini"    # ultra-fast, active on Groq
+GROQ_MODEL      = "openai/gpt-oss-20b"    # high TPM, ultra-fast generation
 MAX_TOKENS      = int(os.getenv("MAX_TOKENS", "512"))
 TEMPERATURE     = 0.1
 
