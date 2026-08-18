@@ -236,19 +236,25 @@ with st.sidebar:
     st.markdown("---")
     st.caption("👥 **Engineering Team**")
     st.markdown("""
-    <div style="background:#092115;border:1px solid #144d32;border-radius:8px;padding:10px;margin-bottom:8px;">
-      <div style="font-size:12px;font-weight:700;color:#f0fdf4;">Gautam Kumar Maurya</div>
-      <div style="font-size:10px;color:#38bdf8;font-weight:600;margin-bottom:4px;">Lead Architect &amp; Primary Developer</div>
-      <div style="font-size:10.5px;">
-        <a href="https://www.linkedin.com/in/gkm563/" target="_blank" style="color:#facc15;text-decoration:none;">LinkedIn ↗</a> • 
-        <a href="https://github.com/gkm563" target="_blank" style="color:#6ee7b7;text-decoration:none;">GitHub ↗</a>
+    <div style="background:#092115;border:1px solid #144d32;border-radius:8px;padding:10px;margin-bottom:8px;display:flex;gap:10px;align-items:center;">
+      <img src="https://github.com/gkm563.png" style="width:36px;height:36px;border-radius:50%;" alt="Gautam" />
+      <div>
+        <div style="font-size:12px;font-weight:700;color:#f0fdf4;">Gautam Kumar Maurya</div>
+        <div style="font-size:10px;color:#38bdf8;font-weight:600;margin-bottom:3px;">Lead Architect &amp; Developer</div>
+        <div style="font-size:10.5px;">
+          <a href="https://www.linkedin.com/in/gkm563/" target="_blank" style="color:#facc15;text-decoration:none;">LinkedIn ↗</a> • 
+          <a href="https://github.com/gkm563" target="_blank" style="color:#6ee7b7;text-decoration:none;">GitHub ↗</a>
+        </div>
       </div>
     </div>
-    <div style="background:#092115;border:1px solid #144d32;border-radius:8px;padding:10px;">
-      <div style="font-size:12px;font-weight:700;color:#f0fdf4;">Praveen Singh</div>
-      <div style="font-size:10px;color:#a7f3d0;margin-bottom:4px;">Research &amp; Data Collaborator</div>
-      <div style="font-size:10.5px;">
-        <a href="https://www.linkedin.com/in/praveen-singh-463231309/" target="_blank" style="color:#38bdf8;text-decoration:none;">LinkedIn ↗</a>
+    <div style="background:#092115;border:1px solid #144d32;border-radius:8px;padding:10px;display:flex;gap:10px;align-items:center;">
+      <img src="https://prayagrajrooms.in/images/PRAVEEN.JPEG" style="width:36px;height:36px;border-radius:50%;object-fit:cover;" alt="Praveen" />
+      <div>
+        <div style="font-size:12px;font-weight:700;color:#f0fdf4;">Praveen Singh</div>
+        <div style="font-size:10px;color:#a7f3d0;margin-bottom:3px;">Research &amp; Data Collaborator</div>
+        <div style="font-size:10.5px;">
+          <a href="https://www.linkedin.com/in/praveen-singh-463231309/" target="_blank" style="color:#38bdf8;text-decoration:none;">LinkedIn ↗</a>
+        </div>
       </div>
     </div>
     """, unsafe_allow_html=True)

@@ -131,7 +131,7 @@ Access the application at `http://localhost:8000` or `http://localhost:8501`.
     </td>
     <td align="center" width="280">
       <a href="https://www.linkedin.com/in/praveen-singh-463231309/">
-        <img src="https://ui-avatars.com/api/?name=Praveen+Singh&background=1e293b&color=38bdf8&size=128" width="110px;" style="border-radius:50%;box-shadow:0 4px 14px rgba(0,0,0,0.25);" alt="Praveen Singh"/><br />
+        <img src="https://raw.githubusercontent.com/gkm563/VoxRAG/main/assets/praveen.jpg" width="110px;" height="110px;" style="border-radius:50%;object-fit:cover;box-shadow:0 4px 14px rgba(0,0,0,0.25);" alt="Praveen Singh"/><br />
         <sub><b>Praveen Singh</b></sub>
       </a>
       <br />
