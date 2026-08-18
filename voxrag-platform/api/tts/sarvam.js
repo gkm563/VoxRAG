@@ -27,12 +27,22 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'SARVAM_API_KEY not configured' });
   }
 
-  // Clean markdown and formatting characters for crisp speech
-  const cleanText = text
+  // Clean markdown, symbols, and formatting characters for crisp speech
+  let cleanText = text
     .replace(/[*#`_~>\[\]\(\)\\]/g, '')
+    .replace(/http\S+/g, '')
     .replace(/\s+/g, ' ')
-    .trim()
-    .slice(0, 1000); // Safety limit for TTS snippet
+    .trim();
+
+  // Extract first 450 characters (or first 2-3 complete sentences)
+  if (cleanText.length > 450) {
+    const periodIdx = cleanText.indexOf('.', 280);
+    if (periodIdx !== -1 && periodIdx < 450) {
+      cleanText = cleanText.slice(0, periodIdx + 1);
+    } else {
+      cleanText = cleanText.slice(0, 450);
+    }
+  }
 
   try {
     const resp = await fetch('https://api.sarvam.ai/text-to-speech', {

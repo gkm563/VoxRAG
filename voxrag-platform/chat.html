@@ -1392,10 +1392,17 @@
     window.speechSynthesis.cancel();
     const u = new SpeechSynthesisUtterance(cleanText);
     u.rate = 1.15; // Fast, natural, crisp pace
+    u.lang = 'en-IN';
 
     const voices = window.speechSynthesis.getVoices();
-    const eng = voices.find(v => v.lang.includes('en-IN') || v.lang.includes('en-US') || v.lang.includes('en')) || voices[0];
-    if (eng) u.voice = eng;
+    // STRICT FILTER: Match English voices only (en-IN > en-US > en-GB > any en)
+    const engVoice = voices.find(v => v.lang === 'en-IN' || v.lang === 'en_IN') ||
+                     voices.find(v => v.lang === 'en-US' || v.lang === 'en_US') ||
+                     voices.find(v => v.lang.startsWith('en'));
+    if (engVoice) {
+      u.voice = engVoice;
+      u.lang = engVoice.lang;
+    }
 
     u.onend = finishHandler;
     u.onerror = finishHandler;
