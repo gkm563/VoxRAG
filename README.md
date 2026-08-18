@@ -141,21 +141,21 @@ Access the application at `http://localhost:8000` or `http://localhost:8501`.
   <tr>
     <td align="center" width="280">
       <a href="https://www.linkedin.com/in/gkm563/">
-        <img src="https://raw.githubusercontent.com/gkm563/VoxRAG/main/assets/gautam.jpg" width="110px;" height="110px;" style="border-radius:50%;object-fit:cover;box-shadow:0 4px 14px rgba(0,0,0,0.25);" alt="Gautam Kumar Maurya"/><br />
+        <img src="https://raw.githubusercontent.com/gkm563/VoxRAG/main/assets/gautam.jpg" width="120" height="120" style="border-radius:50%;" alt="Gautam Kumar Maurya"/><br />
         <sub><b>Gautam Kumar Maurya</b></sub>
       </a>
       <br />
-      <b>Lead Architect & Primary Developer</b>
+      <b>Lead Architect &amp; Primary Developer</b>
       <br />
       <a href="https://www.linkedin.com/in/gkm563/">LinkedIn</a> • <a href="https://github.com/gkm563">GitHub</a>
     </td>
     <td align="center" width="280">
       <a href="https://www.linkedin.com/in/praveen-singh-463231309/">
-        <img src="https://raw.githubusercontent.com/gkm563/VoxRAG/main/assets/praveen.jpg" width="110px;" height="110px;" style="border-radius:50%;object-fit:cover;box-shadow:0 4px 14px rgba(0,0,0,0.25);" alt="Praveen Singh"/><br />
+        <img src="https://raw.githubusercontent.com/gkm563/VoxRAG/main/assets/praveen.jpg" width="120" height="120" style="border-radius:50%;" alt="Praveen Singh"/><br />
         <sub><b>Praveen Singh</b></sub>
       </a>
       <br />
-      <b>Research & Data Collaborator</b>
+      <b>Research &amp; Data Collaborator</b>
       <br />
       <a href="https://www.linkedin.com/in/praveen-singh-463231309/">LinkedIn</a>
     </td>
