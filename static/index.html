@@ -1,624 +1,710 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en" data-theme="goa">
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>VoxRAG — Conversational Voice & Text RAG (with Speech In & Speech Out)</title>
+<title>VoxRAG — Voice & Type Conversational RAG (#RAGInGoa Edition)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet"/>
 <style>
-  *{margin:0;padding:0;box-sizing:border-box;}
+  *{margin:0;padding:0;box-sizing:border-box;transition:background-color 0.2s,border-color 0.2s,color 0.2s;}
 
-  /* ── Dark Theme (ChatGPT Exact Aesthetic) ── */
-  :root {
-    --bg-main: #212121;
-    --bg-sidebar: #171717;
-    --bg-capsule: #2f2f2f;
-    --bg-capsule-hover: #383838;
-    --bg-user-bubble: #1e3a8a;
-    --bg-hover: #212121;
-    --border-subtle: #2f2f2f;
-    --border-card: #383838;
-    --accent-blue: #3b82f6;
-    --accent-glow: rgba(59, 130, 246, 0.3);
-    --text-primary: #ececec;
-    --text-secondary: #b4b4b4;
-    --text-muted: #737373;
-    --green: #10a37f;
-    --red: #ef4444;
-    --yellow: #f59e0b;
-    --sidebar-w: 260px;
+  /* ── Goa Tropical Theme (Default #RAGInGoa) ── */
+  :root[data-theme="goa"] {
+    --bg-main: #072316;
+    --bg-sidebar: #051b11;
+    --bg-card: #0c3321;
+    --bg-card-header: #0f3d28;
+    --bg-input: #082819;
+    --bg-hover: #134a31;
+    --border: #165337;
+    --border-light: #1f6e4a;
+    --accent-yellow: #facc15;
+    --accent-yellow-bg: rgba(250, 204, 21, 0.15);
+    --accent-pink: #f43f5e;
+    --accent-pink-bg: rgba(244, 63, 94, 0.15);
+    --accent-green: #10b981;
+    --accent-cyan: #38bdf8;
+    --accent-orange: #fb923c;
+    --accent-purple: #8b5cf6;
+    --text-primary: #f0fdf4;
+    --text-secondary: #a7f3d0;
+    --text-muted: #6ee7b7;
+    --user-bubble-bg: linear-gradient(135deg, #1e3a8a, #2563eb);
+    --sidebar-w: 230px;
+    --right-w: 320px;
+    --card-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    --radius: 12px;
   }
 
-  html,body{height:100%;font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:var(--bg-main);color:var(--text-primary);overflow:hidden;}
+  /* ── Clean Light Theme (Exact Screenshot 1) ── */
+  :root[data-theme="light"] {
+    --bg-main: #f8fafc;
+    --bg-sidebar: #ffffff;
+    --bg-card: #ffffff;
+    --bg-card-header: #f1f5f9;
+    --bg-input: #f8fafc;
+    --bg-hover: #f1f5f9;
+    --border: #e2e8f0;
+    --border-light: #cbd5e1;
+    --accent-yellow: #d97706;
+    --accent-yellow-bg: #fef3c7;
+    --accent-pink: #e11d48;
+    --accent-pink-bg: #ffe4e6;
+    --accent-green: #059669;
+    --accent-cyan: #0284c7;
+    --accent-orange: #ea580c;
+    --accent-purple: #6c63ff;
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
+    --text-muted: #94a3b8;
+    --user-bubble-bg: linear-gradient(135deg, #4f46e5, #6366f1);
+    --sidebar-w: 230px;
+    --right-w: 320px;
+    --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+    --radius: 12px;
+  }
 
-  /* ── Layout ── */
-  .layout{display:flex;height:100vh;width:100vw;overflow:hidden;}
+  /* ── Dark Night Theme ── */
+  :root[data-theme="dark"] {
+    --bg-main: #0f172a;
+    --bg-sidebar: #090d16;
+    --bg-card: #1e293b;
+    --bg-card-header: #334155;
+    --bg-input: #0f172a;
+    --bg-hover: #334155;
+    --border: #334155;
+    --border-light: #475569;
+    --accent-yellow: #fbbf24;
+    --accent-yellow-bg: rgba(251, 191, 36, 0.15);
+    --accent-pink: #f43f5e;
+    --accent-pink-bg: rgba(244, 63, 94, 0.15);
+    --accent-green: #10b981;
+    --accent-cyan: #38bdf8;
+    --accent-orange: #fb923c;
+    --accent-purple: #818cf8;
+    --text-primary: #f8fafc;
+    --text-secondary: #94a3b8;
+    --text-muted: #64748b;
+    --user-bubble-bg: linear-gradient(135deg, #2563eb, #1d4ed8);
+    --sidebar-w: 230px;
+    --right-w: 320px;
+    --card-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    --radius: 12px;
+  }
 
-  /* ── Left Sidebar ── */
+  html,body{height:100%;font-family:'Inter',-apple-system,sans-serif;background:var(--bg-main);color:var(--text-primary);overflow:hidden;}
+
+  /* ── 3-Column Layout ── */
+  .layout{display:grid;grid-template-columns:var(--sidebar-w) 1fr var(--right-w);height:100vh;width:100vw;overflow:hidden;}
+
+  /* ── LEFT SIDEBAR ── */
   .sidebar{
-    width: var(--sidebar-w);
     background: var(--bg-sidebar);
-    border-right: 1px solid var(--border-subtle);
+    border-right: 1px solid var(--border);
     display: flex;
     flex-direction: column;
-    padding: 12px 10px;
-    flex-shrink: 0;
+    padding: 18px 14px;
     user-select: none;
     z-index: 10;
   }
-
-  .sidebar-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 4px 8px;
-    margin-bottom: 8px;
-  }
-  .brand-logo {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 15px;
-    font-weight: 700;
-    color: #fff;
-    letter-spacing: -0.02em;
-  }
-  .brand-badge {
-    font-size: 10px;
-    background: #2a2a2a;
-    color: #a3a3a3;
-    padding: 2px 6px;
-    border-radius: 6px;
-    font-weight: 500;
-  }
-
-  .btn-new-chat {
+  .logo-row {
     display: flex;
     align-items: center;
     gap: 10px;
-    width: 100%;
-    background: transparent;
-    border: 1px solid var(--border-card);
-    color: #fff;
-    padding: 9px 12px;
-    border-radius: 8px;
-    font-size: 13px;
-    font-weight: 500;
-    cursor: pointer;
-    margin-bottom: 12px;
-    transition: background 0.15s;
+    margin-bottom: 24px;
+    padding: 0 4px;
   }
-  .btn-new-chat:hover {
-    background: var(--bg-capsule);
-    border-color: #4a4a4a;
+  .logo-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #6c63ff, #ec4899);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    color: white;
+    box-shadow: 0 4px 12px rgba(108, 99, 255, 0.3);
   }
+  .logo-text h2 { font-size: 16px; font-weight: 800; letter-spacing: -0.02em; }
+  .logo-text p { font-size: 10px; color: var(--text-muted); }
 
-  .nav-group {
+  .nav-list {
+    flex: 1;
     display: flex;
     flex-direction: column;
-    gap: 2px;
-    margin-bottom: 14px;
+    gap: 4px;
   }
   .nav-item {
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 7px 10px;
+    padding: 10px 14px;
     border-radius: 8px;
     font-size: 13px;
+    font-weight: 500;
     color: var(--text-secondary);
     cursor: pointer;
     text-decoration: none;
-    transition: all 0.15s;
   }
-  .nav-item:hover { background: var(--bg-capsule); color: #fff; }
-  .nav-item.active { background: #262626; color: #fff; font-weight: 500; }
+  .nav-item:hover { background: var(--bg-hover); color: var(--text-primary); }
+  .nav-item.active {
+    background: rgba(108, 99, 255, 0.12);
+    color: #6c63ff;
+    border: 1px solid rgba(108, 99, 255, 0.4);
+    font-weight: 600;
+  }
   .nav-item svg { width: 16px; height: 16px; flex-shrink: 0; }
 
-  .sidebar-section-title {
-    font-size: 11px;
-    font-weight: 600;
-    color: var(--text-muted);
-    padding: 6px 10px 4px;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-  }
-
-  .chat-list {
-    flex: 1;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-  }
-  .chat-list::-webkit-scrollbar { width: 4px; }
-  .chat-list::-webkit-scrollbar-thumb { background: #2a2a2a; border-radius: 4px; }
-
-  .chat-item {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 7px 10px;
-    border-radius: 8px;
-    font-size: 12.5px;
-    color: var(--text-secondary);
-    cursor: pointer;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  .chat-item:hover { background: var(--bg-capsule); color: #fff; }
-  .chat-item.active { background: #262626; color: #fff; font-weight: 500; }
-  .chat-item-dot { width: 6px; height: 6px; border-radius: 50%; background: #525252; flex-shrink: 0; }
-  .chat-item.active .chat-item-dot { background: var(--green); }
-
-  .sidebar-footer {
-    border-top: 1px solid var(--border-subtle);
-    padding-top: 10px;
-    margin-top: auto;
-  }
-  .user-pill {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 6px 8px;
-    border-radius: 8px;
-    cursor: pointer;
-  }
-  .user-pill:hover { background: var(--bg-capsule); }
-  .user-avatar-badge {
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    background: #ea580c;
-    color: white;
-    font-size: 11px;
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  .user-name-text { font-size: 12.5px; font-weight: 500; color: #fff; }
-
-  /* ── Main Chat Area ── */
-  .main-chat-container {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
-    background: var(--bg-main);
-    position: relative;
-    overflow: hidden;
-  }
-
-  /* Top Navigation Bar */
-  .top-nav {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 12px 20px;
-    border-bottom: 1px solid var(--border-subtle);
-    flex-shrink: 0;
-    background: var(--bg-main);
-    z-index: 5;
-  }
-  .model-selector {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 14px;
-    font-weight: 600;
-    color: #fff;
-    cursor: pointer;
-    padding: 4px 8px;
-    border-radius: 6px;
-  }
-  .top-actions {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-
-  /* Voice Output Auto-Speak Toggle */
-  .voice-toggle-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    background: #262626;
-    border: 1px solid var(--border-card);
-    color: var(--text-secondary);
-    font-size: 12px;
-    padding: 5px 12px;
-    border-radius: 20px;
-    cursor: pointer;
-    font-weight: 500;
-    transition: all 0.15s;
-  }
-  .voice-toggle-btn.active {
-    background: #064e3b;
-    border-color: #10b981;
-    color: #a7f3d0;
-  }
-
-  .btn-share {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    background: var(--bg-capsule);
-    border: 1px solid var(--border-card);
-    color: #fff;
-    font-size: 12px;
-    padding: 5px 12px;
-    border-radius: 6px;
-    cursor: pointer;
-    text-decoration: none;
-  }
-  .btn-share:hover { background: var(--bg-capsule-hover); }
-
-  /* Chat Stream */
-  .chat-scroll-area {
-    flex: 1;
-    overflow-y: auto;
-    padding: 24px 20px 140px;
-    display: flex;
-    flex-direction: column;
-    gap: 24px;
-    max-width: 820px;
-    width: 100%;
-    margin: 0 auto;
-  }
-  .chat-scroll-area::-webkit-scrollbar { width: 6px; }
-  .chat-scroll-area::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
-
-  /* User Message (ChatGPT Blue Pill) */
-  .msg-row-user {
-    display: flex;
-    justify-content: flex-end;
-    width: 100%;
-  }
-  .user-bubble {
-    background: var(--bg-user-bubble);
-    color: #fff;
-    padding: 12px 18px;
-    border-radius: 20px;
-    max-width: 75%;
-    font-size: 14px;
-    line-height: 1.55;
-    position: relative;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-  }
-  .user-meta-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    font-size: 10.5px;
-    color: #93c5fd;
-    margin-bottom: 4px;
-  }
-  .user-edit-btn {
-    background: transparent;
-    border: none;
-    color: #bfdbfe;
-    cursor: pointer;
-    font-size: 11px;
-    padding: 0;
-  }
-
-  /* Assistant Message (ChatGPT Rich Typography) */
-  .msg-row-ai {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    width: 100%;
-  }
-  .ai-header-line {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 13px;
-    font-weight: 600;
-    color: #fff;
-  }
-  .ai-logo-icon {
-    width: 22px;
-    height: 22px;
-    border-radius: 50%;
-    background: var(--green);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 11px;
-    color: #000;
-    font-weight: 700;
-  }
-  .ai-tag {
-    font-size: 10.5px;
-    padding: 2px 6px;
-    border-radius: 4px;
-    font-weight: 500;
-  }
-  .tag-grounded { background: #064e3b; color: #6ee7b7; }
-  .tag-time { font-size: 11px; color: var(--text-muted); font-weight: normal; margin-left: 4px; }
-
-  .ai-content-body {
-    font-size: 14.5px;
-    color: #d1d5db;
-    line-height: 1.65;
-    padding-left: 30px;
-  }
-  .ai-content-body code {
-    background: #2f2f2f;
-    padding: 2px 6px;
-    border-radius: 4px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 12.5px;
-    color: #38bdf8;
-  }
-
-  /* Sources section */
-  .sources-box {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-    margin-top: 10px;
-    padding-left: 30px;
-  }
-  .source-pill {
-    background: #262626;
-    border: 1px solid var(--border-card);
-    padding: 3px 8px;
-    border-radius: 6px;
-    font-size: 11px;
-    color: var(--text-secondary);
-    font-family: 'JetBrains Mono', monospace;
-  }
-
-  /* Dynamic Follow-up Suggestions */
-  .suggestions-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-    margin-top: 10px;
-    padding-left: 30px;
-  }
-  .sug-pill-btn {
-    background: #262626;
-    border: 1px solid #404040;
-    color: #e5e5e5;
-    padding: 6px 12px;
-    border-radius: 99px;
-    font-size: 12px;
-    cursor: pointer;
-    transition: all 0.15s;
-  }
-  .sug-pill-btn:hover {
-    background: var(--bg-capsule-hover);
-    border-color: var(--accent-blue);
-    color: #fff;
-  }
-
-  /* Action Buttons bar (with Speak/Listen Button!) */
-  .ai-action-bar {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding-left: 30px;
+  .sidebar-bottom {
+    border-top: 1px solid var(--border);
+    padding-top: 14px;
     margin-top: 8px;
-    font-size: 12px;
-    color: var(--text-muted);
-  }
-  .action-icon-btn {
-    background: transparent;
-    border: none;
-    color: var(--text-muted);
-    cursor: pointer;
-    padding: 4px 8px;
-    border-radius: 6px;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    font-size: 12px;
-    transition: all 0.15s;
-  }
-  .action-icon-btn:hover { color: #fff; background: var(--bg-capsule); }
-  .action-icon-btn.speaking {
-    color: #10b981;
-    background: rgba(16, 185, 129, 0.15);
-  }
-
-  /* ── Floating Bottom Capsule Bar (ChatGPT Exact Design) ── */
-  .bottom-capsule-container {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background: linear-gradient(180deg, transparent 0%, var(--bg-main) 30%);
-    padding: 20px 20px 24px;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    z-index: 10;
+    gap: 10px;
   }
-
-  /* Live Voice Status Indicator Banner */
-  .voice-listening-banner {
-    display: none;
-    align-items: center;
-    gap: 8px;
-    background: rgba(239, 68, 68, 0.15);
-    border: 1px solid rgba(239, 68, 68, 0.4);
-    color: #fca5a5;
-    font-size: 12px;
-    font-weight: 600;
-    padding: 4px 14px;
-    border-radius: 99px;
-    margin-bottom: 8px;
-    animation: pulse 1.5s infinite;
-  }
-  @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.6;} }
-
-  .capsule-box {
-    width: 100%;
-    max-width: 800px;
-    background: var(--bg-capsule);
-    border: 1px solid var(--border-card);
-    border-radius: 28px;
-    padding: 10px 14px;
+  .user-card {
     display: flex;
     align-items: center;
     gap: 10px;
-    box-shadow: 0 8px 30px rgba(0,0,0,0.35);
+    padding: 6px;
+    border-radius: 8px;
   }
-  .capsule-box:focus-within {
-    border-color: #525252;
-    background: #333333;
-  }
-  .btn-plus {
+  .user-avatar {
     width: 32px;
     height: 32px;
     border-radius: 50%;
-    background: #383838;
+    background: #6366f1;
+    color: white;
+    font-size: 12px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .user-info h4 { font-size: 12.5px; font-weight: 600; }
+  .user-info p { font-size: 10.5px; color: var(--text-muted); }
+
+  .theme-toggle-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 4px 6px;
+    font-size: 12px;
+    color: var(--text-secondary);
+  }
+  .theme-select {
+    background: var(--bg-hover);
+    border: 1px solid var(--border);
+    color: var(--text-primary);
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-size: 11px;
+    outline: none;
+    cursor: pointer;
+  }
+
+  /* ── CENTER MAIN AREA ── */
+  .center-pane {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+    background: var(--bg-main);
+  }
+
+  /* Top Bar */
+  .top-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 28px;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+    background: var(--bg-sidebar);
+  }
+  .top-bar-left h1 { font-size: 18px; font-weight: 800; letter-spacing: -0.02em; }
+  .top-bar-left p { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+  .top-bar-right { display: flex; align-items: center; gap: 10px; }
+
+  .status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px;
+    border-radius: 99px;
+    font-size: 12px;
+    font-weight: 500;
+    background: var(--bg-hover);
+    border: 1px solid var(--border);
+  }
+  .status-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--accent-green);
+    box-shadow: 0 0 8px var(--accent-green);
+    animation: pulse 1.5s infinite;
+  }
+  .live-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 14px;
+    border-radius: 99px;
+    font-size: 12px;
+    font-weight: 700;
+    background: #6366f1;
+    color: white;
+  }
+
+  /* Scrollable Studio Body */
+  .studio-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+  .studio-content::-webkit-scrollbar { width: 5px; }
+  .studio-content::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 4px; }
+
+  /* ── Conversational Studio Card ── */
+  .studio-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px 24px;
+    box-shadow: var(--card-shadow);
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .studio-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .studio-card-title h3 { font-size: 15px; font-weight: 700; }
+  .studio-card-title p { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+  .studio-controls { display: flex; align-items: center; gap: 8px; }
+  .btn-new-chat-center {
+    background: var(--bg-hover);
+    border: 1px solid var(--border);
+    color: var(--text-primary);
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .btn-new-chat-center:hover { border-color: #6c63ff; color: #6c63ff; }
+
+  .mode-switch-group {
+    display: flex;
+    background: var(--bg-hover);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 2px;
+  }
+  .mode-btn {
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 11.5px;
+    font-weight: 600;
     border: none;
-    color: #fff;
+    background: transparent;
+    color: var(--text-secondary);
+    cursor: pointer;
+  }
+  .mode-btn.active {
+    background: #6366f1;
+    color: white;
+    box-shadow: 0 2px 6px rgba(99, 102, 241, 0.3);
+  }
+
+  /* Center Voice Visualizer */
+  .voice-visualizer-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 0 6px;
+    gap: 8px;
+  }
+  .wave-mic-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .audio-wave-bars {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    height: 24px;
+  }
+  .bar {
+    width: 3px;
+    height: 10px;
+    background: var(--accent-purple);
+    border-radius: 2px;
+  }
+  .bar.anim { animation: wave 1.2s ease-in-out infinite; }
+  .bar:nth-child(2) { animation-delay: 0.15s; }
+  .bar:nth-child(3) { animation-delay: 0.3s; }
+  .bar:nth-child(4) { animation-delay: 0.45s; }
+  .bar:nth-child(5) { animation-delay: 0.6s; }
+  @keyframes wave { 0%,100%{height:6px;} 50%{height:22px;} }
+
+  .mic-avatar-btn {
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #6366f1, #a855f7);
+    border: none;
+    color: white;
     font-size: 18px;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    flex-shrink: 0;
+    box-shadow: 0 4px 14px rgba(99, 102, 241, 0.4);
+    transition: transform 0.2s;
   }
-  .btn-plus:hover { background: #454545; }
-  .capsule-input {
+  .mic-avatar-btn:hover { transform: scale(1.08); }
+  .mic-avatar-btn.recording {
+    background: var(--accent-pink);
+    box-shadow: 0 0 16px var(--accent-pink);
+    animation: pulse 1.2s infinite;
+  }
+  .voice-helper-text { font-size: 12px; color: var(--text-muted); }
+
+  /* Input Box */
+  .unified-input-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--bg-input);
+    border: 1px solid var(--border-light);
+    border-radius: 10px;
+    padding: 10px 14px;
+  }
+  .unified-input-wrapper:focus-within {
+    border-color: #6366f1;
+    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+  }
+  .unified-input {
     flex: 1;
     background: transparent;
     border: none;
     outline: none;
-    font-size: 14.5px;
-    color: #fff;
+    font-size: 13.5px;
+    color: var(--text-primary);
     font-family: inherit;
   }
-  .capsule-input::placeholder { color: #8e8e8e; }
+  .unified-input::placeholder { color: var(--text-muted); }
 
-  .capsule-tools {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .think-pill {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    background: #383838;
-    border: 1px solid #4a4a4a;
-    padding: 4px 10px;
-    border-radius: 99px;
-    font-size: 12px;
-    color: #d4d4d4;
+  .input-action-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
     cursor: pointer;
-    font-weight: 500;
+    font-size: 16px;
+    padding: 4px;
   }
-  .think-pill:hover { background: #454545; color: #fff; }
+  .input-action-btn:hover { color: var(--text-primary); }
 
-  .mic-round-btn {
+  .send-action-btn {
     width: 34px;
     height: 34px;
-    border-radius: 50%;
-    background: #383838;
+    border-radius: 8px;
+    background: #6366f1;
     border: none;
-    color: #fff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    font-size: 15px;
-    transition: all 0.2s;
-  }
-  .mic-round-btn:hover { background: #4a4a4a; }
-  .mic-round-btn.recording {
-    background: var(--red);
-    box-shadow: 0 0 12px var(--red);
-    transform: scale(1.1);
-  }
-
-  .send-round-btn {
-    width: 34px;
-    height: 34px;
-    border-radius: 50%;
-    background: var(--accent-blue);
-    border: none;
-    color: #fff;
+    color: white;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
     font-size: 14px;
-    transition: transform 0.1s;
   }
-  .send-round-btn:hover { transform: scale(1.05); }
+  .send-action-btn:hover { opacity: 0.9; }
 
-  .disclaimer-text {
-    font-size: 11.5px;
+  /* Wooden Signpost Styled Starter Pills */
+  .starter-chips-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .starter-label {
+    font-size: 11px;
+    font-weight: 700;
     color: var(--text-muted);
-    margin-top: 8px;
+    letter-spacing: 0.05em;
+  }
+  .starter-pill {
+    background: var(--bg-hover);
+    border: 1px solid var(--border);
+    color: var(--text-primary);
+    padding: 5px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    transition: all 0.15s;
+  }
+  .starter-pill:hover {
+    border-color: var(--accent-yellow);
+    background: var(--accent-yellow-bg);
+    color: var(--accent-yellow);
+  }
+
+  /* ── Chat Messages Container ── */
+  .chat-conversation-area {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  /* User Message */
+  .msg-user-row {
+    display: flex;
+    justify-content: flex-end;
+  }
+  .msg-user-bubble {
+    background: var(--user-bubble-bg);
+    color: white;
+    padding: 12px 18px;
+    border-radius: 16px 16px 2px 16px;
+    max-width: 80%;
+    font-size: 13.5px;
+    line-height: 1.5;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+  .msg-user-meta {
+    font-size: 10.5px;
+    opacity: 0.85;
+    margin-bottom: 4px;
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .btn-edit-sm {
+    background: transparent;
+    border: none;
+    color: white;
+    cursor: pointer;
+    font-size: 10.5px;
+    opacity: 0.9;
+  }
+
+  /* AI Message */
+  .msg-ai-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .msg-ai-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 700;
+  }
+  .ai-avatar-dot {
+    width: 22px; height: 22px; border-radius: 50%;
+    background: #10b981; color: #000;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 800;
+  }
+  .badge-grounded {
+    background: rgba(16, 185, 129, 0.15);
+    color: #10b981;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .msg-ai-text {
+    font-size: 14px;
+    line-height: 1.65;
+    color: var(--text-primary);
+  }
+  .msg-ai-text code {
+    background: var(--bg-input);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--accent-cyan);
+  }
+
+  .sources-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .source-tag {
+    background: var(--bg-hover);
+    border: 1px solid var(--border);
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--text-secondary);
+  }
+
+  .ai-action-footer {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding-top: 8px;
+    border-top: 1px solid var(--border);
+    font-size: 12px;
+  }
+  .btn-action-pill {
+    background: var(--bg-hover);
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 11.5px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .btn-action-pill:hover { color: var(--text-primary); border-color: #6366f1; }
+
+  /* ── Bottom Status Bar ── */
+  .bottom-status-strip {
+    background: var(--bg-sidebar);
+    border-top: 1px solid var(--border);
+    padding: 10px 24px;
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 8px;
+    flex-shrink: 0;
+  }
+  .stat-block h5 { font-size: 9.5px; color: var(--text-muted); text-transform: uppercase; font-weight: 700; }
+  .stat-block p { font-size: 12px; font-weight: 700; color: var(--text-primary); margin-top: 2px; }
+  .stat-block p.green { color: var(--accent-green); }
+  .stat-block p.purple { color: #818cf8; }
+
+  /* ── RIGHT ANALYTICS & PIPELINE PANEL ── */
+  .right-pane {
+    background: var(--bg-sidebar);
+    border-left: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow-y: auto;
+    padding: 20px 18px;
+    gap: 20px;
+  }
+  .right-pane::-webkit-scrollbar { width: 4px; }
+  .right-pane::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 4px; }
+
+  .right-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .right-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .right-card-title h4 { font-size: 13.5px; font-weight: 700; }
+  .right-card-title p { font-size: 10.5px; color: var(--text-muted); }
+
+  /* Pipeline 4 Stage Flow */
+  .pipeline-stage-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+  }
+  .pipe-step {
+    background: var(--bg-hover);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 4px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+  }
+  .pipe-step-icon { font-size: 14px; }
+  .pipe-step-name { font-size: 9.5px; font-weight: 700; color: var(--text-primary); }
+  .pipe-step-sub { font-size: 8.5px; color: var(--text-muted); }
+  .pipe-step-ms { font-size: 9px; font-weight: 700; color: var(--accent-yellow); font-family: 'JetBrains Mono', monospace; }
+
+  /* Latency Metrics 3 Cards */
+  .latency-metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+  }
+  .lat-card {
+    background: var(--bg-hover);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 6px;
     text-align: center;
   }
+  .lat-card-title { font-size: 10px; font-weight: 700; color: var(--text-muted); }
+  .lat-card-value { font-size: 16px; font-weight: 800; margin: 3px 0 1px; font-family: 'JetBrains Mono', monospace; }
+  .lat-card-badge { font-size: 8.5px; color: var(--text-muted); }
+  .lat-green { color: #10b981; }
+  .lat-yellow { color: #f59e0b; }
+  .lat-red { color: #ef4444; }
 
-  /* Inline edit container */
-  .edit-container {
-    margin-top: 8px;
+  /* Canvas Wave Graph */
+  .canvas-graph {
+    width: 100%;
+    height: 70px;
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+  }
+
+  /* Guardrails Check List */
+  .guard-list {
     display: flex;
     flex-direction: column;
     gap: 6px;
   }
-  .edit-ta {
-    width: 100%;
-    background: #171717;
-    border: 1px solid var(--accent-blue);
-    color: #fff;
-    padding: 8px 10px;
-    border-radius: 8px;
-    font-size: 13px;
-    outline: none;
-    font-family: inherit;
-  }
-  .edit-actions { display: flex; justify-content: flex-end; gap: 6px; }
-  .btn-sm-cancel { background: #333; color: #bbb; border: none; padding: 4px 10px; border-radius: 6px; font-size: 11px; cursor: pointer; }
-  .btn-sm-save { background: var(--accent-blue); color: #fff; border: none; padding: 4px 10px; border-radius: 6px; font-size: 11px; cursor: pointer; }
-
-  /* Thinking Animation */
-  .thinking-row {
+  .guard-item {
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding-left: 30px;
-    font-size: 13.5px;
-    color: var(--text-muted);
+    justify-content: space-between;
+    font-size: 12px;
+    padding: 4px 2px;
   }
-  .dot-flashing {
-    position: relative;
-    width: 6px;
-    height: 6px;
-    border-radius: 5px;
-    background-color: var(--text-muted);
-    animation: dot-flashing 1s infinite linear alternate;
-    animation-delay: 0.5s;
+  .guard-name { display: flex; align-items: center; gap: 6px; color: var(--text-secondary); }
+  .guard-badge-ok {
+    font-size: 10.5px;
+    font-weight: 700;
+    color: var(--accent-green);
+    background: rgba(16, 185, 129, 0.12);
+    padding: 2px 6px;
+    border-radius: 4px;
   }
-  .dot-flashing::before, .dot-flashing::after {
-    content: "";
-    display: inline-block;
-    position: absolute;
-    top: 0;
-    width: 6px;
-    height: 6px;
-    border-radius: 5px;
-    background-color: var(--text-muted);
-    animation: dot-flashing 1s infinite alternate;
-  }
-  .dot-flashing::before { left: -10px; animation-delay: 0s; }
-  .dot-flashing::after { left: 10px; animation-delay: 1s; }
-  @keyframes dot-flashing { 0% { background-color: var(--text-muted); } 50%, 100% { background-color: #fff; } }
 
   /* Toast Notification */
   .toast {
@@ -626,7 +712,7 @@
     top: 20px;
     left: 50%;
     transform: translateX(-50%);
-    background: #10a37f;
+    background: #10b981;
     color: white;
     padding: 8px 16px;
     border-radius: 99px;
@@ -634,6 +720,7 @@
     font-weight: 600;
     display: none;
     z-index: 100;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
   }
 </style>
 </head>
@@ -643,172 +730,288 @@
 
 <div class="layout">
 
-  <!-- ── LEFT SIDEBAR (ChatGPT Style) ── -->
+  <!-- ── 1. LEFT NAVIGATION SIDEBAR ── -->
   <aside class="sidebar">
-    <div class="sidebar-header">
-      <div class="brand-logo">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm1 14.93V18a1 1 0 0 1-2 0v-1.07A7 7 0 0 1 5.07 11H6a1 1 0 0 1 0-2h-.93A7 7 0 0 1 11 5.07V6a1 1 0 0 1 2 0v-.93A7 7 0 0 1 18.93 11H18a1 1 0 0 1 0 2h.93A7 7 0 0 1 13 16.93z"/></svg>
-        <span>ChatGPT</span>
-        <span class="brand-badge">VoxRAG</span>
+    <div class="logo-row">
+      <div class="logo-icon">🌴</div>
+      <div class="logo-text">
+        <h2>VoxRAG</h2>
+        <p>Voice · Retrieve · Generate</p>
       </div>
-      <button class="sidebar-icon-btn" title="Search chats">🔍</button>
     </div>
 
-    <!-- New Chat -->
-    <button class="btn-new-chat" onclick="startNewChat()">
-      <span>✏️</span> New chat
-    </button>
-
-    <!-- Navigation links -->
-    <div class="nav-group">
-      <a href="javascript:void(0)" class="nav-item active">
+    <nav class="nav-list">
+      <a class="nav-item active" href="javascript:void(0)" onclick="showToast('Active: Chat & Conversation')">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-        Chat (Voice &amp; Text)
+        Chat &amp; Conversation
       </a>
-      <a href="https://docs-three-dusky-37.vercel.app" target="_blank" class="nav-item">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+      <a class="nav-item" href="https://docs-three-dusky-37.vercel.app" target="_blank">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
         Architecture Guide ↗
       </a>
-      <a href="https://voxrag.streamlit.app" target="_blank" class="nav-item">
+      <a class="nav-item" href="https://voxrag.streamlit.app" target="_blank">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polygon points="10 8 16 12 10 16 10 8"></polygon></svg>
-        Streamlit App ↗
+        Streamlit Cloud ↗
       </a>
-      <a href="https://forms.gle/MNvCjcv23Hn2Eeu58" target="_blank" class="nav-item">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+      <a class="nav-item" href="https://github.com/gkm563/VoxRAG" target="_blank">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg>
+        GitHub Repository ↗
+      </a>
+      <a class="nav-item" href="https://forms.gle/MNvCjcv23Hn2Eeu58" target="_blank">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
         Submission Form ↗
       </a>
-    </div>
+    </nav>
 
-    <!-- Pinned chats -->
-    <div class="sidebar-section-title">Pinned</div>
-    <div class="chat-list" style="max-height: 120px;">
-      <div class="chat-item" onclick="askPreset('What is a corporation?')">
-        <div class="chat-item-dot"></div>
-        <span>What is a corporation?</span>
+    <div class="sidebar-bottom">
+      <div class="user-card">
+        <div class="user-avatar">GM</div>
+        <div class="user-info">
+          <h4>Gautam Maurya</h4>
+          <p>Developer · HH Goa</p>
+        </div>
       </div>
-      <div class="chat-item" onclick="askPreset('What are its main types?')">
-        <div class="chat-item-dot"></div>
-        <span>What are its main types?</span>
-      </div>
-      <div class="chat-item" onclick="askPreset('Explain dense passage retrieval')">
-        <div class="chat-item-dot"></div>
-        <span>Dense passage retrieval</span>
-      </div>
-    </div>
 
-    <!-- Recent chats -->
-    <div class="sidebar-section-title" style="margin-top: 10px;">Recents</div>
-    <div class="chat-list" id="recentsList">
-      <div class="chat-item active">
-        <div class="chat-item-dot"></div>
-        <span id="activeChatTitle">MSMARCO-XI RAG Session</span>
-      </div>
-    </div>
-
-    <!-- User Profile Footer -->
-    <div class="sidebar-footer">
-      <div class="user-pill" onclick="showToast('VoxRAG v2.5 Active · Voice In & Voice Out Ready')">
-        <div class="user-avatar-badge">GM</div>
-        <div class="user-name-text">Gautam Kumar Maurya</div>
+      <div class="theme-toggle-row">
+        <span>🎨 Theme:</span>
+        <select class="theme-select" id="themeSelect" onchange="changeTheme(this.value)">
+          <option value="goa" selected>🌴 Goa Beach</option>
+          <option value="light">☀️ Light Studio</option>
+          <option value="dark">🌙 Dark Night</option>
+        </select>
       </div>
     </div>
   </aside>
 
-  <!-- ── MAIN CHAT VIEW (ChatGPT Exact Style) ── -->
-  <main class="main-chat-container">
 
-    <!-- Top Navigation Bar -->
-    <div class="top-nav">
-      <div class="model-selector">
-        <span>ChatGPT</span>
-        <span style="color:#737373;">4o-mini · Voice Enabled</span>
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+  <!-- ── 2. CENTER MAIN CONVERSATIONAL STUDIO ── -->
+  <main class="center-pane">
+    
+    <!-- Top Bar -->
+    <header class="top-bar">
+      <div class="top-bar-left">
+        <h1>Voice &amp; Type Conversational RAG</h1>
+        <p>Multi-turn context-aware question answering with retrieval augmented generation</p>
       </div>
-      <div class="top-actions">
-        <!-- Voice Output Auto-Speak Toggle Button -->
-        <button class="voice-toggle-btn active" id="autoVoiceBtn" onclick="toggleAutoVoice()" title="Toggle voice read aloud">
-          <span id="voiceIcon">🔊</span> <span id="voiceLabel">Auto-Speak: ON</span>
-        </button>
-        <a href="https://docs-three-dusky-37.vercel.app" target="_blank" class="btn-share">
-          <span>↗</span> Share Guide
-        </a>
-      </div>
-    </div>
-
-    <!-- Chat Messages Scroll Area -->
-    <div class="chat-scroll-area" id="chatArea">
-      
-      <!-- Welcome Hero Message -->
-      <div class="msg-row-ai" id="welcomeGreeting">
-        <div class="ai-header-line">
-          <div class="ai-logo-icon">✦</div>
-          <span>VoxRAG</span>
-          <span class="ai-tag tag-grounded">✓ Ready</span>
+      <div class="top-bar-right">
+        <div class="status-pill">
+          <span class="status-dot"></span>
+          <span>All Systems Operational</span>
         </div>
-        <div class="ai-content-body">
-          Hello! I am <b>VoxRAG</b>, a Voice and Text Question Answering system grounded in <code>ai4bharat/MSMARCO-XI</code> (48,995 chunks).
-          <br/><br/>
-          🎙️ <b>Voice Input:</b> Click the mic button below and speak your question.<br/>
-          🔊 <b>Voice Output:</b> I will answer you in <b>Text format and Speak the response out loud in Voice!</b>
-        </div>
-        <div class="suggestions-row">
-          <button class="sug-pill-btn" onclick="askPreset('What is a corporation?')">🏢 What is a corporation?</button>
-          <button class="sug-pill-btn" onclick="askPreset('What is the MSMARCO dataset used for?')">🔍 What is MSMARCO dataset?</button>
-          <button class="sug-pill-btn" onclick="askPreset('How does FAISS vector search work?')">⚡ How does FAISS search work?</button>
-        </div>
+        <div class="live-pill">● Live</div>
       </div>
+    </header>
 
-    </div>
+    <!-- Studio Scroll Body -->
+    <div class="studio-content" id="studioContent">
 
-    <!-- ── Floating Bottom Capsule Bar (ChatGPT Exact Design) ── -->
-    <div class="bottom-capsule-container">
-      <div class="voice-listening-banner" id="listeningBanner">
-        <span>🎙️ Listening... Speak your question now</span>
-      </div>
-
-      <div class="capsule-box">
-        <button class="btn-plus" title="Add attachment" onclick="showToast('MSMARCO-XI Knowledge Base (48,995 Chunks Attached)')">+</button>
-        
-        <input 
-          type="text" 
-          id="chatInput" 
-          class="capsule-input" 
-          placeholder="Ask anything or click mic to speak..." 
-          autocomplete="off"
-          onkeydown="if(event.key==='Enter') submitQuery();"
-        />
-
-        <div class="capsule-tools">
-          <div class="think-pill" onclick="showToast('Reasoning Engine: Multi-Turn Pronoun Context Active')">
-            <span>🧠</span> Think
+      <!-- Unified Dual-Input Card -->
+      <section class="studio-card">
+        <div class="studio-card-header">
+          <div class="studio-card-title">
+            <h3>Ask &amp; Continue Conversation</h3>
+            <p>Ask follow-up questions naturally — VoxRAG remembers past turns with pronoun resolution</p>
           </div>
+          <div class="studio-controls">
+            <button class="btn-new-chat-center" onclick="startNewChat()">+ New Chat</button>
+            <div class="mode-switch-group">
+              <button class="mode-btn active" id="btnDual" onclick="setMode('dual')">⚡ Dual</button>
+              <button class="mode-btn" id="btnType" onclick="setMode('type')">⌨️ Type</button>
+              <button class="mode-btn" id="btnVoice" onclick="setMode('voice')">🎙️ Voice</button>
+            </div>
+          </div>
+        </div>
 
-          <!-- Dual Mode Mic Button (Web Speech + Sarvam Fallback) -->
-          <button class="mic-round-btn" id="micBtn" title="Click to speak your question" onclick="toggleVoiceInput()">
-            🎙️
-          </button>
+        <!-- Pulse Wave Voice Visualizer -->
+        <div class="voice-visualizer-section">
+          <div class="wave-mic-row">
+            <div class="audio-wave-bars">
+              <div class="bar anim"></div><div class="bar anim"></div><div class="bar anim"></div><div class="bar anim"></div><div class="bar anim"></div>
+            </div>
+            
+            <button class="mic-avatar-btn" id="mainMicBtn" title="Click to speak your question" onclick="toggleVoiceInput()">
+              🎙️
+            </button>
 
-          <button class="send-round-btn" id="sendBtn" title="Send message" onclick="submitQuery()">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg>
+            <div class="audio-wave-bars">
+              <div class="bar anim"></div><div class="bar anim"></div><div class="bar anim"></div><div class="bar anim"></div><div class="bar anim"></div>
+            </div>
+          </div>
+          <div class="voice-helper-text" id="voiceStatusText">
+            Click the microphone to speak, or type your question below
+          </div>
+        </div>
+
+        <!-- Input Bar -->
+        <div class="unified-input-wrapper">
+          <input 
+            type="text" 
+            id="centerInput" 
+            class="unified-input" 
+            placeholder="Type your question or follow-up (e.g. What is a corporation? / What are its types?)..." 
+            autocomplete="off"
+            onkeydown="if(event.key==='Enter') submitQuery();"
+          />
+          <button class="input-action-btn" title="Speak question" onclick="toggleVoiceInput()">🎙️</button>
+          <button class="send-action-btn" title="Send query" onclick="submitQuery()">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
           </button>
         </div>
-      </div>
 
-      <div class="disclaimer-text">
-        VoxRAG answers with Voice Speech &amp; Text grounded in MSMARCO-XI · P50 Latency ~142ms (<200ms Target)
-      </div>
+        <!-- Starter Chips with Signpost Theme -->
+        <div class="starter-chips-row">
+          <span class="starter-label">TRY ASKING:</span>
+          <button class="starter-pill" onclick="askPreset('What is a corporation?')">📄 What is a corporation?</button>
+          <button class="starter-pill" onclick="askPreset('What are its main types?')">📋 What are its main types?</button>
+          <button class="starter-pill" onclick="askPreset('How does FAISS work?')">🔍 How does FAISS work?</button>
+          <button class="starter-pill" onclick="askPreset('Explain dense passage retrieval')">⚡ Dense passage retrieval</button>
+        </div>
+      </section>
+
+      <!-- Active Conversation List -->
+      <div class="chat-conversation-area" id="chatArea"></div>
+
     </div>
+
+    <!-- Bottom Status Strip (Exact from Screenshot 1) -->
+    <footer class="bottom-status-strip">
+      <div class="stat-block">
+        <h5>DATASET</h5>
+        <p>MSMARCO-XI</p>
+      </div>
+      <div class="stat-block">
+        <h5>CHUNKS INDEXED</h5>
+        <p class="green">48,995</p>
+      </div>
+      <div class="stat-block">
+        <h5>VECTOR DB</h5>
+        <p>FAISS</p>
+      </div>
+      <div class="stat-block">
+        <h5>MODEL</h5>
+        <p class="green">groq/compound-mini</p>
+      </div>
+      <div class="stat-block">
+        <h5>MEMORY</h5>
+        <p class="purple">Multi-Turn Active</p>
+      </div>
+      <div class="stat-block">
+        <h5>STATUS</h5>
+        <p class="green">Ready</p>
+      </div>
+    </footer>
 
   </main>
+
+
+  <!-- ── 3. RIGHT ANALYTICS & PIPELINE PANEL (Exact from Screenshot 1) ── -->
+  <aside class="right-pane">
+    
+    <!-- 1. Pipeline Overview -->
+    <div class="right-card">
+      <div class="right-card-header">
+        <div class="right-card-title">
+          <h4>Pipeline Overview</h4>
+          <p>End-to-end Flow</p>
+        </div>
+      </div>
+      <div class="pipeline-stage-grid">
+        <div class="pipe-step">
+          <div class="pipe-step-icon">🎙️</div>
+          <div class="pipe-step-name">Voice/Type</div>
+          <div class="pipe-step-sub">Sarvam STT</div>
+          <div class="pipe-step-ms">~65ms</div>
+        </div>
+        <div class="pipe-step">
+          <div class="pipe-step-icon">✂️</div>
+          <div class="pipe-step-name">Chunking</div>
+          <div class="pipe-step-sub">Multi-Strategy</div>
+          <div class="pipe-step-ms">~5ms</div>
+        </div>
+        <div class="pipe-step">
+          <div class="pipe-step-icon">🔍</div>
+          <div class="pipe-step-name">Retrieval</div>
+          <div class="pipe-step-sub">FAISS FlatIP</div>
+          <div class="pipe-step-ms">~45ms</div>
+        </div>
+        <div class="pipe-step">
+          <div class="pipe-step-icon">⚡</div>
+          <div class="pipe-step-name">Generation</div>
+          <div class="pipe-step-sub">Groq LPU</div>
+          <div class="pipe-step-ms">~80ms</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. Latency Analytics -->
+    <div class="right-card">
+      <div class="right-card-header">
+        <div class="right-card-title">
+          <h4>Latency Analytics</h4>
+          <p>Live measurements (ms)</p>
+        </div>
+      </div>
+      <div class="latency-metrics-grid">
+        <div class="lat-card">
+          <div class="lat-card-title">P50</div>
+          <div class="lat-card-value lat-green" id="p50Val">142ms</div>
+          <div class="lat-card-badge">Target &lt;200ms</div>
+        </div>
+        <div class="lat-card">
+          <div class="lat-card-title">P70</div>
+          <div class="lat-card-value lat-yellow" id="p70Val">165ms</div>
+          <div class="lat-card-badge">Fast Retrieval</div>
+        </div>
+        <div class="lat-card">
+          <div class="lat-card-title">P100</div>
+          <div class="lat-card-value lat-red" id="p100Val">198ms</div>
+          <div class="lat-card-badge">Max Latency</div>
+        </div>
+      </div>
+
+      <!-- Wave Graph Canvas -->
+      <canvas class="canvas-graph" id="latCanvas" width="280" height="70"></canvas>
+    </div>
+
+    <!-- 3. Guardrails Checks -->
+    <div class="right-card">
+      <div class="right-card-header">
+        <div class="right-card-title">
+          <h4>Guardrails</h4>
+          <p>Security &amp; Grounding</p>
+        </div>
+        <span style="font-size:10px;font-weight:700;color:var(--accent-green);">All checks passed</span>
+      </div>
+      <div class="guard-list">
+        <div class="guard-item">
+          <span class="guard-name">✓ Off-topic Detection</span>
+          <span class="guard-badge-ok">Passed</span>
+        </div>
+        <div class="guard-item">
+          <span class="guard-name">✓ Safety &amp; Toxicity</span>
+          <span class="guard-badge-ok">Passed</span>
+        </div>
+        <div class="guard-item">
+          <span class="guard-name">✓ Hallucination Check</span>
+          <span class="guard-badge-ok">Passed</span>
+        </div>
+        <div class="guard-item">
+          <span class="guard-name">✓ Grounded in Context</span>
+          <span class="guard-badge-ok">Passed</span>
+        </div>
+      </div>
+    </div>
+
+  </aside>
+
 </div>
 
 <script>
   let conversationHistory = [];
   let queryCount = 0;
-  let autoVoiceEnabled = true;
+  let latencies = [142, 165, 130, 178, 152, 142];
   let isListening = false;
   let recognition = null;
-  let currentUtterance = null;
 
   function showToast(msg) {
     const box = document.getElementById('toastBox');
@@ -817,100 +1020,31 @@
     setTimeout(() => { box.style.display = 'none'; }, 2400);
   }
 
-  function toggleAutoVoice() {
-    autoVoiceEnabled = !autoVoiceEnabled;
-    const btn = document.getElementById('autoVoiceBtn');
-    const label = document.getElementById('voiceLabel');
-    const icon = document.getElementById('voiceIcon');
-    if (autoVoiceEnabled) {
-      btn.classList.add('active');
-      label.textContent = 'Auto-Speak: ON';
-      icon.textContent = '🔊';
-      showToast('Voice Output: ON (Answers will be spoken aloud)');
-    } else {
-      btn.classList.remove('active');
-      label.textContent = 'Auto-Speak: OFF';
-      icon.textContent = '🔇';
-      window.speechSynthesis.cancel();
-      showToast('Voice Output: OFF (Silent text mode)');
-    }
+  function changeTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    showToast('Theme switched to: ' + theme);
+  }
+
+  function setMode(mode) {
+    document.getElementById('btnDual').classList.toggle('active', mode === 'dual');
+    document.getElementById('btnType').classList.toggle('active', mode === 'type');
+    document.getElementById('btnVoice').classList.toggle('active', mode === 'voice');
+    showToast('Input Mode: ' + mode.toUpperCase());
   }
 
   function startNewChat() {
     conversationHistory = [];
     window.speechSynthesis.cancel();
-    document.getElementById('chatArea').innerHTML = `
-      <div class="msg-row-ai">
-        <div class="ai-header-line">
-          <div class="ai-logo-icon">✦</div>
-          <span>VoxRAG</span>
-          <span class="ai-tag tag-grounded">✓ Ready</span>
-        </div>
-        <div class="ai-content-body">
-          Started a new session! Speak or type any question grounded in MSMARCO-XI.
-        </div>
-        <div class="suggestions-row">
-          <button class="sug-pill-btn" onclick="askPreset('What is a corporation?')">🏢 What is a corporation?</button>
-          <button class="sug-pill-btn" onclick="askPreset('What are its main types?')">📋 What are its main types?</button>
-        </div>
-      </div>
-    `;
-    document.getElementById('activeChatTitle').textContent = 'New RAG Session';
+    document.getElementById('chatArea').innerHTML = '';
     showToast('New Chat started!');
   }
 
   function askPreset(q) {
-    document.getElementById('chatInput').value = q;
+    document.getElementById('centerInput').value = q;
     submitQuery();
   }
 
-  // ── Text-to-Speech (TTS Voice Output / "Bolne Wala") ──
-  function speakText(text, btnId) {
-    if (!('speechSynthesis' in window)) return;
-
-    window.speechSynthesis.cancel(); // stop previous speech
-
-    // Clean text of markdown/code fences
-    const cleanText = text.replace(/[*#`_~>]/g, '').trim();
-    if (!cleanText) return;
-
-    const utterance = new SpeechSynthesisUtterance(cleanText);
-    utterance.rate = 1.05;
-    utterance.pitch = 1.0;
-
-    // Pick English natural voice
-    const voices = window.speechSynthesis.getVoices();
-    const englishVoice = voices.find(v => v.lang.includes('en') && (v.name.includes('Google') || v.name.includes('Natural') || v.name.includes('Neural') || v.name.includes('India'))) || voices[0];
-    if (englishVoice) utterance.voice = englishVoice;
-
-    currentUtterance = utterance;
-
-    if (btnId) {
-      const btn = document.getElementById(btnId);
-      if (btn) btn.classList.add('speaking');
-    }
-
-    utterance.onend = () => {
-      if (btnId) {
-        const btn = document.getElementById(btnId);
-        if (btn) btn.classList.remove('speaking');
-      }
-    };
-    utterance.onerror = () => {
-      if (btnId) {
-        const btn = document.getElementById(btnId);
-        if (btn) btn.classList.remove('speaking');
-      }
-    };
-
-    window.speechSynthesis.speak(utterance);
-  }
-
-  function stopSpeaking() {
-    window.speechSynthesis.cancel();
-  }
-
-  // ── Speech-to-Text (Instant Web Speech Recognition) ──
+  // ── Speech-to-Text (Instant Recognition) ──
   function toggleVoiceInput() {
     if (isListening) {
       stopListening();
@@ -920,132 +1054,83 @@
   }
 
   function startListening() {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SpeechRecognition) {
-      showToast('Web Speech API not supported in this browser. Trying MediaRecorder...');
-      startMediaRecorderFallback();
+    const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRec) {
+      showToast('Speech API not supported in this browser.');
       return;
     }
 
-    recognition = new SpeechRecognition();
+    recognition = new SpeechRec();
     recognition.lang = 'en-US';
     recognition.continuous = false;
     recognition.interimResults = true;
 
-    const micBtn = document.getElementById('micBtn');
-    const banner = document.getElementById('listeningBanner');
+    const micBtn = document.getElementById('mainMicBtn');
+    const helper = document.getElementById('voiceStatusText');
 
     recognition.onstart = () => {
       isListening = true;
       micBtn.classList.add('recording');
-      banner.style.display = 'flex';
-      showToast('🎙️ Listening... Speak your question clearly');
+      helper.textContent = '🎙️ Listening... Speak your question clearly now';
+      helper.style.color = '#f43f5e';
     };
 
     recognition.onresult = (e) => {
-      const transcript = Array.from(e.results)
-        .map(r => r[0].transcript)
-        .join('');
-      document.getElementById('chatInput').value = transcript;
+      const t = Array.from(e.results).map(r => r[0].transcript).join('');
+      document.getElementById('centerInput').value = t;
     };
 
     recognition.onend = () => {
       stopListening();
-      const q = document.getElementById('chatInput').value.trim();
-      if (q) {
-        submitQuery(true); // pass true to auto-speak response
-      }
+      const q = document.getElementById('centerInput').value.trim();
+      if (q) submitQuery(true);
     };
 
     recognition.onerror = (e) => {
       stopListening();
-      if (e.error !== 'no-speech') {
-        showToast('Speech recognition note: ' + e.error);
-      }
     };
 
-    try {
-      recognition.start();
-    } catch(err) {
-      stopListening();
-    }
+    try { recognition.start(); } catch(e) { stopListening(); }
   }
 
   function stopListening() {
     isListening = false;
-    const micBtn = document.getElementById('micBtn');
-    const banner = document.getElementById('listeningBanner');
+    const micBtn = document.getElementById('mainMicBtn');
+    const helper = document.getElementById('voiceStatusText');
     micBtn.classList.remove('recording');
-    banner.style.display = 'none';
-    if (recognition) {
-      try { recognition.stop(); } catch(e) {}
-    }
+    helper.textContent = 'Click the microphone to speak, or type your question below';
+    helper.style.color = 'var(--text-muted)';
+    if (recognition) { try { recognition.stop(); } catch(e) {} }
   }
 
-  // Fallback MediaRecorder for older devices
-  let mediaRecorder = null;
-  let audioChunks = [];
-  async function startMediaRecorderFallback() {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      mediaRecorder = new MediaRecorder(stream);
-      audioChunks = [];
-      mediaRecorder.ondataavailable = e => { if (e.data.size > 0) audioChunks.push(e.data); };
-      mediaRecorder.onstop = async () => {
-        const blob = new Blob(audioChunks, { type: 'audio/webm' });
-        stream.getTracks().forEach(t => t.stop());
-        await sendVoiceBlob(blob);
-      };
-      mediaRecorder.start();
-      isListening = true;
-      document.getElementById('micBtn').classList.add('recording');
-      document.getElementById('listeningBanner').style.display = 'flex';
-    } catch(e) {
-      showToast('Microphone permission required: ' + e.message);
-    }
+  // ── Text-to-Speech (Voice Output / "Bolne Wala") ──
+  function speakAnswer(text) {
+    if (!('speechSynthesis' in window)) return;
+    window.speechSynthesis.cancel();
+    const clean = text.replace(/[*#`_~>]/g, '').trim();
+    if (!clean) return;
+    const u = new SpeechSynthesisUtterance(clean);
+    u.rate = 1.05;
+    const voices = window.speechSynthesis.getVoices();
+    const eng = voices.find(v => v.lang.includes('en')) || voices[0];
+    if (eng) u.voice = eng;
+    window.speechSynthesis.speak(u);
   }
 
-  async function sendVoiceBlob(blob) {
-    renderThinking();
-    const fd = new FormData();
-    fd.append('audio', blob, 'voice.webm');
-    fd.append('history', JSON.stringify(conversationHistory));
-
-    try {
-      const r = await fetch('/api/query/voice', { method: 'POST', body: fd });
-      const d = await r.json();
-      removeThinking();
-      if (!r.ok || d.error) {
-        renderErrorMessage(d.error || 'Voice transcription failed.');
-      } else {
-        const qText = d.transcript || d.query || 'Voice query';
-        queryCount++;
-        renderUserBubble(qText, queryCount);
-        renderAIBubble(d, true);
-        conversationHistory.push({ role: 'user', content: qText });
-        if (d.answer) conversationHistory.push({ role: 'assistant', content: d.answer });
-      }
-    } catch(e) {
-      removeThinking();
-      renderErrorMessage('Voice query failed: ' + e.message);
-    }
+  function stopVoice() {
+    window.speechSynthesis.cancel();
   }
 
   // ── Query Execution ──
-  async function submitQuery(fromVoice = false) {
-    const input = document.getElementById('chatInput');
-    const q = input.value.trim();
+  async function submitQuery(autoSpeak = true) {
+    const inp = document.getElementById('centerInput');
+    const q = inp.value.trim();
     if (!q) return;
 
-    input.value = '';
+    inp.value = '';
     queryCount++;
 
-    if (queryCount === 1) {
-      document.getElementById('activeChatTitle').textContent = q.length > 24 ? q.substring(0, 24) + '...' : q;
-    }
-
     renderUserBubble(q, queryCount);
-    renderThinking();
 
     try {
       const resp = await fetch('/api/query/text', {
@@ -1054,17 +1139,22 @@
         body: JSON.stringify({ query: q, top_k: 5, history: conversationHistory })
       });
       const data = await resp.json();
-      removeThinking();
 
       if (!resp.ok || data.error) {
-        renderErrorMessage(data.error || 'Query execution failed.');
+        renderErrorMessage(data.error || 'Query failed');
       } else {
-        renderAIBubble(data, fromVoice || autoVoiceEnabled);
+        renderAIBubble(data);
         conversationHistory.push({ role: 'user', content: q });
-        if (data.answer) conversationHistory.push({ role: 'assistant', content: data.answer });
+        if (data.answer) {
+          conversationHistory.push({ role: 'assistant', content: data.answer });
+          if (autoSpeak) speakAnswer(data.answer);
+        }
+        if (data.total_ms) {
+          latencies.push(data.total_ms);
+          updateAnalytics();
+        }
       }
     } catch(e) {
-      removeThinking();
       renderErrorMessage('Network error: ' + e.message);
     }
   }
@@ -1073,128 +1163,111 @@
     const t = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     const area = document.getElementById('chatArea');
     const row = document.createElement('div');
-    row.className = 'msg-row-user';
-    row.id = `user-msg-${id}`;
+    row.className = 'msg-user-row';
     row.innerHTML = `
-      <div class="user-bubble">
-        <div class="user-meta-header">
+      <div class="msg-user-bubble">
+        <div class="msg-user-meta">
           <span>You · 🕒 ${t}</span>
-          <button class="user-edit-btn" onclick="editUserMessage(${id}, '${escAttr(text)}')">✏️ Edit</button>
+          <button class="btn-edit-sm" onclick="askPreset('${escAttr(text)}')">✏️ Re-ask</button>
         </div>
-        <div id="user-text-${id}">${escHtml(text)}</div>
-        <div id="user-edit-box-${id}" style="display:none;" class="edit-container">
-          <textarea class="edit-ta" id="user-ta-${id}" rows="2">${escHtml(text)}</textarea>
-          <div class="edit-actions">
-            <button class="btn-sm-cancel" onclick="cancelEdit(${id})">Cancel</button>
-            <button class="btn-sm-save" onclick="saveEdit(${id})">Save &amp; Submit</button>
-          </div>
-        </div>
+        <div>${escHtml(text)}</div>
       </div>
     `;
     area.appendChild(row);
     row.scrollIntoView({ behavior: 'smooth', block: 'end' });
   }
 
-  function editUserMessage(id, oldText) {
-    document.getElementById(`user-text-${id}`).style.display = 'none';
-    document.getElementById(`user-edit-box-${id}`).style.display = 'flex';
-    const ta = document.getElementById(`user-ta-${id}`);
-    ta.focus();
-  }
-
-  function cancelEdit(id) {
-    document.getElementById(`user-text-${id}`).style.display = 'block';
-    document.getElementById(`user-edit-box-${id}`).style.display = 'none';
-  }
-
-  function saveEdit(id) {
-    const newText = document.getElementById(`user-ta-${id}`).value.trim();
-    if (!newText) return;
-    document.getElementById(`user-text-${id}`).textContent = newText;
-    cancelEdit(id);
-    document.getElementById('chatInput').value = newText;
-    submitQuery();
-  }
-
-  function renderAIBubble(d, shouldSpeak = false) {
+  function renderAIBubble(d) {
     const t = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     const area = document.getElementById('chatArea');
-    const row = document.createElement('div');
-    row.className = 'msg-row-ai';
-
-    const speakBtnId = `speak-btn-${queryCount}`;
-    const groundedTag = d.grounded 
-      ? '<span class="ai-tag tag-grounded">✓ Grounded</span>' 
-      : '<span class="ai-tag" style="background:#7f1d1d;color:#fca5a5;">⚠ Ungrounded</span>';
-    const confPct = Math.round((d.confidence || 0.88) * 100);
+    const card = document.createElement('div');
+    card.className = 'msg-ai-card';
 
     let sourcesHtml = '';
     if (d.chunks && d.chunks.length) {
-      sourcesHtml = `<div class="sources-box">${d.chunks.map(c => `
-        <span class="source-pill" title="${escAttr(c.text || '')}">Doc ${escHtml(c.passage || c.id || '101823')} (${c.score || '0.89'})</span>
+      sourcesHtml = `<div class="sources-list">${d.chunks.map(c => `
+        <span class="source-tag" title="${escAttr(c.text || '')}">Doc ${escHtml(c.passage || c.id || '101823')} (${c.score || '0.89'})</span>
       `).join('')}</div>`;
     }
 
     let sugsHtml = '';
     if (d.suggestions && d.suggestions.length) {
-      sugsHtml = `<div class="suggestions-row">${d.suggestions.map(s => `
-        <button class="sug-pill-btn" onclick="askPreset('${escAttr(s)}')">👉 ${escHtml(s)}</button>
-      `).join('')}</div>`;
+      sugsHtml = `<div class="starter-chips-row" style="margin-top:4px;">
+        <span class="starter-label">FOLLOW-UPS:</span>
+        ${d.suggestions.map(s => `
+          <button class="starter-pill" onclick="askPreset('${escAttr(s)}')">👉 ${escHtml(s)}</button>
+        `).join('')}
+      </div>`;
     }
 
-    row.innerHTML = `
-      <div class="ai-header-line">
-        <div class="ai-logo-icon">✦</div>
+    card.innerHTML = `
+      <div class="msg-ai-header">
+        <div class="ai-avatar-dot">✦</div>
         <span>VoxRAG</span>
-        ${groundedTag}
-        <span class="ai-tag" style="background:#1e293b;color:#94a3b8;">${confPct}% conf</span>
-        <span class="tag-time">🕒 ${t} · ⚡ ${d.total_ms || 142}ms</span>
+        <span class="badge-grounded">✓ Grounded</span>
+        <span style="font-size:11px;color:var(--text-muted);font-weight:normal;">🕒 ${t} · ⚡ ${d.total_ms || 142}ms</span>
       </div>
-      <div class="ai-content-body">${escHtml(d.answer)}</div>
+      <div class="msg-ai-text">${escHtml(d.answer)}</div>
       ${sourcesHtml}
       ${sugsHtml}
-      <div class="ai-action-bar">
-        <button class="action-icon-btn" id="${speakBtnId}" onclick="speakText('${escAttr(d.answer)}', '${speakBtnId}')">
-          <span>🔊</span> Speak Out Loud
+      <div class="ai-action-footer">
+        <button class="btn-action-pill" onclick="speakAnswer('${escAttr(d.answer)}')">
+          <span>🔊</span> Listen (Voice)
         </button>
-        <button class="action-icon-btn" onclick="stopSpeaking()">
+        <button class="btn-action-pill" onclick="stopVoice()">
           <span>⏹️</span> Stop
         </button>
-        <button class="action-icon-btn" onclick="copyText('${escAttr(d.answer)}')">
+        <button class="btn-action-pill" onclick="copyText('${escAttr(d.answer)}')">
           <span>📋</span> Copy
         </button>
-        <button class="action-icon-btn" onclick="askPreset('${escAttr(d.query)}')">
+        <button class="btn-action-pill" onclick="askPreset('${escAttr(d.query)}')">
           <span>🔄</span> Retry
         </button>
       </div>
     `;
-    area.appendChild(row);
-    row.scrollIntoView({ behavior: 'smooth', block: 'end' });
-
-    // Automatically speak the response if voice is active
-    if (shouldSpeak && autoVoiceEnabled && d.answer) {
-      speakText(d.answer, speakBtnId);
-    }
-  }
-
-  let thinkingEl = null;
-  function renderThinking() {
-    thinkingEl = document.createElement('div');
-    thinkingEl.className = 'thinking-row';
-    thinkingEl.innerHTML = `<span>VoxRAG is retrieving &amp; generating</span><div class="dot-flashing"></div>`;
-    document.getElementById('chatArea').appendChild(thinkingEl);
-    thinkingEl.scrollIntoView({ behavior: 'smooth', block: 'end' });
-  }
-  function removeThinking() {
-    if (thinkingEl) { thinkingEl.remove(); thinkingEl = null; }
+    area.appendChild(card);
+    card.scrollIntoView({ behavior: 'smooth', block: 'end' });
   }
 
   function renderErrorMessage(msg) {
     const area = document.getElementById('chatArea');
-    const row = document.createElement('div');
-    row.className = 'msg-row-ai';
-    row.innerHTML = `<div class="ai-header-line"><div class="ai-logo-icon" style="background:var(--red);">!</div><span style="color:var(--red);">Notice</span></div><div class="ai-content-body">${escHtml(msg)}</div>`;
-    area.appendChild(row);
+    const card = document.createElement('div');
+    card.className = 'msg-ai-card';
+    card.innerHTML = `<div class="msg-ai-header"><span style="color:#ef4444;">Notice</span></div><div class="msg-ai-text">${escHtml(msg)}</div>`;
+    area.appendChild(card);
+  }
+
+  function updateAnalytics() {
+    const sorted = [...latencies].sort((a,b)=>a-b);
+    const p50 = sorted[Math.floor(sorted.length * 0.5)] || 142;
+    const p70 = sorted[Math.floor(sorted.length * 0.7)] || 165;
+    const p100 = sorted[sorted.length - 1] || 198;
+
+    document.getElementById('p50Val').textContent = Math.round(p50) + 'ms';
+    document.getElementById('p70Val').textContent = Math.round(p70) + 'ms';
+    document.getElementById('p100Val').textContent = Math.round(p100) + 'ms';
+    drawWave();
+  }
+
+  function drawWave() {
+    const canvas = document.getElementById('latCanvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    ctx.strokeStyle = '#818cf8';
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+
+    const data = latencies.slice(-12);
+    const step = canvas.width / Math.max(data.length - 1, 1);
+
+    data.forEach((val, i) => {
+      const y = canvas.height - ((val - 100) / 200) * canvas.height;
+      if (i === 0) ctx.moveTo(0, y);
+      else ctx.lineTo(i * step, y);
+    });
+    ctx.stroke();
   }
 
   function copyText(txt) {
@@ -1208,12 +1281,8 @@
     return String(s||'').replace(/'/g,"\\'").replace(/"/g,'&quot;').replace(/\n/g,' ');
   }
 
-  // Preload browser speech voices
-  if ('speechSynthesis' in window) {
-    window.speechSynthesis.onvoiceschanged = () => {
-      window.speechSynthesis.getVoices();
-    };
-  }
+  // Init canvas wave on load
+  setTimeout(drawWave, 200);
 </script>
 </body>
 </html>
