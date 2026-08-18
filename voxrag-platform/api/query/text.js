@@ -38,7 +38,7 @@ Guidelines for your response:
 3. Structure your explanation naturally: start with a direct definition/core answer, followed by key principles, examples, or breakdown.
 4. Keep the tone friendly, authoritative, articulate, and natural for both voice speech playback and visual reading.
 5. If the user asks a multi-turn follow-up (e.g. "What are its types?", "Who is he?", "How does that work?"), seamlessly resolve all pronouns and context from previous conversation turns.
-6. Do NOT include markdown formatting like tables or complex LaTeX formulas that break text-to-speech audio flow. Use clean, natural punctuation.`;
+6. Format your response cleanly and naturally. Use bold key terms (**term**) for readability, clean bullet points for lists, and concise section headers (### Header). Never output raw pipe-table delimiter strings (like |---|---|) or repetitive separator dashes (---) so that text is clean, elegant, and articulate for both visual reading and speech audio flow.`;
 
   const messages = [{ role: 'system', content: systemPrompt }];
 

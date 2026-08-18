@@ -79,6 +79,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" />
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
   <style>
     :root {
@@ -1911,16 +1912,16 @@
           if (idx < txt.length) {
             const ch = txt[idx];
             idx += 1;
-            bodyEl.innerText = txt.slice(0, idx);
+            bodyEl.innerHTML = renderMarkdownHero(txt.slice(0, idx));
 
-            let d = 18;
-            if (ch === '.' || ch === '!' || ch === '?') d = 70;
-            else if (ch === ',' || ch === ';') d = 40;
-            else if (ch === '\n') d = 80;
+            let d = 16;
+            if (ch === '.' || ch === '!' || ch === '?') d = 60;
+            else if (ch === ',' || ch === ';') d = 35;
+            else if (ch === '\n') d = 70;
 
             setTimeout(typeHero, d);
           } else {
-            bodyEl.innerText = txt;
+            bodyEl.innerHTML = renderMarkdownHero(txt);
             if (curEl) curEl.remove();
             if (metaEl) metaEl.style.display = 'flex';
           }
@@ -1930,6 +1931,17 @@
         resBox.innerText = 'Error executing query. Please try again.';
       }
       btn.disabled = false;
+    }
+
+    function renderMarkdownHero(raw) {
+      if (!raw) return '';
+      try {
+        if (typeof marked !== 'undefined' && (marked.parse || typeof marked === 'function')) {
+          const fn = marked.parse || marked;
+          return fn(raw);
+        }
+      } catch(e) {}
+      return raw.replace(/\*\*(.*?)\*\*/g, '<strong style="color:#fff;">$1</strong>').replace(/\n/g, '<br/>');
     }
 
     let currentPlayAudio = null;
