@@ -111,6 +111,14 @@ async def root():
     return FileResponse(str(static_dir / "index.html"))
 
 
+@app.get("/guide")
+async def guide_page():
+    guide_path = Path(__file__).parent / "guide.html"
+    if guide_path.exists():
+        return FileResponse(str(guide_path))
+    return FileResponse(str(static_dir / "index.html"))
+
+
 @app.get("/api/health")
 async def health():
     return {"status": "ok", "pipeline_ready": _stats["ready"]}

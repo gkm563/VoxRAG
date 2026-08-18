@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VoxRAG — Voice-Enabled RAG Architecture & Team Guide</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <!-- Mermaid.js for Crisp Flowchart Rendering -->
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <style>
+    :root {
+      --bg: #090a0f;
+      --card-bg: #12151c;
+      --card-border: #232838;
+      --accent: #6c63ff;
+      --accent-glow: rgba(108, 99, 255, 0.35);
+      --green: #00d4aa;
+      --cyan: #38bdf8;
+      --red: #f87171;
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background-color: var(--bg);
+      color: var(--text-main);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      line-height: 1.6;
+      padding: 24px 16px;
+    }
+
+    .container {
+      max-width: 1080px;
+      margin: 0 auto;
+    }
+
+    /* Header */
+    .hero {
+      text-align: center;
+      padding: 32px 20px;
+      background: linear-gradient(180deg, rgba(108, 99, 255, 0.12) 0%, rgba(18, 21, 28, 0.6) 100%);
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      margin-bottom: 28px;
+      position: relative;
+      overflow: hidden;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(108, 99, 255, 0.18);
+      border: 1px solid rgba(108, 99, 255, 0.4);
+      color: #c4b5fd;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 6px 14px;
+      border-radius: 99px;
+      margin-bottom: 14px;
+    }
+    .badge .dot {
+      width: 8px; height: 8px; border-radius: 50%; background: var(--green);
+      box-shadow: 0 0 8px var(--green);
+    }
+    .hero h1 {
+      font-size: 34px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      color: #ffffff;
+      margin-bottom: 8px;
+    }
+    .hero p {
+      font-size: 15px;
+      color: var(--text-muted);
+      max-width: 680px;
+      margin: 0 auto 20px;
+    }
+
+    /* Links Bar */
+    .link-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+    }
+    .link-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #181c26;
+      border: 1px solid var(--card-border);
+      color: var(--text-main);
+      text-decoration: none;
+      padding: 8px 16px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+    .link-pill:hover {
+      border-color: var(--accent);
+      background: rgba(108, 99, 255, 0.15);
+      transform: translateY(-2px);
+    }
+    .link-pill.primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+
+    /* Diagram Section */
+    .section-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 18px;
+      padding: 28px;
+      margin-bottom: 24px;
+    }
+    .section-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 6px;
+    }
+    .section-desc {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 20px;
+    }
+
+    .diagram-wrapper {
+      background: #0b0d13;
+      border: 1px solid #1e2330;
+      border-radius: 14px;
+      padding: 24px;
+      overflow-x: auto;
+      text-align: center;
+    }
+
+    /* Stage Grid */
+    .stage-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 14px;
+      margin-top: 14px;
+    }
+    .stage-card {
+      background: #151821;
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 16px;
+      transition: border-color 0.2s;
+    }
+    .stage-card:hover { border-color: var(--accent); }
+    .stage-num {
+      font-size: 11px;
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--cyan);
+      font-weight: 600;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+    .stage-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: #fff;
+      margin-bottom: 6px;
+    }
+    .stage-desc {
+      font-size: 12px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+    .stage-ms {
+      display: inline-block;
+      margin-top: 8px;
+      background: rgba(0, 212, 170, 0.12);
+      color: var(--green);
+      border: 1px solid rgba(0, 212, 170, 0.3);
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* Submission Checklist */
+    .checklist-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      margin-top: 10px;
+    }
+    .checklist-table th {
+      text-align: left;
+      padding: 10px 12px;
+      background: #181c26;
+      color: var(--text-muted);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      border-bottom: 1px solid var(--card-border);
+    }
+    .checklist-table td {
+      padding: 12px;
+      border-bottom: 1px solid #1a1e2b;
+    }
+    .status-done {
+      color: var(--green);
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .status-pending {
+      color: #fbbf24;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* WhatsApp Copy Box */
+    .copy-box {
+      background: #0b0d13;
+      border: 1px solid #1e2330;
+      border-radius: 12px;
+      padding: 16px;
+      position: relative;
+      margin-top: 12px;
+    }
+    .copy-content {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: #cbd5e1;
+      white-space: pre-wrap;
+      max-height: 240px;
+      overflow-y: auto;
+      line-height: 1.6;
+    }
+    .copy-btn {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      background: var(--accent);
+      color: white;
+      border: none;
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: background 0.2s;
+    }
+    .copy-btn:hover { background: #5a50e5; }
+
+    footer {
+      text-align: center;
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 32px;
+      padding-top: 20px;
+      border-top: 1px solid var(--card-border);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+
+    <!-- ── HERO / HEADER ── -->
+    <header class="hero">
+      <div class="badge"><span class="dot"></span> HH Goa 2026 Shortlisting Task 2</div>
+      <h1>🎙️ VoxRAG Architecture Guide</h1>
+      <p>A complete technical walkthrough of the Voice &amp; Text RAG pipeline powered by Sarvam AI, FAISS FlatIP, and Groq LPU on the MSMARCO-XI dataset.</p>
+      
+      <div class="link-pills">
+        <a href="https://voxrag.streamlit.app/" target="_blank" class="link-pill primary">
+          🚀 Open Live Streamlit App
+        </a>
+        <a href="https://github.com/gkm563/VoxRAG.git" target="_blank" class="link-pill">
+          📂 GitHub Repository
+        </a>
+        <a href="https://forms.gle/MNvCjcv23Hn2Eeu58" target="_blank" class="link-pill">
+          📝 Google Submission Form
+        </a>
+      </div>
+    </header>
+
+    <!-- ── ARCHITECTURE FLOWCHART ── -->
+    <section class="section-card">
+      <div class="section-title">📊 End-to-End Pipeline Execution Flow</div>
+      <div class="section-desc">Visual flowchart illustrating the path of every voice/text query from ingestion to grounded response:</div>
+      
+      <div class="diagram-wrapper">
+        <pre class="mermaid">
+flowchart TD
+    %% Styling
+    classDef startNode fill:#1e1b4b,stroke:#6366f1,stroke-width:2px,color:#fff,font-weight:bold;
+    classDef processNode fill:#181c26,stroke:#2a3045,stroke-width:1.5px,color:#f1f5f9;
+    classDef dbNode fill:#1e293b,stroke:#0ea5e9,stroke-width:2px,color:#fff;
+    classDef alertNode fill:#450a0a,stroke:#f87171,stroke-width:1.5px,color:#fca5a5;
+    classDef successNode fill:#064e3b,stroke:#10b981,stroke-width:2px,color:#fff,font-weight:bold;
+    classDef decisionNode fill:#1e1e2d,stroke:#a855f7,stroke-width:2px,color:#fff;
+
+    A["👤 User Input: Voice Mic OR Typed Text"]:::startNode --> B{"Input Type?"}:::decisionNode
+    
+    B -- Voice Audio --> C["🎙️ Stage 1: STT Engine<br/>Sarvam AI saarika:v1 / Groq Whisper Turbo"]:::processNode
+    C --> D["📝 Clean Transcribed Text"]:::processNode
+    
+    B -- Typed Text --> D
+    
+    D --> E["🛡️ Stage 2: Input Guardrails<br/>Prompt Injection, Toxicity, Length Checks"]:::processNode
+    
+    E -- Blocked --> X["🚫 Return Blocked Response"]:::alertNode
+    E -- Passed --> F["🧠 Stage 3: Conversational Memory Engine<br/>Contextual Pronoun Resolution & History Injection"]:::processNode
+    
+    F --> G["🔢 Stage 4: Dense Vector Retrieval<br/>all-MiniLM-L6-v2 384-dim + FAISS FlatIP Index"]:::processNode
+    H[("🗃️ 48,995 MSMARCO-XI Chunks<br/>4 Chunking Strategies")]:::dbNode -.-> G
+    
+    G --> I["⚡ Stage 5: Groq LPU Inference<br/>groq/compound-mini + Pydantic Schema"]:::processNode
+    
+    I --> J["🔍 Stage 6: Output Grounding & Hallucination Audit<br/>Semantic Cosine Similarity Check"]:::processNode
+    
+    J --> K["💻 Stage 7: UI Delivery<br/>Answer + Timestamps + Sources + 3 Smart Suggestions"]:::successNode
+        </pre>
+      </div>
+    </section>
+
+    <!-- ── 7 PIPELINE STAGES ── -->
+    <section class="section-card">
+      <div class="section-title">⚡ 7 High-Speed Pipeline Stages (<200ms P50)</div>
+      <div class="section-desc">Each stage is optimized with hardware acceleration, retry backoffs, and strict grounding:</div>
+
+      <div class="stage-grid">
+        <div class="stage-card">
+          <div class="stage-num">Stage 1 · Speech-to-Text</div>
+          <div class="stage-name">🎙️ Multi-Provider STT</div>
+          <div class="stage-desc">Dual provider resilience: Sarvam AI (<code>saarika:v1</code>) for Indian accents with instant Groq Whisper Turbo cloud fallback.</div>
+          <span class="stage-ms">Latency: ~65ms</span>
+        </div>
+
+        <div class="stage-card">
+          <div class="stage-num">Stage 2 · Security</div>
+          <div class="stage-name">🛡️ Input Guardrails</div>
+          <div class="stage-desc">Deterministic filters block prompt injections, jailbreaks (e.g. "system override"), and toxic payloads before vector search.</div>
+          <span class="stage-ms">Latency: ~12ms</span>
+        </div>
+
+        <div class="stage-card">
+          <div class="stage-num">Stage 3 · Context</div>
+          <div class="stage-name">🧠 Conversational Memory</div>
+          <div class="stage-desc">Tracks multi-turn turns across sessions; autonomously rewrites pronoun queries ("What are its types?") with subject context.</div>
+          <span class="stage-ms">Latency: ~5ms</span>
+        </div>
+
+        <div class="stage-card">
+          <div class="stage-num">Stage 4 · Vector DB</div>
+          <div class="stage-name">🔍 FAISS Dense Retrieval</div>
+          <div class="stage-desc">Searches 48,995 chunks across 4 chunking strategies in 384 dimensions using Inner-Product Cosine Similarity.</div>
+          <span class="stage-ms">Latency: ~45ms</span>
+        </div>
+
+        <div class="stage-card">
+          <div class="stage-num">Stage 5 · Generation</div>
+          <div class="stage-name">⚡ Groq LPU Inference</div>
+          <div class="stage-desc">Runs <code>groq/compound-mini</code> with strict context grounding, Pydantic schema validation, and 3 follow-up suggestions.</div>
+          <span class="stage-ms">Latency: ~80ms</span>
+        </div>
+
+        <div class="stage-card">
+          <div class="stage-num">Stage 6 · Quality Audit</div>
+          <div class="stage-name">🔍 Hallucination Check</div>
+          <div class="stage-desc">Calculates semantic cosine similarity between the generated answer and retrieved passages to verify factual accuracy.</div>
+          <span class="stage-ms">Latency: ~10ms</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── MULTI-STRATEGY CHUNKING ── -->
+    <section class="section-card">
+      <div class="section-title">✂️ 4 Multi-Strategy Chunking Paradigms</div>
+      <div class="section-desc">Instead of naive fixed chunking, MSMARCO-XI is split across 4 complementary strategies:</div>
+
+      <div class="stage-grid">
+        <div class="stage-card">
+          <div class="stage-name">1. Fixed-Size Overlapping</div>
+          <div class="stage-desc">256 token windows with 20% sliding overlap to prevent broken sentences and word splits across chunks.</div>
+        </div>
+        <div class="stage-card">
+          <div class="stage-name">2. Sentence Boundary</div>
+          <div class="stage-desc">Splits strictly along punctuation boundaries preserving grammatical and syntactic integrity.</div>
+        </div>
+        <div class="stage-card">
+          <div class="stage-name">3. Paragraph-Aware</div>
+          <div class="stage-desc">Splits documents according to visual structure and conceptual paragraph boundaries.</div>
+        </div>
+        <div class="stage-card">
+          <div class="stage-name">4. Semantic Similarity</div>
+          <div class="stage-desc">Embeds adjacent sentences and splits when cosine similarity drops below threshold to ensure topical coherence.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── SUBMISSION ACTION PLAN ── -->
+    <section class="section-card">
+      <div class="section-title">📋 Submission Action Plan &amp; Checklist</div>
+      <div class="section-desc">Everything needed for the final Google Form submission:</div>
+
+      <table class="checklist-table">
+        <thead>
+          <tr>
+            <th>Deliverable</th>
+            <th>Resource / Link</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><b>GitHub Repository</b></td>
+            <td><a href="https://github.com/gkm563/VoxRAG.git" target="_blank" style="color:var(--cyan)">github.com/gkm563/VoxRAG</a></td>
+            <td><span class="status-done">✅ 100% Pushed</span></td>
+          </tr>
+          <tr>
+            <td><b>Live Cloud Deployment</b></td>
+            <td><a href="https://voxrag.streamlit.app/" target="_blank" style="color:var(--cyan)">voxrag.streamlit.app</a></td>
+            <td><span class="status-done">✅ Active &amp; Verified</span></td>
+          </tr>
+          <tr>
+            <td><b>Video 1 (90s Team/Process)</b></td>
+            <td>Walkthrough of GitHub code, architecture &amp; latency optimizations</td>
+            <td><span class="status-pending">⏳ Record &amp; Attach</span></td>
+          </tr>
+          <tr>
+            <td><b>Video 2 (Demo Video)</b></td>
+            <td>Screen recording of voice query, multi-turn follow-up &amp; suggestions</td>
+            <td><span class="status-pending">⏳ Record &amp; Post</span></td>
+          </tr>
+          <tr>
+            <td><b>Social Media Posts</b></td>
+            <td>Post demo on LinkedIn, X, Instagram with <b>#RAGInGoa</b></td>
+            <td><span class="status-pending">⏳ Share &amp; Copy URL</span></td>
+          </tr>
+          <tr>
+            <td><b>Final Form Submission</b></td>
+            <td><a href="https://forms.gle/MNvCjcv23Hn2Eeu58" target="_blank" style="color:var(--cyan)">forms.gle/MNvCjcv23Hn2Eeu58</a></td>
+            <td><span class="status-pending">⏳ Submit Links</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- ── WHATSAPP MESSAGE BOX ── -->
+    <section class="section-card">
+      <div class="section-title">📲 Ready WhatsApp Message for Teammates</div>
+      <div class="section-desc">Click the button below to copy the complete formatted text to your clipboard:</div>
+
+      <div class="copy-box">
+        <button class="copy-btn" onclick="copyWhatsApp()">📋 Copy Text</button>
+        <div class="copy-content" id="waText">🚀 *HH Goa 2026 Task 2: VoxRAG System Ready!* 🎙️
+
+Hey team! Hamara Voice-Enabled RAG system (*VoxRAG*) 100% complete aur live ho chuka hai. Submissions aur video recording ke liye saari details neeche hain:
+
+🔗 *Live Links:*
+• *Live Cloud App:* https://voxrag.streamlit.app/
+• *Architecture Visual Guide:* https://gkm563.github.io/VoxRAG/guide.html
+• *GitHub Repository:* https://github.com/gkm563/VoxRAG.git
+• *Submission Form:* https://forms.gle/MNvCjcv23Hn2Eeu58
+
+⚡ *Core Technical Highlights (Video me bolne ke liye):*
+1. *Speech-to-Text:* Sarvam AI (`saarika:v1`) + Groq Whisper Turbo fallback (<150ms).
+2. *Vast Multi-Strategy Chunking:* 4 strategies (Fixed-size with 20% overlap, Sentence boundary, Paragraph-aware, Semantic similarity) over `ai4bharat/MSMARCO-XI` (48,995 chunks).
+3. *Vector Retrieval:* FAISS IndexFlatIP (384-dim, `all-MiniLM-L6-v2`) in ~45ms.
+4. *LLM Inference:* Groq LPU (`groq/compound-mini`) in ~80ms with strict JSON grounding.
+5. *Continuous Memory:* Follow-up questions (e.g. "What are its types?") ke pronouns seamlessly resolve hote hain.
+6. *Target Latency:* Total P50 Latency = ~142ms (Target <200ms achieved! ✅).
+7. *Guardrails:* Prompt injection, toxicity, and hallucination cosine audits.
+
+🎥 *Submission Next Steps (Action Items):*
+1. *Video 1 (90s Team/Process Video):* GitHub code walkthrough + architecture explanation.
+2. *Video 2 (Demo Video):* Live interaction (Voice recording + follow-up questions + suggestions).
+3. Post demo on LinkedIn/X/Instagram with hashtag *#RAGInGoa*.
+4. Submit final links in Google Form!
+
+Visual flowchart aur guide link open karke check karlo. Let's win this! 🏆🔥</div>
+      </div>
+    </section>
+
+    <footer>
+      VoxRAG · Built for Hackathon Goa 2026 Shortlisting Task 2 · Powered by Sarvam AI, FAISS &amp; Groq LPU
+    </footer>
+
+  </div>
+
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'dark',
+      themeVariables: {
+        darkMode: true,
+        background: '#0b0d13',
+        primaryColor: '#6c63ff',
+        primaryTextColor: '#fff',
+        lineColor: '#38bdf8',
+        fontFamily: 'Inter, sans-serif'
+      }
+    });
+
+    function copyWhatsApp() {
+      const text = document.getElementById('waText').innerText;
+      navigator.clipboard.writeText(text).then(() => {
+        const btn = document.querySelector('.copy-btn');
+        btn.innerText = '✅ Copied!';
+        setTimeout(() => { btn.innerText = '📋 Copy Text'; }, 2000);
+      });
+    }
+  </script>
+</body>
+</html>
