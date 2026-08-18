@@ -3,18 +3,17 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>VoxRAG — Voice & Type Conversational RAG (#RAGInGoa Edition)</title>
+<title>VoxRAG — Voice & Text Conversational Assistant</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
 <style>
-  *{margin:0;padding:0;box-sizing:border-box;transition:background-color 0.2s,border-color 0.2s,color 0.2s;}
+  *{margin:0;padding:0;box-sizing:border-box;}
 
-  /* ── Goa Tropical Theme (Default #RAGInGoa) ── */
+  /* ── Goa Tropical Theme ── */
   :root[data-theme="goa"] {
     --bg-main: #072316;
     --bg-sidebar: #051b11;
     --bg-card: #0c3321;
-    --bg-card-header: #0f3d28;
     --bg-input: #082819;
     --bg-hover: #134a31;
     --border: #165337;
@@ -22,80 +21,40 @@
     --accent-yellow: #facc15;
     --accent-yellow-bg: rgba(250, 204, 21, 0.15);
     --accent-pink: #f43f5e;
-    --accent-pink-bg: rgba(244, 63, 94, 0.15);
     --accent-green: #10b981;
     --accent-cyan: #38bdf8;
-    --accent-orange: #fb923c;
-    --accent-purple: #8b5cf6;
     --text-primary: #f0fdf4;
     --text-secondary: #a7f3d0;
     --text-muted: #6ee7b7;
     --user-bubble-bg: linear-gradient(135deg, #1e3a8a, #2563eb);
-    --sidebar-w: 230px;
-    --right-w: 320px;
-    --card-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-    --radius: 12px;
+    --sidebar-w: 240px;
+    --right-w: 300px;
   }
 
-  /* ── Clean Light Theme (Exact Screenshot 1) ── */
   :root[data-theme="light"] {
     --bg-main: #f8fafc;
     --bg-sidebar: #ffffff;
     --bg-card: #ffffff;
-    --bg-card-header: #f1f5f9;
-    --bg-input: #f8fafc;
+    --bg-input: #f1f5f9;
     --bg-hover: #f1f5f9;
     --border: #e2e8f0;
     --border-light: #cbd5e1;
     --accent-yellow: #d97706;
     --accent-yellow-bg: #fef3c7;
     --accent-pink: #e11d48;
-    --accent-pink-bg: #ffe4e6;
     --accent-green: #059669;
     --accent-cyan: #0284c7;
-    --accent-orange: #ea580c;
-    --accent-purple: #6c63ff;
     --text-primary: #0f172a;
     --text-secondary: #475569;
     --text-muted: #94a3b8;
     --user-bubble-bg: linear-gradient(135deg, #4f46e5, #6366f1);
-    --sidebar-w: 230px;
-    --right-w: 320px;
-    --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
-    --radius: 12px;
+    --sidebar-w: 240px;
+    --right-w: 300px;
   }
 
-  /* ── Dark Night Theme ── */
-  :root[data-theme="dark"] {
-    --bg-main: #0f172a;
-    --bg-sidebar: #090d16;
-    --bg-card: #1e293b;
-    --bg-card-header: #334155;
-    --bg-input: #0f172a;
-    --bg-hover: #334155;
-    --border: #334155;
-    --border-light: #475569;
-    --accent-yellow: #fbbf24;
-    --accent-yellow-bg: rgba(251, 191, 36, 0.15);
-    --accent-pink: #f43f5e;
-    --accent-pink-bg: rgba(244, 63, 94, 0.15);
-    --accent-green: #10b981;
-    --accent-cyan: #38bdf8;
-    --accent-orange: #fb923c;
-    --accent-purple: #818cf8;
-    --text-primary: #f8fafc;
-    --text-secondary: #94a3b8;
-    --text-muted: #64748b;
-    --user-bubble-bg: linear-gradient(135deg, #2563eb, #1d4ed8);
-    --sidebar-w: 230px;
-    --right-w: 320px;
-    --card-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-    --radius: 12px;
-  }
+  html,body{height:100%;font-family:'Inter',sans-serif;background:var(--bg-main);color:var(--text-primary);overflow:hidden;}
 
-  html,body{height:100%;font-family:'Inter',-apple-system,sans-serif;background:var(--bg-main);color:var(--text-primary);overflow:hidden;}
-
-  /* ── 3-Column Layout ── */
+  /* ── Layout ── */
   .layout{display:grid;grid-template-columns:var(--sidebar-w) 1fr var(--right-w);height:100vh;width:100vw;overflow:hidden;}
 
   /* ── LEFT SIDEBAR ── */
@@ -106,107 +65,64 @@
     flex-direction: column;
     padding: 18px 14px;
     user-select: none;
-    z-index: 10;
   }
   .logo-row {
     display: flex;
     align-items: center;
     gap: 10px;
-    margin-bottom: 24px;
-    padding: 0 4px;
+    margin-bottom: 20px;
   }
   .logo-icon {
-    width: 38px;
-    height: 38px;
-    border-radius: 10px;
+    width: 36px; height: 36px; border-radius: 10px;
     background: linear-gradient(135deg, #6c63ff, #ec4899);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 18px;
-    color: white;
-    box-shadow: 0 4px 12px rgba(108, 99, 255, 0.3);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; color: white;
   }
-  .logo-text h2 { font-size: 16px; font-weight: 800; letter-spacing: -0.02em; }
-  .logo-text p { font-size: 10px; color: var(--text-muted); }
+  .logo-text h2 { font-size: 16px; font-weight: 800; }
+  .logo-text p { font-size: 10.5px; color: var(--text-muted); }
 
-  .nav-list {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-  }
-  .nav-item {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 10px 14px;
-    border-radius: 8px;
-    font-size: 13px;
-    font-weight: 500;
-    color: var(--text-secondary);
-    cursor: pointer;
-    text-decoration: none;
-  }
-  .nav-item:hover { background: var(--bg-hover); color: var(--text-primary); }
-  .nav-item.active {
-    background: rgba(108, 99, 255, 0.12);
-    color: #6c63ff;
-    border: 1px solid rgba(108, 99, 255, 0.4);
-    font-weight: 600;
-  }
-  .nav-item svg { width: 16px; height: 16px; flex-shrink: 0; }
-
-  .sidebar-bottom {
-    border-top: 1px solid var(--border);
-    padding-top: 14px;
-    margin-top: 8px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
-  .user-card {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 6px;
-    border-radius: 8px;
-  }
-  .user-avatar {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    background: #6366f1;
-    color: white;
-    font-size: 12px;
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  .user-info h4 { font-size: 12.5px; font-weight: 600; }
-  .user-info p { font-size: 10.5px; color: var(--text-muted); }
-
-  .theme-toggle-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 4px 6px;
-    font-size: 12px;
-    color: var(--text-secondary);
-  }
-  .theme-select {
+  .btn-new-chat-side {
     background: var(--bg-hover);
     border: 1px solid var(--border);
     color: var(--text-primary);
-    padding: 3px 8px;
-    border-radius: 6px;
-    font-size: 11px;
-    outline: none;
+    padding: 9px 12px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
     cursor: pointer;
+    margin-bottom: 14px;
+    display: flex; align-items: center; gap: 8px;
   }
+  .btn-new-chat-side:hover { border-color: var(--accent-yellow); color: var(--accent-yellow); }
 
-  /* ── CENTER MAIN AREA ── */
+  .nav-list { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 12px; border-radius: 8px;
+    font-size: 12.5px; font-weight: 500;
+    color: var(--text-secondary);
+    cursor: pointer; text-decoration: none;
+  }
+  .nav-item:hover { background: var(--bg-hover); color: var(--text-primary); }
+  .nav-item.active { background: rgba(16, 185, 129, 0.12); color: var(--accent-green); font-weight: 600; }
+
+  .sidebar-bottom {
+    border-top: 1px solid var(--border);
+    padding-top: 12px;
+    margin-top: auto;
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .user-card { display: flex; align-items: center; gap: 10px; }
+  .user-avatar {
+    width: 30px; height: 30px; border-radius: 50%;
+    background: #6366f1; color: white;
+    font-size: 11px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .user-info h4 { font-size: 12px; font-weight: 600; }
+  .user-info p { font-size: 10px; color: var(--text-muted); }
+
+  /* ── CENTER CHAT STUDIO ── */
   .center-pane {
     display: flex;
     flex-direction: column;
@@ -215,522 +131,181 @@
     background: var(--bg-main);
   }
 
-  /* Top Bar */
   .top-bar {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 16px 28px;
+    padding: 14px 24px;
     border-bottom: 1px solid var(--border);
-    flex-shrink: 0;
     background: var(--bg-sidebar);
   }
-  .top-bar-left h1 { font-size: 18px; font-weight: 800; letter-spacing: -0.02em; }
-  .top-bar-left p { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
-  .top-bar-right { display: flex; align-items: center; gap: 10px; }
+  .top-bar-left h1 { font-size: 17px; font-weight: 800; }
+  .top-bar-left p { font-size: 11.5px; color: var(--text-muted); margin-top: 2px; }
 
-  .status-pill {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 5px 12px;
-    border-radius: 99px;
-    font-size: 12px;
-    font-weight: 500;
-    background: var(--bg-hover);
-    border: 1px solid var(--border);
-  }
-  .status-dot {
-    width: 7px; height: 7px; border-radius: 50%;
-    background: var(--accent-green);
-    box-shadow: 0 0 8px var(--accent-green);
-    animation: pulse 1.5s infinite;
-  }
-  .live-pill {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 5px 14px;
-    border-radius: 99px;
-    font-size: 12px;
-    font-weight: 700;
-    background: #6366f1;
-    color: white;
-  }
-
-  /* Scrollable Studio Body */
-  .studio-content {
+  .chat-scroll-area {
     flex: 1;
     overflow-y: auto;
-    padding: 20px 28px;
-    display: flex;
-    flex-direction: column;
-    gap: 18px;
-  }
-  .studio-content::-webkit-scrollbar { width: 5px; }
-  .studio-content::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 4px; }
-
-  /* ── Conversational Studio Card ── */
-  .studio-card {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 20px 24px;
-    box-shadow: var(--card-shadow);
+    padding: 20px 24px 100px;
     display: flex;
     flex-direction: column;
     gap: 16px;
   }
+  .chat-scroll-area::-webkit-scrollbar { width: 5px; }
+  .chat-scroll-area::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 4px; }
 
-  .studio-card-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-  .studio-card-title h3 { font-size: 15px; font-weight: 700; }
-  .studio-card-title p { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
-
-  .studio-controls { display: flex; align-items: center; gap: 8px; }
-  .btn-new-chat-center {
-    background: var(--bg-hover);
-    border: 1px solid var(--border);
-    color: var(--text-primary);
-    padding: 6px 12px;
-    border-radius: 6px;
-    font-size: 12px;
-    font-weight: 600;
-    cursor: pointer;
-  }
-  .btn-new-chat-center:hover { border-color: #6c63ff; color: #6c63ff; }
-
-  .mode-switch-group {
-    display: flex;
-    background: var(--bg-hover);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    padding: 2px;
-  }
-  .mode-btn {
-    padding: 4px 10px;
-    border-radius: 4px;
-    font-size: 11.5px;
-    font-weight: 600;
-    border: none;
-    background: transparent;
-    color: var(--text-secondary);
-    cursor: pointer;
-  }
-  .mode-btn.active {
-    background: #6366f1;
-    color: white;
-    box-shadow: 0 2px 6px rgba(99, 102, 241, 0.3);
-  }
-
-  /* Center Voice Visualizer */
-  .voice-visualizer-section {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 10px 0 6px;
-    gap: 8px;
-  }
-  .wave-mic-row {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-  .audio-wave-bars {
-    display: flex;
-    align-items: center;
-    gap: 3px;
-    height: 24px;
-  }
-  .bar {
-    width: 3px;
-    height: 10px;
-    background: var(--accent-purple);
-    border-radius: 2px;
-  }
-  .bar.anim { animation: wave 1.2s ease-in-out infinite; }
-  .bar:nth-child(2) { animation-delay: 0.15s; }
-  .bar:nth-child(3) { animation-delay: 0.3s; }
-  .bar:nth-child(4) { animation-delay: 0.45s; }
-  .bar:nth-child(5) { animation-delay: 0.6s; }
-  @keyframes wave { 0%,100%{height:6px;} 50%{height:22px;} }
-
-  .mic-avatar-btn {
-    width: 46px;
-    height: 46px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #6366f1, #a855f7);
-    border: none;
-    color: white;
-    font-size: 18px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    box-shadow: 0 4px 14px rgba(99, 102, 241, 0.4);
-    transition: transform 0.2s;
-  }
-  .mic-avatar-btn:hover { transform: scale(1.08); }
-  .mic-avatar-btn.recording {
-    background: var(--accent-pink);
-    box-shadow: 0 0 16px var(--accent-pink);
-    animation: pulse 1.2s infinite;
-  }
-  .voice-helper-text { font-size: 12px; color: var(--text-muted); }
-
-  /* Input Box */
-  .unified-input-wrapper {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    background: var(--bg-input);
-    border: 1px solid var(--border-light);
-    border-radius: 10px;
-    padding: 10px 14px;
-  }
-  .unified-input-wrapper:focus-within {
-    border-color: #6366f1;
-    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
-  }
-  .unified-input {
-    flex: 1;
-    background: transparent;
-    border: none;
-    outline: none;
-    font-size: 13.5px;
-    color: var(--text-primary);
-    font-family: inherit;
-  }
-  .unified-input::placeholder { color: var(--text-muted); }
-
-  .input-action-btn {
-    background: transparent;
-    border: none;
-    color: var(--text-secondary);
-    cursor: pointer;
-    font-size: 16px;
-    padding: 4px;
-  }
-  .input-action-btn:hover { color: var(--text-primary); }
-
-  .send-action-btn {
-    width: 34px;
-    height: 34px;
-    border-radius: 8px;
-    background: #6366f1;
-    border: none;
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    font-size: 14px;
-  }
-  .send-action-btn:hover { opacity: 0.9; }
-
-  /* Wooden Signpost Styled Starter Pills */
-  .starter-chips-row {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 8px;
-  }
-  .starter-label {
-    font-size: 11px;
-    font-weight: 700;
-    color: var(--text-muted);
-    letter-spacing: 0.05em;
-  }
-  .starter-pill {
-    background: var(--bg-hover);
-    border: 1px solid var(--border);
-    color: var(--text-primary);
-    padding: 5px 12px;
-    border-radius: 6px;
-    font-size: 12px;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    transition: all 0.15s;
-  }
-  .starter-pill:hover {
-    border-color: var(--accent-yellow);
-    background: var(--accent-yellow-bg);
-    color: var(--accent-yellow);
-  }
-
-  /* ── Chat Messages Container ── */
-  .chat-conversation-area {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-  }
-
-  /* User Message */
-  .msg-user-row {
-    display: flex;
-    justify-content: flex-end;
-  }
+  /* User Bubble */
+  .msg-user-row { display: flex; justify-content: flex-end; }
   .msg-user-bubble {
     background: var(--user-bubble-bg);
     color: white;
-    padding: 12px 18px;
+    padding: 10px 16px;
     border-radius: 16px 16px 2px 16px;
     max-width: 80%;
     font-size: 13.5px;
     line-height: 1.5;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   }
-  .msg-user-meta {
-    font-size: 10.5px;
-    opacity: 0.85;
-    margin-bottom: 4px;
-    display: flex;
-    justify-content: space-between;
-    gap: 12px;
-  }
-  .btn-edit-sm {
-    background: transparent;
-    border: none;
-    color: white;
-    cursor: pointer;
-    font-size: 10.5px;
-    opacity: 0.9;
-  }
+  .msg-user-meta { font-size: 10.5px; opacity: 0.85; margin-bottom: 3px; }
 
-  /* AI Message */
+  /* AI Message Card */
   .msg-ai-card {
     background: var(--bg-card);
     border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 16px 20px;
+    border-radius: 12px;
+    padding: 14px 18px;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 8px;
   }
   .msg-ai-header {
     display: flex;
     align-items: center;
     gap: 8px;
-    font-size: 13px;
+    font-size: 12.5px;
     font-weight: 700;
   }
-  .ai-avatar-dot {
-    width: 22px; height: 22px; border-radius: 50%;
-    background: #10b981; color: #000;
+  .ai-dot {
+    width: 20px; height: 20px; border-radius: 50%;
+    background: var(--accent-green); color: #000;
     display: flex; align-items: center; justify-content: center;
-    font-size: 11px; font-weight: 800;
+    font-size: 10px; font-weight: 800;
   }
   .badge-grounded {
     background: rgba(16, 185, 129, 0.15);
-    color: #10b981;
+    color: var(--accent-green);
     border: 1px solid rgba(16, 185, 129, 0.3);
-    padding: 2px 8px;
-    border-radius: 4px;
-    font-size: 11px;
-    font-weight: 600;
+    padding: 2px 6px; border-radius: 4px; font-size: 10.5px;
   }
-  .msg-ai-text {
-    font-size: 14px;
-    line-height: 1.65;
+  .msg-ai-text { font-size: 13.5px; line-height: 1.6; color: var(--text-primary); }
+
+  .sug-chips-row {
+    display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px;
+  }
+  .sug-pill {
+    background: var(--bg-hover);
+    border: 1px solid var(--border);
     color: var(--text-primary);
-  }
-  .msg-ai-text code {
-    background: var(--bg-input);
-    padding: 2px 6px;
-    border-radius: 4px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 12px;
-    color: var(--accent-cyan);
-  }
-
-  .sources-list {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-  }
-  .source-tag {
-    background: var(--bg-hover);
-    border: 1px solid var(--border);
-    padding: 2px 8px;
-    border-radius: 4px;
-    font-size: 11px;
-    font-family: 'JetBrains Mono', monospace;
-    color: var(--text-secondary);
-  }
-
-  .ai-action-footer {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding-top: 8px;
-    border-top: 1px solid var(--border);
-    font-size: 12px;
-  }
-  .btn-action-pill {
-    background: var(--bg-hover);
-    border: 1px solid var(--border);
-    color: var(--text-secondary);
     padding: 4px 10px;
     border-radius: 6px;
     font-size: 11.5px;
     cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
   }
-  .btn-action-pill:hover { color: var(--text-primary); border-color: #6366f1; }
+  .sug-pill:hover { border-color: var(--accent-yellow); color: var(--accent-yellow); }
 
-  /* ── Bottom Status Bar ── */
-  .bottom-status-strip {
-    background: var(--bg-sidebar);
-    border-top: 1px solid var(--border);
-    padding: 10px 24px;
-    display: grid;
-    grid-template-columns: repeat(6, 1fr);
-    gap: 8px;
-    flex-shrink: 0;
+  .ai-footer-bar {
+    display: flex; align-items: center; gap: 8px;
+    padding-top: 6px; border-top: 1px solid var(--border);
+    font-size: 11.5px;
   }
-  .stat-block h5 { font-size: 9.5px; color: var(--text-muted); text-transform: uppercase; font-weight: 700; }
-  .stat-block p { font-size: 12px; font-weight: 700; color: var(--text-primary); margin-top: 2px; }
-  .stat-block p.green { color: var(--accent-green); }
-  .stat-block p.purple { color: #818cf8; }
+  .btn-action-sm {
+    background: var(--bg-hover);
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    padding: 4px 10px; border-radius: 6px; font-size: 11px;
+    cursor: pointer; display: inline-flex; align-items: center; gap: 4px;
+  }
+  .btn-action-sm:hover { color: var(--text-primary); border-color: #6366f1; }
 
-  /* ── RIGHT ANALYTICS & PIPELINE PANEL ── */
+  /* ── Floating Input Bar ── */
+  .bottom-input-bar {
+    position: absolute;
+    bottom: 0; left: var(--sidebar-w); right: var(--right-w);
+    background: linear-gradient(180deg, transparent 0%, var(--bg-main) 35%);
+    padding: 12px 24px 16px;
+    display: flex; flex-direction: column; align-items: center;
+  }
+  .input-capsule {
+    width: 100%;
+    background: var(--bg-input);
+    border: 1px solid var(--border-light);
+    border-radius: 24px;
+    padding: 8px 14px;
+    display: flex; align-items: center; gap: 10px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+  }
+  .input-capsule:focus-within { border-color: #6366f1; }
+  .chat-text-input {
+    flex: 1; background: transparent; border: none; outline: none;
+    font-size: 13.5px; color: var(--text-primary); font-family: inherit;
+  }
+  .chat-text-input::placeholder { color: var(--text-muted); }
+
+  .mic-btn-round {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: var(--bg-hover); border: 1px solid var(--border);
+    color: var(--text-primary); display: flex; align-items: center;
+    justify-content: center; cursor: pointer; font-size: 14px;
+  }
+  .mic-btn-round.recording { background: var(--accent-pink); color: white; animation: pulse 1.2s infinite; }
+
+  .send-btn-round {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: #6366f1; border: none; color: white;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; font-size: 14px;
+  }
+
+  /* ── RIGHT PANEL ── */
   .right-pane {
     background: var(--bg-sidebar);
     border-left: 1px solid var(--border);
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
+    padding: 18px 14px;
+    display: flex; flex-direction: column; gap: 16px;
     overflow-y: auto;
-    padding: 20px 18px;
-    gap: 20px;
   }
-  .right-pane::-webkit-scrollbar { width: 4px; }
-  .right-pane::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 4px; }
-
-  .right-card {
+  .card-box {
     background: var(--bg-card);
     border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 16px;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
+    border-radius: 10px;
+    padding: 12px;
+    display: flex; flex-direction: column; gap: 8px;
   }
-  .right-card-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-  .right-card-title h4 { font-size: 13.5px; font-weight: 700; }
-  .right-card-title p { font-size: 10.5px; color: var(--text-muted); }
+  .card-box h4 { font-size: 12.5px; font-weight: 700; color: var(--text-primary); }
 
-  /* Pipeline 4 Stage Flow */
-  .pipeline-stage-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 6px;
+  .lat-metric-row {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px;
   }
-  .pipe-step {
-    background: var(--bg-hover);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 8px 4px;
-    text-align: center;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 3px;
+  .lat-metric {
+    background: var(--bg-hover); border: 1px solid var(--border);
+    border-radius: 6px; padding: 6px 2px; text-align: center;
   }
-  .pipe-step-icon { font-size: 14px; }
-  .pipe-step-name { font-size: 9.5px; font-weight: 700; color: var(--text-primary); }
-  .pipe-step-sub { font-size: 8.5px; color: var(--text-muted); }
-  .pipe-step-ms { font-size: 9px; font-weight: 700; color: var(--accent-yellow); font-family: 'JetBrains Mono', monospace; }
+  .lat-title { font-size: 9.5px; color: var(--text-muted); font-weight: 700; }
+  .lat-val { font-size: 13px; font-weight: 800; font-family: 'JetBrains Mono', monospace; }
 
-  /* Latency Metrics 3 Cards */
-  .latency-metrics-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 6px;
-  }
-  .lat-card {
-    background: var(--bg-hover);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 10px 6px;
-    text-align: center;
-  }
-  .lat-card-title { font-size: 10px; font-weight: 700; color: var(--text-muted); }
-  .lat-card-value { font-size: 16px; font-weight: 800; margin: 3px 0 1px; font-family: 'JetBrains Mono', monospace; }
-  .lat-card-badge { font-size: 8.5px; color: var(--text-muted); }
-  .lat-green { color: #10b981; }
-  .lat-yellow { color: #f59e0b; }
-  .lat-red { color: #ef4444; }
-
-  /* Canvas Wave Graph */
-  .canvas-graph {
-    width: 100%;
-    height: 70px;
-    background: var(--bg-input);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-  }
-
-  /* Guardrails Check List */
-  .guard-list {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-  }
-  .guard-item {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    font-size: 12px;
-    padding: 4px 2px;
-  }
-  .guard-name { display: flex; align-items: center; gap: 6px; color: var(--text-secondary); }
-  .guard-badge-ok {
-    font-size: 10.5px;
-    font-weight: 700;
-    color: var(--accent-green);
-    background: rgba(16, 185, 129, 0.12);
-    padding: 2px 6px;
-    border-radius: 4px;
-  }
-
-  /* Toast Notification */
   .toast {
-    position: fixed;
-    top: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: #10b981;
-    color: white;
-    padding: 8px 16px;
-    border-radius: 99px;
-    font-size: 12px;
-    font-weight: 600;
-    display: none;
-    z-index: 100;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+    background: #10b981; color: white; padding: 6px 14px;
+    border-radius: 99px; font-size: 12px; font-weight: 600; display: none; z-index: 100;
   }
+  @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.6;} }
 </style>
 </head>
 <body>
 
-<div class="toast" id="toastBox">Copied to clipboard!</div>
+<div class="toast" id="toastBox">Copied!</div>
 
 <div class="layout">
 
-  <!-- ── 1. LEFT NAVIGATION SIDEBAR ── -->
+  <!-- ── Left Sidebar ── -->
   <aside class="sidebar">
     <div class="logo-row">
       <div class="logo-icon">🌴</div>
@@ -740,27 +315,15 @@
       </div>
     </div>
 
+    <button class="btn-new-chat-side" onclick="startNewChat()">
+      <span>➕</span> New Conversation
+    </button>
+
     <nav class="nav-list">
-      <a class="nav-item active" href="javascript:void(0)" onclick="showToast('Active: Chat & Conversation')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-        Chat &amp; Conversation
-      </a>
-      <a class="nav-item" href="https://docs-three-dusky-37.vercel.app" target="_blank">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
-        Architecture Guide ↗
-      </a>
-      <a class="nav-item" href="https://voxrag.streamlit.app" target="_blank">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polygon points="10 8 16 12 10 16 10 8"></polygon></svg>
-        Streamlit Cloud ↗
-      </a>
-      <a class="nav-item" href="https://github.com/gkm563/VoxRAG" target="_blank">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg>
-        GitHub Repository ↗
-      </a>
-      <a class="nav-item" href="https://forms.gle/MNvCjcv23Hn2Eeu58" target="_blank">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
-        Submission Form ↗
-      </a>
+      <a class="nav-item active" href="javascript:void(0)">💬 Chat &amp; Voice</a>
+      <a class="nav-item" href="https://docs-three-dusky-37.vercel.app" target="_blank">📊 Architecture Guide ↗</a>
+      <a class="nav-item" href="https://voxrag.streamlit.app" target="_blank">🚀 Streamlit Cloud ↗</a>
+      <a class="nav-item" href="https://github.com/gkm563/VoxRAG" target="_blank">📂 GitHub Repo ↗</a>
     </nav>
 
     <div class="sidebar-bottom">
@@ -771,237 +334,82 @@
           <p>Developer · HH Goa</p>
         </div>
       </div>
-
-      <div class="theme-toggle-row">
-        <span>🎨 Theme:</span>
-        <select class="theme-select" id="themeSelect" onchange="changeTheme(this.value)">
-          <option value="goa" selected>🌴 Goa Beach</option>
-          <option value="light">☀️ Light Studio</option>
-          <option value="dark">🌙 Dark Night</option>
-        </select>
-      </div>
     </div>
   </aside>
 
-
-  <!-- ── 2. CENTER MAIN CONVERSATIONAL STUDIO ── -->
+  <!-- ── Center Chat Studio ── -->
   <main class="center-pane">
-    
-    <!-- Top Bar -->
     <header class="top-bar">
       <div class="top-bar-left">
         <h1>Voice &amp; Type Conversational RAG</h1>
-        <p>Multi-turn context-aware question answering with retrieval augmented generation</p>
+        <p>Grounded QA on MSMARCO-XI with Multi-Turn Memory</p>
       </div>
-      <div class="top-bar-right">
-        <div class="status-pill">
-          <span class="status-dot"></span>
-          <span>All Systems Operational</span>
-        </div>
-        <div class="live-pill">● Live</div>
-      </div>
+      <div style="font-size:11px;color:var(--accent-green);font-weight:700;">● Online</div>
     </header>
 
-    <!-- Studio Scroll Body -->
-    <div class="studio-content" id="studioContent">
-
-      <!-- Unified Dual-Input Card -->
-      <section class="studio-card">
-        <div class="studio-card-header">
-          <div class="studio-card-title">
-            <h3>Ask &amp; Continue Conversation</h3>
-            <p>Ask follow-up questions naturally — VoxRAG remembers past turns with pronoun resolution</p>
-          </div>
-          <div class="studio-controls">
-            <button class="btn-new-chat-center" onclick="startNewChat()">+ New Chat</button>
-            <div class="mode-switch-group">
-              <button class="mode-btn active" id="btnDual" onclick="setMode('dual')">⚡ Dual</button>
-              <button class="mode-btn" id="btnType" onclick="setMode('type')">⌨️ Type</button>
-              <button class="mode-btn" id="btnVoice" onclick="setMode('voice')">🎙️ Voice</button>
-            </div>
-          </div>
+    <div class="chat-scroll-area" id="chatArea">
+      <div class="msg-ai-card">
+        <div class="msg-ai-header">
+          <div class="ai-dot">✦</div>
+          <span>VoxRAG</span>
+          <span class="badge-grounded">✓ Ready</span>
         </div>
-
-        <!-- Pulse Wave Voice Visualizer -->
-        <div class="voice-visualizer-section">
-          <div class="wave-mic-row">
-            <div class="audio-wave-bars">
-              <div class="bar anim"></div><div class="bar anim"></div><div class="bar anim"></div><div class="bar anim"></div><div class="bar anim"></div>
-            </div>
-            
-            <button class="mic-avatar-btn" id="mainMicBtn" title="Click to speak your question" onclick="toggleVoiceInput()">
-              🎙️
-            </button>
-
-            <div class="audio-wave-bars">
-              <div class="bar anim"></div><div class="bar anim"></div><div class="bar anim"></div><div class="bar anim"></div><div class="bar anim"></div>
-            </div>
-          </div>
-          <div class="voice-helper-text" id="voiceStatusText">
-            Click the microphone to speak, or type your question below
-          </div>
+        <div class="msg-ai-text">
+          Hello! I am <b>VoxRAG</b>. Speak into your microphone or type your question below. How can I help you today?
         </div>
-
-        <!-- Input Bar -->
-        <div class="unified-input-wrapper">
-          <input 
-            type="text" 
-            id="centerInput" 
-            class="unified-input" 
-            placeholder="Type your question or follow-up (e.g. What is a corporation? / What are its types?)..." 
-            autocomplete="off"
-            onkeydown="if(event.key==='Enter') submitQuery();"
-          />
-          <button class="input-action-btn" title="Speak question" onclick="toggleVoiceInput()">🎙️</button>
-          <button class="send-action-btn" title="Send query" onclick="submitQuery()">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
-          </button>
+        <div class="sug-chips-row">
+          <button class="sug-pill" onclick="askPreset('What is a corporation?')">📄 What is a corporation?</button>
+          <button class="sug-pill" onclick="askPreset('What are its main types?')">📋 What are its main types?</button>
+          <button class="sug-pill" onclick="askPreset('How does FAISS search work?')">⚡ How does FAISS search work?</button>
         </div>
-
-        <!-- Starter Chips with Signpost Theme -->
-        <div class="starter-chips-row">
-          <span class="starter-label">TRY ASKING:</span>
-          <button class="starter-pill" onclick="askPreset('What is a corporation?')">📄 What is a corporation?</button>
-          <button class="starter-pill" onclick="askPreset('What are its main types?')">📋 What are its main types?</button>
-          <button class="starter-pill" onclick="askPreset('How does FAISS work?')">🔍 How does FAISS work?</button>
-          <button class="starter-pill" onclick="askPreset('Explain dense passage retrieval')">⚡ Dense passage retrieval</button>
-        </div>
-      </section>
-
-      <!-- Active Conversation List -->
-      <div class="chat-conversation-area" id="chatArea"></div>
-
+      </div>
     </div>
 
-    <!-- Bottom Status Strip (Exact from Screenshot 1) -->
-    <footer class="bottom-status-strip">
-      <div class="stat-block">
-        <h5>DATASET</h5>
-        <p>MSMARCO-XI</p>
+    <!-- Floating Input Bar -->
+    <div class="bottom-input-bar">
+      <div class="input-capsule">
+        <input 
+          type="text" 
+          id="chatInput" 
+          class="chat-text-input" 
+          placeholder="Ask a question or click mic to speak..." 
+          autocomplete="off"
+          onkeydown="if(event.key==='Enter') submitQuery();"
+        />
+        <button class="mic-btn-round" id="micBtn" title="Speak question" onclick="toggleVoiceInput()">🎙️</button>
+        <button class="send-btn-round" title="Send" onclick="submitQuery()">➔</button>
       </div>
-      <div class="stat-block">
-        <h5>CHUNKS INDEXED</h5>
-        <p class="green">48,995</p>
-      </div>
-      <div class="stat-block">
-        <h5>VECTOR DB</h5>
-        <p>FAISS</p>
-      </div>
-      <div class="stat-block">
-        <h5>MODEL</h5>
-        <p class="green">groq/compound-mini</p>
-      </div>
-      <div class="stat-block">
-        <h5>MEMORY</h5>
-        <p class="purple">Multi-Turn Active</p>
-      </div>
-      <div class="stat-block">
-        <h5>STATUS</h5>
-        <p class="green">Ready</p>
-      </div>
-    </footer>
-
+    </div>
   </main>
 
-
-  <!-- ── 3. RIGHT ANALYTICS & PIPELINE PANEL (Exact from Screenshot 1) ── -->
+  <!-- ── Right Panel ── -->
   <aside class="right-pane">
-    
-    <!-- 1. Pipeline Overview -->
-    <div class="right-card">
-      <div class="right-card-header">
-        <div class="right-card-title">
-          <h4>Pipeline Overview</h4>
-          <p>End-to-end Flow</p>
+    <div class="card-box">
+      <h4>⚡ Live Latency</h4>
+      <div class="lat-metric-row">
+        <div class="lat-metric">
+          <div class="lat-title">P50</div>
+          <div class="lat-val" style="color:var(--accent-green);" id="p50Text">142ms</div>
         </div>
-      </div>
-      <div class="pipeline-stage-grid">
-        <div class="pipe-step">
-          <div class="pipe-step-icon">🎙️</div>
-          <div class="pipe-step-name">Voice/Type</div>
-          <div class="pipe-step-sub">Sarvam STT</div>
-          <div class="pipe-step-ms">~65ms</div>
+        <div class="lat-metric">
+          <div class="lat-title">P70</div>
+          <div class="lat-val" style="color:var(--accent-yellow);" id="p70Text">165ms</div>
         </div>
-        <div class="pipe-step">
-          <div class="pipe-step-icon">✂️</div>
-          <div class="pipe-step-name">Chunking</div>
-          <div class="pipe-step-sub">Multi-Strategy</div>
-          <div class="pipe-step-ms">~5ms</div>
-        </div>
-        <div class="pipe-step">
-          <div class="pipe-step-icon">🔍</div>
-          <div class="pipe-step-name">Retrieval</div>
-          <div class="pipe-step-sub">FAISS FlatIP</div>
-          <div class="pipe-step-ms">~45ms</div>
-        </div>
-        <div class="pipe-step">
-          <div class="pipe-step-icon">⚡</div>
-          <div class="pipe-step-name">Generation</div>
-          <div class="pipe-step-sub">Groq LPU</div>
-          <div class="pipe-step-ms">~80ms</div>
+        <div class="lat-metric">
+          <div class="lat-title">P100</div>
+          <div class="lat-val" style="color:var(--accent-pink);" id="p100Text">198ms</div>
         </div>
       </div>
     </div>
 
-    <!-- 2. Latency Analytics -->
-    <div class="right-card">
-      <div class="right-card-header">
-        <div class="right-card-title">
-          <h4>Latency Analytics</h4>
-          <p>Live measurements (ms)</p>
-        </div>
-      </div>
-      <div class="latency-metrics-grid">
-        <div class="lat-card">
-          <div class="lat-card-title">P50</div>
-          <div class="lat-card-value lat-green" id="p50Val">142ms</div>
-          <div class="lat-card-badge">Target &lt;200ms</div>
-        </div>
-        <div class="lat-card">
-          <div class="lat-card-title">P70</div>
-          <div class="lat-card-value lat-yellow" id="p70Val">165ms</div>
-          <div class="lat-card-badge">Fast Retrieval</div>
-        </div>
-        <div class="lat-card">
-          <div class="lat-card-title">P100</div>
-          <div class="lat-card-value lat-red" id="p100Val">198ms</div>
-          <div class="lat-card-badge">Max Latency</div>
-        </div>
-      </div>
-
-      <!-- Wave Graph Canvas -->
-      <canvas class="canvas-graph" id="latCanvas" width="280" height="70"></canvas>
-    </div>
-
-    <!-- 3. Guardrails Checks -->
-    <div class="right-card">
-      <div class="right-card-header">
-        <div class="right-card-title">
-          <h4>Guardrails</h4>
-          <p>Security &amp; Grounding</p>
-        </div>
-        <span style="font-size:10px;font-weight:700;color:var(--accent-green);">All checks passed</span>
-      </div>
-      <div class="guard-list">
-        <div class="guard-item">
-          <span class="guard-name">✓ Off-topic Detection</span>
-          <span class="guard-badge-ok">Passed</span>
-        </div>
-        <div class="guard-item">
-          <span class="guard-name">✓ Safety &amp; Toxicity</span>
-          <span class="guard-badge-ok">Passed</span>
-        </div>
-        <div class="guard-item">
-          <span class="guard-name">✓ Hallucination Check</span>
-          <span class="guard-badge-ok">Passed</span>
-        </div>
-        <div class="guard-item">
-          <span class="guard-name">✓ Grounded in Context</span>
-          <span class="guard-badge-ok">Passed</span>
-        </div>
+    <div class="card-box">
+      <h4>🛡️ Guardrails</h4>
+      <div style="font-size:11.5px;display:flex;flex-direction:column;gap:5px;color:var(--text-secondary);">
+        <div style="display:flex;justify-content:space-between;"><span>✓ Off-topic check</span><span style="color:var(--accent-green);">Passed</span></div>
+        <div style="display:flex;justify-content:space-between;"><span>✓ Safety &amp; Toxicity</span><span style="color:var(--accent-green);">Passed</span></div>
+        <div style="display:flex;justify-content:space-between;"><span>✓ Grounding check</span><span style="color:var(--accent-green);">Passed</span></div>
       </div>
     </div>
-
   </aside>
 
 </div>
@@ -1009,7 +417,6 @@
 <script>
   let conversationHistory = [];
   let queryCount = 0;
-  let latencies = [142, 165, 130, 178, 152, 142];
   let isListening = false;
   let recognition = null;
 
@@ -1017,34 +424,40 @@
     const box = document.getElementById('toastBox');
     box.textContent = msg;
     box.style.display = 'block';
-    setTimeout(() => { box.style.display = 'none'; }, 2400);
+    setTimeout(() => { box.style.display = 'none'; }, 2000);
   }
 
-  function changeTheme(theme) {
-    document.documentElement.setAttribute('data-theme', theme);
-    showToast('Theme switched to: ' + theme);
-  }
-
-  function setMode(mode) {
-    document.getElementById('btnDual').classList.toggle('active', mode === 'dual');
-    document.getElementById('btnType').classList.toggle('active', mode === 'type');
-    document.getElementById('btnVoice').classList.toggle('active', mode === 'voice');
-    showToast('Input Mode: ' + mode.toUpperCase());
+  function getRealTimestamp() {
+    const now = new Date();
+    return now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + ' · ' + now.toLocaleDateString([], { month: 'short', day: 'numeric' });
   }
 
   function startNewChat() {
     conversationHistory = [];
     window.speechSynthesis.cancel();
-    document.getElementById('chatArea').innerHTML = '';
+    document.getElementById('chatArea').innerHTML = `
+      <div class="msg-ai-card">
+        <div class="msg-ai-header">
+          <div class="ai-dot">✦</div>
+          <span>VoxRAG</span>
+          <span class="badge-grounded">✓ Ready</span>
+        </div>
+        <div class="msg-ai-text">New conversation started! Ask any question.</div>
+        <div class="sug-chips-row">
+          <button class="sug-pill" onclick="askPreset('What is a corporation?')">📄 What is a corporation?</button>
+          <button class="sug-pill" onclick="askPreset('What are its main types?')">📋 What are its main types?</button>
+        </div>
+      </div>
+    `;
     showToast('New Chat started!');
   }
 
   function askPreset(q) {
-    document.getElementById('centerInput').value = q;
+    document.getElementById('chatInput').value = q;
     submitQuery();
   }
 
-  // ── Speech-to-Text (Instant Recognition) ──
+  // ── Voice Input ──
   function toggleVoiceInput() {
     if (isListening) {
       stopListening();
@@ -1065,57 +478,42 @@
     recognition.continuous = false;
     recognition.interimResults = true;
 
-    const micBtn = document.getElementById('mainMicBtn');
-    const helper = document.getElementById('voiceStatusText');
+    const micBtn = document.getElementById('micBtn');
 
     recognition.onstart = () => {
       isListening = true;
       micBtn.classList.add('recording');
-      helper.textContent = '🎙️ Listening... Speak your question clearly now';
-      helper.style.color = '#f43f5e';
+      showToast('🎙️ Listening... Speak your question now');
     };
 
     recognition.onresult = (e) => {
       const t = Array.from(e.results).map(r => r[0].transcript).join('');
-      document.getElementById('centerInput').value = t;
+      document.getElementById('chatInput').value = t;
     };
 
     recognition.onend = () => {
       stopListening();
-      const q = document.getElementById('centerInput').value.trim();
-      if (q) submitQuery(true);
+      const q = document.getElementById('chatInput').value.trim();
+      if (q) submitQuery();
     };
 
-    recognition.onerror = (e) => {
-      stopListening();
-    };
-
+    recognition.onerror = () => { stopListening(); };
     try { recognition.start(); } catch(e) { stopListening(); }
   }
 
   function stopListening() {
     isListening = false;
-    const micBtn = document.getElementById('mainMicBtn');
-    const helper = document.getElementById('voiceStatusText');
-    micBtn.classList.remove('recording');
-    helper.textContent = 'Click the microphone to speak, or type your question below';
-    helper.style.color = 'var(--text-muted)';
+    document.getElementById('micBtn').classList.remove('recording');
     if (recognition) { try { recognition.stop(); } catch(e) {} }
   }
 
-  let currentSpeechUtterance = null;
-
-  // ── Text-to-Speech (Voice Output / "Bolne Wala") ──
+  // ── Speech Output (Speak Once on Click) ──
   function speakAnswer(text, btnEl) {
-    if (!('speechSynthesis' in window)) {
-      showToast('Speech synthesis not supported on this browser.');
-      return;
-    }
+    if (!('speechSynthesis' in window)) return;
 
-    // If already speaking, stop and reset
     if (window.speechSynthesis.speaking) {
       window.speechSynthesis.cancel();
-      if (btnEl) btnEl.innerHTML = '<span>🔊</span> Listen (Voice)';
+      if (btnEl) btnEl.innerHTML = '<span>🔊</span> Listen';
       return;
     }
 
@@ -1125,38 +523,28 @@
 
     const u = new SpeechSynthesisUtterance(clean);
     u.rate = 1.0;
-    u.pitch = 1.0;
 
     const voices = window.speechSynthesis.getVoices();
-    const eng = voices.find(v => v.lang.includes('en') && (v.name.includes('Google') || v.name.includes('Natural') || v.name.includes('India'))) || voices[0];
+    const eng = voices.find(v => v.lang.includes('en')) || voices[0];
     if (eng) u.voice = eng;
 
-    if (btnEl) btnEl.innerHTML = '<span>⏹️</span> Stop Speaking';
-
-    u.onend = () => {
-      if (btnEl) btnEl.innerHTML = '<span>🔊</span> Listen (Voice)';
-    };
-    u.onerror = () => {
-      if (btnEl) btnEl.innerHTML = '<span>🔊</span> Listen (Voice)';
-    };
+    if (btnEl) btnEl.innerHTML = '<span>⏹️</span> Stop';
+    u.onend = () => { if (btnEl) btnEl.innerHTML = '<span>🔊</span> Listen'; };
+    u.onerror = () => { if (btnEl) btnEl.innerHTML = '<span>🔊</span> Listen'; };
 
     window.speechSynthesis.speak(u);
   }
 
-  function stopVoice() {
-    window.speechSynthesis.cancel();
-  }
-
-  // ── Query Execution ──
-  async function submitQuery(autoSpeak = false) {
-    const inp = document.getElementById('centerInput');
+  async function submitQuery() {
+    const inp = document.getElementById('chatInput');
     const q = inp.value.trim();
     if (!q) return;
 
     inp.value = '';
     queryCount++;
+    const realTime = getRealTimestamp();
 
-    renderUserBubble(q, queryCount);
+    renderUserBubble(q, realTime);
 
     try {
       const resp = await fetch('/api/query/text', {
@@ -1165,37 +553,22 @@
         body: JSON.stringify({ query: q, top_k: 5, history: conversationHistory })
       });
       const data = await resp.json();
+      renderAIBubble(data, getRealTimestamp());
 
-      if (!resp.ok || data.error) {
-        renderErrorMessage(data.error || 'Query failed');
-      } else {
-        renderAIBubble(data);
-        conversationHistory.push({ role: 'user', content: q });
-        if (data.answer) {
-          conversationHistory.push({ role: 'assistant', content: data.answer });
-          if (autoSpeak) speakAnswer(data.answer);
-        }
-        if (data.total_ms) {
-          latencies.push(data.total_ms);
-          updateAnalytics();
-        }
-      }
+      conversationHistory.push({ role: 'user', content: q });
+      if (data.answer) conversationHistory.push({ role: 'assistant', content: data.answer });
     } catch(e) {
-      renderErrorMessage('Network error: ' + e.message);
+      showToast('Error: ' + e.message);
     }
   }
 
-  function renderUserBubble(text, id) {
-    const t = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  function renderUserBubble(text, timeStr) {
     const area = document.getElementById('chatArea');
     const row = document.createElement('div');
     row.className = 'msg-user-row';
     row.innerHTML = `
       <div class="msg-user-bubble">
-        <div class="msg-user-meta">
-          <span>You · 🕒 ${t}</span>
-          <button class="btn-edit-sm" onclick="askPreset('${escAttr(text)}')">✏️ Re-ask</button>
-        </div>
+        <div class="msg-user-meta">🕒 ${timeStr}</div>
         <div>${escHtml(text)}</div>
       </div>
     `;
@@ -1203,101 +576,38 @@
     row.scrollIntoView({ behavior: 'smooth', block: 'end' });
   }
 
-  function renderAIBubble(d) {
-    const t = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  function renderAIBubble(d, timeStr) {
     const area = document.getElementById('chatArea');
     const card = document.createElement('div');
     card.className = 'msg-ai-card';
 
-    let sourcesHtml = '';
-    if (d.chunks && d.chunks.length) {
-      sourcesHtml = `<div class="sources-list">${d.chunks.map(c => `
-        <span class="source-tag" title="${escAttr(c.text || '')}">Doc ${escHtml(c.passage || c.id || '101823')} (${c.score || '0.89'})</span>
-      `).join('')}</div>`;
-    }
-
     let sugsHtml = '';
     if (d.suggestions && d.suggestions.length) {
-      sugsHtml = `<div class="starter-chips-row" style="margin-top:4px;">
-        <span class="starter-label">FOLLOW-UPS:</span>
-        ${d.suggestions.map(s => `
-          <button class="starter-pill" onclick="askPreset('${escAttr(s)}')">👉 ${escHtml(s)}</button>
-        `).join('')}
+      sugsHtml = `<div class="sug-chips-row">
+        ${d.suggestions.map(s => `<button class="sug-pill" onclick="askPreset('${escAttr(s)}')">👉 ${escHtml(s)}</button>`).join('')}
       </div>`;
     }
 
     card.innerHTML = `
       <div class="msg-ai-header">
-        <div class="ai-avatar-dot">✦</div>
+        <div class="ai-dot">✦</div>
         <span>VoxRAG</span>
         <span class="badge-grounded">✓ Grounded</span>
-        <span style="font-size:11px;color:var(--text-muted);font-weight:normal;">🕒 ${t} · ⚡ ${d.total_ms || 142}ms</span>
+        <span style="font-size:11px;color:var(--text-muted);font-weight:normal;">🕒 ${timeStr} · ⚡ ${d.total_ms || 142}ms</span>
       </div>
       <div class="msg-ai-text">${escHtml(d.answer)}</div>
-      ${sourcesHtml}
       ${sugsHtml}
-      <div class="ai-action-footer">
-        <button class="btn-action-pill" onclick="speakAnswer('${escAttr(d.answer)}')">
-          <span>🔊</span> Listen (Voice)
+      <div class="ai-footer-bar">
+        <button class="btn-action-sm" onclick="speakAnswer('${escAttr(d.answer)}', this)">
+          <span>🔊</span> Listen
         </button>
-        <button class="btn-action-pill" onclick="stopVoice()">
-          <span>⏹️</span> Stop
-        </button>
-        <button class="btn-action-pill" onclick="copyText('${escAttr(d.answer)}')">
+        <button class="btn-action-sm" onclick="navigator.clipboard.writeText('${escAttr(d.answer)}'); showToast('Copied!');">
           <span>📋</span> Copy
-        </button>
-        <button class="btn-action-pill" onclick="askPreset('${escAttr(d.query)}')">
-          <span>🔄</span> Retry
         </button>
       </div>
     `;
     area.appendChild(card);
     card.scrollIntoView({ behavior: 'smooth', block: 'end' });
-  }
-
-  function renderErrorMessage(msg) {
-    const area = document.getElementById('chatArea');
-    const card = document.createElement('div');
-    card.className = 'msg-ai-card';
-    card.innerHTML = `<div class="msg-ai-header"><span style="color:#ef4444;">Notice</span></div><div class="msg-ai-text">${escHtml(msg)}</div>`;
-    area.appendChild(card);
-  }
-
-  function updateAnalytics() {
-    const sorted = [...latencies].sort((a,b)=>a-b);
-    const p50 = sorted[Math.floor(sorted.length * 0.5)] || 142;
-    const p70 = sorted[Math.floor(sorted.length * 0.7)] || 165;
-    const p100 = sorted[sorted.length - 1] || 198;
-
-    document.getElementById('p50Val').textContent = Math.round(p50) + 'ms';
-    document.getElementById('p70Val').textContent = Math.round(p70) + 'ms';
-    document.getElementById('p100Val').textContent = Math.round(p100) + 'ms';
-    drawWave();
-  }
-
-  function drawWave() {
-    const canvas = document.getElementById('latCanvas');
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    ctx.strokeStyle = '#818cf8';
-    ctx.lineWidth = 2.5;
-    ctx.beginPath();
-
-    const data = latencies.slice(-12);
-    const step = canvas.width / Math.max(data.length - 1, 1);
-
-    data.forEach((val, i) => {
-      const y = canvas.height - ((val - 100) / 200) * canvas.height;
-      if (i === 0) ctx.moveTo(0, y);
-      else ctx.lineTo(i * step, y);
-    });
-    ctx.stroke();
-  }
-
-  function copyText(txt) {
-    navigator.clipboard.writeText(txt).then(() => showToast('Copied to clipboard!'));
   }
 
   function escHtml(s) {
@@ -1306,9 +616,6 @@
   function escAttr(s) {
     return String(s||'').replace(/'/g,"\\'").replace(/"/g,'&quot;').replace(/\n/g,' ');
   }
-
-  // Init canvas wave on load
-  setTimeout(drawWave, 200);
 </script>
 </body>
 </html>
