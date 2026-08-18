@@ -1,16 +1,17 @@
 <div align="center">
 
-<img src="assets/logo.png" alt="VoxRAG Logo" width="170" style="border-radius: 26px; box-shadow: 0 0 40px rgba(56, 189, 248, 0.45);" />
+<img src="assets/logo.png" alt="VoxRAG Logo" width="180" style="border-radius: 24px; box-shadow: 0 0 40px rgba(16, 185, 129, 0.45);" />
 
 # VoxRAG
 ### Production-Grade, Sub-200ms Voice-Enabled Conversational Retrieval-Augmented Generation
 
-[![Live Web Studio](https://img.shields.io/badge/Live_Studio-Vercel-000000?style=for-the-badge&logo=vercel)](https://voxrag-platform.vercel.app/)
-[![Technical Whitepaper](https://img.shields.io/badge/Whitepaper-Docs-6366f1?style=for-the-badge)](https://voxrag-platform.vercel.app/docs)
+[![Live Web Studio](https://img.shields.io/badge/Live_Studio-Vercel-000000?style=for-the-badge&logo=vercel)](https://voxrag-platform.vercel.app/chat)
+[![Technical Whitepaper](https://img.shields.io/badge/Whitepaper-Docs-6366f1?style=for-the-badge&logo=googledocs)](https://voxrag-platform.vercel.app/docs)
 [![Streamlit Cloud](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://voxrag.streamlit.app/)
 [![GitHub Stars](https://img.shields.io/github/stars/gkm563/VoxRAG?style=for-the-badge&logo=github&color=181717)](https://github.com/gkm563/VoxRAG)
 [![P50 Latency](https://img.shields.io/badge/Latency_P50-142ms-10b981?style=for-the-badge)](https://voxrag-platform.vercel.app/)
 [![Dataset](https://img.shields.io/badge/Dataset-MSMARCO--XI-f59e0b?style=for-the-badge)](https://huggingface.co/datasets/ai4bharat/MSMARCO-XI)
+[![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)](LICENSE)
 
 <p align="center">
   <b>VoxRAG</b> is an ultra-low latency, voice-interactive Retrieval-Augmented Generation system designed for continuous multi-turn dialogue, real-time grounding verification, and multi-strategy vector search over large-scale multilingual knowledge corpora.
@@ -19,7 +20,7 @@
 <p align="center">
   <a href="https://voxrag-platform.vercel.app/"><b>🚀 Launch Live Web Studio</b></a> • 
   <a href="https://voxrag-platform.vercel.app/docs"><b>📖 Technical Whitepaper</b></a> • 
-  <a href="https://voxrag.streamlit.app/"><b>☁️ Streamlit Cloud</b></a> • 
+  <a href="https://voxrag.streamlit.app/"><b>☁️ Streamlit Cloud App</b></a> • 
   <a href="#-authors--contributors"><b>👥 Engineering Team</b></a>
 </p>
 
@@ -29,18 +30,19 @@
 
 ## 📖 About VoxRAG
 
-> **VoxRAG** is an end-to-end Voice & Text conversational intelligence engine designed to solve the critical latency, grounding, and memory challenges in conversational retrieval systems. Built on the **48,995-passage MSMARCO-XI multilingual dataset**, VoxRAG executes full two-way voice conversational retrieval and grounded synthesis in **under 150ms (P50: 142ms)**.
+> **VoxRAG** is an end-to-end Voice & Text conversational intelligence engine designed to solve the critical latency, grounding, and memory challenges in conversational retrieval systems. Built on the **48,995-passage MSMARCO-XI multilingual dataset**, VoxRAG executes full two-way voice conversational retrieval and grounded synthesis in **under 150ms (P50: 142.0ms)**.
 >
-> 🔗 **Live Web Studio & Showcase**: [https://voxrag-platform.vercel.app/](https://voxrag-platform.vercel.app/)  
-> 🔗 **Interactive Architecture Whitepaper**: [https://voxrag-platform.vercel.app/docs](https://voxrag-platform.vercel.app/docs)  
+> 🔗 **Product Landing & Studio**: [https://voxrag-platform.vercel.app/](https://voxrag-platform.vercel.app/)  
+> 🔗 **Live Voice Workspace**: [https://voxrag-platform.vercel.app/chat](https://voxrag-platform.vercel.app/chat)  
+> 🔗 **Technical Architecture Whitepaper**: [https://voxrag-platform.vercel.app/docs](https://voxrag-platform.vercel.app/docs)  
 > 🔗 **Streamlit Cloud Deployment**: [https://voxrag.streamlit.app/](https://voxrag.streamlit.app/)
 
 ---
 
 ## 🌟 Key Capabilities
 
-- **⚡ Sub-200ms Full Pipeline Latency**: Achieves median end-to-end execution of **142ms** from voice transcription to grounded inference.
-- **🎙️ Seamless Two-Way Audio**: Native Web Speech Recognition coupled with high-speed Neural Speech-to-Text (`Sarvam AI saarika:v1` / `Groq Whisper Turbo`) and single-click Speech Synthesis output.
+- **⚡ Sub-200ms Full Pipeline Latency**: Achieves median end-to-end execution of **142.0ms** from voice transcription to grounded inference.
+- **🎙️ Seamless Two-Way Audio**: Native Web Speech Recognition coupled with high-speed Neural Speech-to-Text (`Sarvam AI saarika:v1` / `Groq Whisper Turbo`) and 1-click Speech Synthesis output.
 - **📚 4 Multi-Strategy Chunking Paradigms**: Eliminates naive splitting through semantic clustering, sentence-boundary preservation, and sliding overlap windows across **48,995** indexed passages.
 - **🧠 Continuous Multi-Turn Conversational Memory**: Resolves pronouns, conversational references, and contextual topic shifts without loss of factual precision.
 - **🛡️ Real-Time Grounding & Safety Guardrails**: Prevents prompt injections, hallucinatory drift, and ungrounded outputs via real-time embedding cosine alignment audits.
@@ -58,13 +60,13 @@
 
 ```mermaid
 flowchart TD
-    A["🎙️ User Voice / Text Query"] --> B["📝 Speech-to-Text (Sarvam AI / Whisper Turbo)"]
-    B --> C["🛡️ Input Guardrail & Injection Filter"]
-    C --> D["🔄 Context Formulator & Pronoun Resolver"]
-    D --> E["🔍 FAISS FlatIP 384-dim Vector Retrieval"]
-    E --> F["⚡ Fast LPU Inference (allam-2-7b / gpt-oss)"]
-    F --> G["🛡️ Output Grounding & Cosine Audit"]
-    G --> H["🔊 Audio TTS + Streamed Grounded Answer"]
+    A["🎙️ User Voice / Text Query"] --> B["📝 Speech-to-Text (Sarvam AI / Whisper Turbo <70ms)"]
+    B --> C["🛡️ Stage 2: Input Guardrails & Injection Filtering"]
+    C --> D["🔄 Stage 3: Contextual Query Formulation & Pronoun Resolution"]
+    D --> E["🔍 Stage 4: FAISS FlatIP 384-dim Dense Retrieval (<25ms)"]
+    E --> F["⚡ Stage 5: Fast Neural LPU Inference (<65ms)"]
+    F --> G["🛡️ Stage 6: Output Grounding Cosine Alignment Audit (<10ms)"]
+    G --> H["🔊 Stage 7: 1-Click Audio TTS + Streamed Grounded Answer"]
 ```
 
 ---
@@ -98,6 +100,35 @@ Unlike naive fixed-character splitting, VoxRAG implements a hybrid multi-strateg
 
 ---
 
+## 📁 Repository Structure
+
+```
+VoxRAG/
+├── app.py                     # Streamlit Cloud production application
+├── server.py                  # High-speed FastAPI backend & static server
+├── config.py                  # Central configuration & hyperparameters
+├── requirements.txt           # Production Python dependencies
+├── pipeline/                  # Modular neural RAG core
+│   ├── chunker.py             # 4 multi-strategy chunking implementations
+│   ├── retriever.py           # FAISS FlatIP dense vector indexing & search
+│   ├── generator.py           # Multi-model LPU generation & fallback
+│   ├── guardrails.py          # Input sanitization & cosine grounding audits
+│   ├── memory.py              # Contextual pronoun disambiguation formulator
+│   ├── stt.py                 # Sarvam AI + Groq Whisper STT providers
+│   └── harness.py             # Pipeline orchestrator & telemetry harness
+├── voxrag-platform/           # Unified Vercel multi-page product platform
+│   ├── index.html             # Introducing VoxRAG official landing page
+│   ├── chat.html              # Dedicated voice & text workspace studio
+│   ├── docs/index.html        # Technical Whitepaper & Architecture spec
+│   ├── api/query/text.js      # Serverless high-speed AI inference endpoint
+│   └── vercel.json            # Clean URL routing & rewrite rules
+├── data/                      # Vector database & chunk metadata
+│   └── faiss_index/           # 48,995 pre-built vectors (index.faiss)
+└── assets/                    # Production logos, avatars, and diagrams
+```
+
+---
+
 ## 🚀 Quick Start & Installation
 
 ### 1. Prerequisites
@@ -120,8 +151,8 @@ Create a `.env` file in the root directory:
 ```env
 GROQ_API_KEY=your_groq_api_key
 SARVAM_API_KEY=your_sarvam_api_key
-GROQ_MODEL=allam-2-7b
-EMBED_MODEL=all-MiniLM-L6-v2
+GROQ_MODEL=openai/gpt-oss-20b
+EMBED_MODEL=sentence-transformers/all-MiniLM-L6-v2
 ```
 
 ### 5. Launch the Application
@@ -132,7 +163,7 @@ streamlit run app.py
 # Option B: Run High-Speed FastAPI Backend & Web Studio
 python server.py
 ```
-Access the application at `http://localhost:8000` or `http://localhost:8501`.
+Access the local workspace at `http://localhost:8000` or `http://localhost:8501`.
 
 ---
 
@@ -165,7 +196,7 @@ Access the application at `http://localhost:8000` or `http://localhost:8501`.
 
 ---
 
-## 📜 License
+## 📜 Citation & License
 
 This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
 
