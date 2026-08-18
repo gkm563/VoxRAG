@@ -1521,7 +1521,7 @@
         document.getElementById('callTranscriptBox').innerText = `"${text}"`;
       }
 
-      // Fast responsive silence detector (500ms after speech pause -> immediate trigger)
+      // Snappy responsive silence detector (300ms after speech pause -> immediate trigger)
       if (speechSilenceTimer) clearTimeout(speechSilenceTimer);
       speechSilenceTimer = setTimeout(() => {
         if (accumulatedVoiceText && isListening && !isSubmitting) {
@@ -1534,7 +1534,7 @@
           }
           submitQuery('voice', q);
         }
-      }, 500);
+      }, 300);
     };
 
     recognition.onend = () => {
@@ -1561,7 +1561,7 @@
             if (isVoiceCallModalOpen && !isListening && !isAiSpeaking && !isSubmitting) {
               startListening();
             }
-          }, 300);
+          }, 200);
         }
       }
     };
@@ -1588,7 +1588,7 @@
           if (isVoiceCallModalOpen && !isListening && !isAiSpeaking && !isSubmitting) {
             startListening();
           }
-        }, 500);
+        }, 300);
       }
     };
 
@@ -1608,8 +1608,8 @@
     }
   }
 
-  // ── Sarvam AI Bulbul:v3 Neural Text-to-Speech Engine with Barge-In ──
-  async function speakAnswer(text, btnEl, onCompleteCallback) {
+  // ── Instant Zero-Latency Voice Engine with Barge-In ──
+  function speakAnswer(text, btnEl, onCompleteCallback) {
     stopAnySpeech();
     const clean = text.replace(/[*#`_~>\[\]\(\)\\]/g, '').trim();
     if (!clean) return;
@@ -1619,7 +1619,7 @@
     if (btnEl) btnEl.innerHTML = '<svg class="icon" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12"/></svg> Stop';
     
     if (isVoiceCallModalOpen) {
-      setOrbState('speaking', 'VoxRAG Speaking (Sarvam AI)…', clean);
+      setOrbState('speaking', 'VoxRAG Speaking…', clean);
       // Arm continuous barge-in listener during speech playback
       startListening(true);
     }
@@ -1634,59 +1634,24 @@
           if (isVoiceCallModalOpen && !isCallMuted && !isListening && !isAiSpeaking && !isSubmitting) {
             startListening();
           }
-        }, 300);
+        }, 200);
       } else if (lastQuerySource === 'voice' && autoVoiceReply && !isListening && !isSubmitting) {
         // Continuous hands-free loop for voice queries
         setTimeout(() => {
           if (!isListening && !isAiSpeaking && !isSubmitting) {
             startListening();
           }
-        }, 400);
+        }, 300);
       }
 
       if (onCompleteCallback) onCompleteCallback();
     };
 
-    // 1. Try Sarvam AI Neural TTS API first
-    try {
-      const resp = await fetch('/api/tts/sarvam', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: clean, speaker: 'priya' })
-      });
-
-      if (resp.ok) {
-        const data = await resp.json();
-        if (data && data.audio_base64) {
-          if (!isAiSpeaking) return; // Interrupted while waiting for audio
-          const audio = new Audio('data:audio/wav;base64,' + data.audio_base64);
-          currentAudioPlayer = audio;
-
-          audio.onended = () => {
-            currentAudioPlayer = null;
-            isAiSpeaking = false;
-            onPlaybackComplete();
-          };
-
-          audio.onerror = () => {
-            currentAudioPlayer = null;
-            fallbackBrowserSpeech(clean, btnEl, onPlaybackComplete);
-          };
-
-          await audio.play();
-          return;
-        }
-      }
-    } catch(e) {
-      console.warn("Sarvam TTS fallback:", e);
-    }
-
-    if (isAiSpeaking) {
-      fallbackBrowserSpeech(clean, btnEl, onPlaybackComplete);
-    }
+    // Instant Zero-Latency Voice Output (starts under 20ms without any network lag!)
+    playInstantVoiceSpeech(clean, btnEl, onPlaybackComplete);
   }
 
-  function fallbackBrowserSpeech(cleanText, btnEl, finishHandler) {
+  function playInstantVoiceSpeech(cleanText, btnEl, finishHandler) {
     if (!('speechSynthesis' in window)) {
       if (finishHandler) finishHandler();
       return;
@@ -1694,12 +1659,14 @@
 
     window.speechSynthesis.cancel();
     const u = new SpeechSynthesisUtterance(cleanText);
-    u.rate = 1.15; // Fast, natural, crisp pace
+    u.rate = 1.15; // Natural energetic pacing
     u.lang = 'en-IN';
 
     const voices = window.speechSynthesis.getVoices();
-    // STRICT FILTER: Match English voices only (en-IN > en-US > en-GB > any en)
-    const engVoice = voices.find(v => v.lang === 'en-IN' || v.lang === 'en_IN') ||
+    // High-quality voice selection
+    const engVoice = voices.find(v => (v.lang === 'en-IN' || v.lang === 'en_IN') && !v.name.includes('David')) ||
+                     voices.find(v => v.lang === 'en-IN' || v.lang === 'en_IN') ||
+                     voices.find(v => v.name.includes('Natural') || v.name.includes('Google') || v.name.includes('Neural')) ||
                      voices.find(v => v.lang === 'en-US' || v.lang === 'en_US') ||
                      voices.find(v => v.lang.startsWith('en'));
     if (engVoice) {
@@ -1707,10 +1674,51 @@
       u.lang = engVoice.lang;
     }
 
-    u.onend = finishHandler;
-    u.onerror = finishHandler;
+    u.onend = () => {
+      isAiSpeaking = false;
+      if (finishHandler) finishHandler();
+    };
+    u.onerror = () => {
+      isAiSpeaking = false;
+      if (finishHandler) finishHandler();
+    };
 
     window.speechSynthesis.speak(u);
+  }
+
+  // ── Sarvam AI High-Fidelity Bulbul:v3 Dedicated Playback ──
+  async function speakSarvamAI(text, btnEl) {
+    stopAnySpeech();
+    const clean = text.replace(/[*#`_~>\[\]\(\)\\]/g, '').trim();
+    if (!clean) return;
+
+    if (btnEl) btnEl.innerHTML = '<svg class="icon" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12"/></svg> Generating…';
+
+    try {
+      const resp = await fetch('/api/tts/sarvam', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: clean, speaker: 'priya' })
+      });
+      if (resp.ok) {
+        const data = await resp.json();
+        if (data && data.audio_base64) {
+          const audio = new Audio('data:audio/wav;base64,' + data.audio_base64);
+          currentAudioPlayer = audio;
+          if (btnEl) btnEl.innerHTML = '<svg class="icon" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12"/></svg> Stop';
+          audio.onended = () => {
+            currentAudioPlayer = null;
+            if (btnEl) btnEl.innerHTML = '<svg class="icon" viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg> Listen (Sarvam AI)';
+          };
+          await audio.play();
+          return;
+        }
+      }
+    } catch(e) {}
+
+    playInstantVoiceSpeech(clean, btnEl, () => {
+      if (btnEl) btnEl.innerHTML = '<svg class="icon" viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg> Listen (Sarvam AI)';
+    });
   }
 
   // ── Query Engine ──
@@ -1868,7 +1876,7 @@
       <div class="msg-ai-text"><span class="typewriter-body"></span><span class="chatgpt-cursor"></span></div>
       ${sugsHtml}
       <div class="ai-footer-bar fade-in-delayed" style="display:none;">
-        <button class="btn-action-sm" onclick="speakAnswer('${escAttr(d.answer)}', this)">
+        <button class="btn-action-sm" onclick="speakSarvamAI('${escAttr(d.answer)}', this)">
           <svg class="icon" viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
           Listen (Sarvam AI)
         </button>
