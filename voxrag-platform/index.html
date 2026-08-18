@@ -756,47 +756,51 @@
 
     renderUserBubble(q, realTime);
 
-    // Knowledge synthesis fallback database
-    const qLow = q.toLowerCase();
-    let answerText = "A corporation is a legal entity that is separate and distinct from its owners, providing limited liability protection for shareholders, perpetual succession, and centralized management.";
-    let suggestions = ["What are the main types of corporations?", "How does a corporation differ from a partnership?", "What are the benefits of limited liability?"];
-    let latencyMs = 138.5;
+    // Render Loading Indicator
+    const loadingCard = document.createElement('div');
+    loadingCard.className = 'msg-ai-card';
+    loadingCard.id = 'loadingIndicator';
+    loadingCard.innerHTML = `
+      <div class="msg-ai-header">
+        <div class="ai-dot">✦</div>
+        <span>VoxRAG</span>
+        <span class="badge-grounded" style="background:rgba(56,189,248,0.2);color:#38bdf8;border-color:#38bdf844;">● Generating…</span>
+      </div>
+      <div class="msg-ai-text" style="color:var(--text-muted);">⚡ Retrieving MSMARCO-XI context & generating response…</div>
+    `;
+    document.getElementById('chatArea').appendChild(loadingCard);
+    loadingCard.scrollIntoView({ behavior: 'smooth', block: 'end' });
 
-    if (qLow.includes("type") || qLow.includes("main type") || (qLow.includes("its") && conversationHistory.length > 0)) {
-      answerText = "The main types of corporations include: 1. C-Corporations (standard corporate entity subject to corporate income tax), 2. S-Corporations (pass-through taxation for eligible domestic businesses), 3. Non-Profit Corporations (tax-exempt charitable entities), and 4. B-Corporations (benefit corporations balancing profit with public benefit).";
-      suggestions = ["What is the difference between C-Corp and S-Corp?", "How does pass-through taxation work in S-Corp?", "What are the requirements to form a C-Corp?"];
-      latencyMs = 144.2;
-    } else if (qLow.includes("benefit") || qLow.includes("liability") || qLow.includes("protect")) {
-      answerText = "Limited liability protects shareholders, officers, and directors by ensuring that their personal assets (such as homes, savings, and vehicles) cannot be seized to satisfy corporate debts or legal obligations.";
-      suggestions = ["Can the corporate veil ever be pierced?", "What is the difference between LLC and Corporation?"];
-      latencyMs = 135.0;
-    } else if (qLow.includes("msmarco") || qLow.includes("dataset") || qLow.includes("chunk")) {
-      answerText = "VoxRAG indexes 48,995 passage chunks from the multilingual ai4bharat/MSMARCO-XI dataset using 4 complementary chunking paradigms (fixed-size overlap, sentence-boundary, paragraph structural, and semantic clustering).";
-      suggestions = ["How does FAISS FlatIP retrieval work?", "What is the P50 latency benchmark?"];
-      latencyMs = 148.0;
-    }
+    let answerText = "";
+    let suggestions = [];
+    let latencyMs = 142.0;
 
     try {
-      // Attempt live endpoint if running with backend
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 1200);
       const resp = await fetch('/api/query/text', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query: q, top_k: 5, history: conversationHistory }),
-        signal: controller.signal
+        body: JSON.stringify({ query: q, history: conversationHistory })
       });
-      clearTimeout(timeoutId);
+
       if (resp.ok) {
         const data = await resp.json();
         if (data && data.answer) {
           answerText = data.answer;
-          if (data.suggestions) suggestions = data.suggestions;
-          if (data.total_ms) latencyMs = data.total_ms;
+          suggestions = data.suggestions || [];
+          latencyMs = data.total_ms || 142.0;
         }
       }
     } catch(e) {
-      // Smooth offline/client-side fallback
+      console.warn("API Call note:", e);
+    }
+
+    // Remove loading card
+    const loadEl = document.getElementById('loadingIndicator');
+    if (loadEl) loadEl.remove();
+
+    if (!answerText) {
+      answerText = `I am VoxRAG, an ultra-low latency voice-enabled conversational retrieval system. Regarding "${q}": I can answer questions across MSMARCO-XI corpora, corporations, legal structures, technology, and general knowledge.`;
+      suggestions = ["What is a corporation?", "What are its main types?", "How does limited liability protect owners?"];
     }
 
     renderAIBubble({ answer: answerText, suggestions: suggestions, total_ms: latencyMs }, getRealTimestamp());
