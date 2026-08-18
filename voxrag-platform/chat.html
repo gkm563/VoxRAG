@@ -1585,16 +1585,26 @@
 
   function streamChatGPTTokens(fullText, bodyEl, cursorEl, callback) {
     let charIndex = 0;
-    const chunkSize = 2; // Smooth 2-character chunk streaming
-    const tickDelay = 10; // 10ms per tick (~120 words per minute)
 
     function step() {
       if (charIndex < fullText.length) {
-        charIndex += chunkSize;
-        const currentSlice = fullText.slice(0, charIndex);
-        bodyEl.innerHTML = escHtml(currentSlice);
+        const currentChar = fullText[charIndex];
+        charIndex += 1;
+
+        bodyEl.innerHTML = escHtml(fullText.slice(0, charIndex));
         bodyEl.scrollIntoView({ behavior: 'auto', block: 'nearest' });
-        setTimeout(step, tickDelay);
+
+        // Natural ChatGPT cadence: tiny micro-pause at punctuation
+        let delay = 18; // Natural, highly readable ~18ms/char
+        if (currentChar === '.' || currentChar === '!' || currentChar === '?') {
+          delay = 70;
+        } else if (currentChar === ',' || currentChar === ';' || currentChar === ':') {
+          delay = 40;
+        } else if (currentChar === '\n') {
+          delay = 80;
+        }
+
+        setTimeout(step, delay);
       } else {
         bodyEl.innerHTML = escHtml(fullText);
         if (cursorEl) {

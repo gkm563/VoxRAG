@@ -1909,9 +1909,16 @@
         const txt = data.answer || '';
         function typeHero() {
           if (idx < txt.length) {
-            idx += 2;
+            const ch = txt[idx];
+            idx += 1;
             bodyEl.innerText = txt.slice(0, idx);
-            setTimeout(typeHero, 10);
+
+            let d = 18;
+            if (ch === '.' || ch === '!' || ch === '?') d = 70;
+            else if (ch === ',' || ch === ';') d = 40;
+            else if (ch === '\n') d = 80;
+
+            setTimeout(typeHero, d);
           } else {
             bodyEl.innerText = txt;
             if (curEl) curEl.remove();
