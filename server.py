@@ -1,6 +1,6 @@
 """
 server.py — VoxRAG FastAPI Backend
-Full production backend supporting Chat, Analytics, Pipeline, Guardrails, Dataset Explorer, Settings & Live Logs with 100% Real Live Data.
+Full production backend supporting Multi-Turn Conversational RAG, Chat, Analytics, Pipeline, Guardrails, Dataset Explorer, Settings & Live Logs.
 
 Run: python server.py
 Then open: http://localhost:8000
@@ -10,7 +10,7 @@ import json, time, os, tempfile, traceback, datetime
 from pathlib import Path
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, File, UploadFile, HTTPException, Query
+from fastapi import FastAPI, File, UploadFile, HTTPException, Query, Form
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -66,7 +66,7 @@ def load_initial_benchmarks():
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     global _harness, _stt, _stats
-    add_log("INFO", "SYSTEM", "Initializing VoxRAG Server...")
+    add_log("INFO", "SYSTEM", "Initializing VoxRAG Conversational Server...")
     load_initial_benchmarks()
     try:
         from pipeline.retriever  import FAISSRetriever
@@ -92,7 +92,7 @@ async def lifespan(app: FastAPI):
     yield
 
 
-app = FastAPI(title="VoxRAG", lifespan=lifespan)
+app = FastAPI(title="VoxRAG Conversational", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -129,8 +129,9 @@ async def stats():
 
 
 class TextQuery(BaseModel):
-    query: str
-    top_k: int = config.TOP_K
+    query:   str
+    top_k:   int = config.TOP_K
+    history: list[dict] = []   # conversational turns
 
 
 @app.post("/api/query/text")
@@ -138,9 +139,9 @@ async def query_text(body: TextQuery):
     if not _harness:
         return JSONResponse(status_code=503, content={"error": "Pipeline not ready."})
 
-    add_log("INFO", "QUERY", f"Received text query: \"{body.query}\"")
+    add_log("INFO", "QUERY", f"Received query: \"{body.query}\" (History turns: {len(body.history)})")
     from pipeline.harness import PipelineInput
-    inp = PipelineInput(query=body.query, top_k=body.top_k)
+    inp = PipelineInput(query=body.query, top_k=body.top_k, history=body.history)
     out = _harness.run(inp)
 
     # Record real performance metrics
@@ -156,7 +157,8 @@ async def query_text(body: TextQuery):
     chunks_display = []
     if not out.blocked and _harness:
         try:
-            retrieved, _ = _harness.retriever.search(body.query, body.top_k)
+            search_q = _harness._build_search_query(body.query, body.history)
+            retrieved, _ = _harness.retriever.search(search_q, body.top_k)
             for c in retrieved:
                 chunks_display.append({
                     "id":       c["chunk_id"][:16] + "...",
@@ -191,7 +193,10 @@ async def query_text(body: TextQuery):
 
 
 @app.post("/api/query/voice")
-async def query_voice(audio: UploadFile = File(...)):
+async def query_voice(
+    audio:   UploadFile = File(...),
+    history: str = Form("[]"),
+):
     if not _harness or not _stt:
         return JSONResponse(status_code=503, content={"error": "Pipeline not ready."})
 
@@ -217,8 +222,13 @@ async def query_voice(audio: UploadFile = File(...)):
 
     add_log("INFO", "STT", f"Transcribed speech in {stt_ms:.1f}ms: \"{transcript}\"")
 
+    try:
+        hist_list = json.loads(history)
+    except Exception:
+        hist_list = []
+
     from pipeline.harness import PipelineInput
-    inp = PipelineInput(query=transcript, stt_latency=stt_ms)
+    inp = PipelineInput(query=transcript, stt_latency=stt_ms, history=hist_list)
     out = _harness.run(inp)
 
     # Record real performance metrics
@@ -234,7 +244,8 @@ async def query_voice(audio: UploadFile = File(...)):
     chunks_display = []
     if not out.blocked:
         try:
-            retrieved, _ = _harness.retriever.search(transcript, config.TOP_K)
+            search_q = _harness._build_search_query(transcript, hist_list)
+            retrieved, _ = _harness.retriever.search(search_q, config.TOP_K)
             for c in retrieved:
                 chunks_display.append({
                     "id":       c["chunk_id"][:16] + "...",
@@ -368,7 +379,7 @@ async def get_pipeline_config():
     return {
         "stt": {
             "provider": "Sarvam AI (saarika:v1)",
-            "fallback": "OpenAI Whisper (base)",
+            "fallback": "Groq Whisper (whisper-large-v3-turbo)",
             "sample_rate": config.AUDIO_SAMPLE_RATE,
             "target_latency_ms": 80,
         },
@@ -390,6 +401,7 @@ async def get_pipeline_config():
             "model": config.GROQ_MODEL,
             "max_tokens": config.MAX_TOKENS,
             "temperature": config.TEMPERATURE,
+            "memory": "Multi-turn context-aware",
         },
         "guardrails": {
             "input_checks": ["Length Bounds", "Profanity & Toxicity", "Prompt Injection", "Character Entropy"],

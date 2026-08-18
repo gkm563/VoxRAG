@@ -1,18 +1,17 @@
 """
-pipeline/harness.py — RAG Orchestration Harness
+pipeline/harness.py — RAG Orchestration Harness with Multi-Turn Memory
 
 Responsibilities:
-  - Structured input/output (Pydantic models)
+  - Structured input/output (Pydantic models) with multi-turn conversation history
+  - Contextual retrieval query reformulation for follow-up questions
   - Retry logic with exponential back-off (tenacity)
   - Per-stage latency tracking
-  - Error recovery (partial results, graceful degradation)
-  - Pipeline timeout enforcement
-  - Tool-call style stage dispatch
+  - Error recovery and graceful degradation
 """
 
 import time
 import traceback
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Optional, Callable
 
 from tenacity import (
@@ -34,6 +33,7 @@ class PipelineInput(BaseModel):
     query:        str
     top_k:        int  = config.TOP_K
     stt_latency:  float = 0.0   # pre-filled by caller when using voice
+    history:      list[dict] = []   # list of {"role": "user"|"assistant", "content": str}
 
 
 class PipelineOutput(BaseModel):
@@ -60,13 +60,8 @@ class StageResult:
 # ── Harness ───────────────────────────────────────────────────────────────────
 class RAGHarness:
     """
-    Orchestrates the full RAG pipeline with retries, structured I/O, and
-    per-stage latency tracking.
-
-    Usage:
-        harness = RAGHarness(retriever, generator, guardrails)
-        output  = harness.run(PipelineInput(query="What is MSMARCO?"))
-        print(output.answer)
+    Orchestrates the full RAG pipeline with conversation memory, retries, structured I/O,
+    and per-stage latency tracking.
     """
 
     def __init__(
@@ -82,7 +77,7 @@ class RAGHarness:
     # ── Main entry ────────────────────────────────────────────────────────────
 
     def run(self, inp: PipelineInput) -> PipelineOutput:
-        """Execute the full pipeline for a single query."""
+        """Execute the full pipeline for a single or multi-turn query."""
         wall_start = time.perf_counter()
         latency: dict[str, float] = {}
 
@@ -99,21 +94,24 @@ class RAGHarness:
         if not guard_result.allowed:
             return self._blocked(inp.query, guard_result.reason, latency, wall_start)
 
+        # ── Context-Aware Search Query Formulation ────────────────────────────
+        search_query = self._build_search_query(inp.query, inp.history)
+
         # ── Stage 2: Retrieval (with retry) ──────────────────────────────────
         retrieval_stage = self._stage_with_retry(
             "retrieval",
-            lambda: self.retriever.search(inp.query, inp.top_k),
+            lambda: self.retriever.search(search_query, inp.top_k),
             latency,
         )
         if not retrieval_stage.ok:
             return self._error_output(inp.query, retrieval_stage.error, latency, wall_start)
 
-        chunks, _ = retrieval_stage.data   # (chunks, inner_latency) from retriever
+        chunks, _ = retrieval_stage.data
 
-        # ── Stage 3: Answer generation (with retry) ───────────────────────────
+        # ── Stage 3: Answer generation (with retry and history) ───────────────
         gen_stage = self._stage_with_retry(
             "generation",
-            lambda: self.generator.generate(inp.query, chunks),
+            lambda: self.generator.generate(inp.query, chunks, history=inp.history),
             latency,
         )
         if not gen_stage.ok:
@@ -146,7 +144,26 @@ class RAGHarness:
             total_latency_ms  = total_ms,
         )
 
-    # ── Stage helpers ─────────────────────────────────────────────────────────
+    # ── Helpers ───────────────────────────────────────────────────────────────
+
+    def _build_search_query(self, query: str, history: list[dict]) -> str:
+        """If user query is a follow-up pronoun query, enrich search query with prior context."""
+        if not history:
+            return query
+
+        user_turns = [h["content"] for h in history if h.get("role") == "user" and h.get("content")]
+        if not user_turns:
+            return query
+
+        last_user_turn = user_turns[-1]
+        words = query.lower().split()
+        pronouns = {"it", "its", "they", "them", "these", "those", "this", "that", "why", "how", "what", "which"}
+        
+        # If query is short or starts with a reference pronoun, combine with last query
+        if len(words) <= 5 or any(w in pronouns for w in words[:3]):
+            return f"{last_user_turn} {query}"
+
+        return query
 
     def _stage(self, name: str, fn: Callable, latency: dict) -> StageResult:
         t0 = time.perf_counter()
@@ -161,7 +178,6 @@ class RAGHarness:
             return StageResult(data=None, latency_ms=ms, ok=False, error=str(e))
 
     def _stage_with_retry(self, name: str, fn: Callable, latency: dict) -> StageResult:
-        """Wraps fn with tenacity retry logic."""
         @retry(
             stop=stop_after_attempt(config.MAX_RETRIES),
             wait=wait_random_exponential(
@@ -187,8 +203,6 @@ class RAGHarness:
             print(f"❌  {err}")
             traceback.print_exc()
             return StageResult(data=None, latency_ms=ms, ok=False, error=err)
-
-    # ── Output factories ──────────────────────────────────────────────────────
 
     def _blocked(self, query, reason, latency, wall_start) -> PipelineOutput:
         total_ms = (time.perf_counter() - wall_start) * 1000

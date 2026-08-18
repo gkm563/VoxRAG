@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>VoxRAG — Voice & Type Enabled RAG System</title>
+<title>VoxRAG — Conversational Voice & Type RAG System</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
 <style>
@@ -82,12 +82,14 @@
   .tab-pane::-webkit-scrollbar{width:4px;}
   .tab-pane::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px;}
 
-  /* ── Unified Dual-Input Card (Voice + Type) ── */
+  /* ── Unified Dual-Input Card (Voice + Type + Multi-Turn) ── */
   .unified-input-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:18px 22px;box-shadow:var(--card-shadow);display:flex;flex-direction:column;gap:14px;}
   .input-header-row{display:flex;justify-content:space-between;align-items:center;}
-  .input-mode-tabs{display:flex;gap:6px;background:var(--bg-hover);padding:3px;border-radius:var(--radius-sm);border:1px solid var(--border);}
-  .mode-tab{padding:5px 12px;border-radius:6px;font-size:12px;font-weight:600;color:var(--text-secondary);cursor:pointer;background:transparent;border:none;}
-  .mode-tab.active{background:var(--accent);color:white;box-shadow:0 2px 8px #6c63ff44;}
+  .input-mode-tabs{display:flex;gap:6px;align-items:center;}
+  .mode-tab{padding:5px 12px;border-radius:6px;font-size:12px;font-weight:600;color:var(--text-secondary);cursor:pointer;background:var(--bg-hover);border:1px solid var(--border);}
+  .mode-tab.active{background:var(--accent);color:white;border-color:var(--accent);box-shadow:0 2px 8px #6c63ff44;}
+  .btn-new-chat{padding:5px 12px;border-radius:6px;font-size:12px;font-weight:600;background:var(--bg-hover);color:var(--text-secondary);border:1px solid var(--border);cursor:pointer;}
+  .btn-new-chat:hover{border-color:var(--accent);color:var(--accent);}
 
   /* Typing Area */
   .type-box-wrapper{display:flex;gap:10px;align-items:center;background:var(--bg-hover);border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 12px;}
@@ -102,9 +104,9 @@
   .prompt-mic-inline.recording{background:var(--red);color:white;animation:pulse 1s infinite;}
 
   /* Voice Big Visualizer Box */
-  .voice-box-container{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:12px 0 6px;}
-  .voice-visualizer{display:flex;align-items:center;justify-content:center;gap:16px;margin-bottom:12px;}
-  .waveform{display:flex;align-items:center;gap:3px;height:40px;}
+  .voice-box-container{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 0 4px;}
+  .voice-visualizer{display:flex;align-items:center;justify-content:center;gap:16px;margin-bottom:10px;}
+  .waveform{display:flex;align-items:center;gap:3px;height:38px;}
   .wave-bar{width:3px;border-radius:3px;background:var(--accent);opacity:0.3;transition:height 0.1s;animation:wave 1.2s ease-in-out infinite;}
   .wave-bar:nth-child(1){height:8px;animation-delay:0s;}
   .wave-bar:nth-child(2){height:18px;animation-delay:0.1s;}
@@ -123,6 +125,9 @@
   @keyframes micPulse{0%{box-shadow:0 0 0 0 #ff6b6b55;}70%{box-shadow:0 0 0 16px #ff6b6b00;}100%{box-shadow:0 0 0 0 #ff6b6b00;}}
   .voice-status-text{font-size:12px;color:var(--text-secondary);text-align:center;}
   .voice-status-text span{color:var(--green);font-weight:600;}
+
+  /* Conversation Info Banner */
+  .conv-banner{display:flex;align-items:center;justify-content:space-between;padding:6px 12px;background:var(--accent-dim);border:1px solid var(--accent);border-radius:var(--radius-sm);font-size:11.5px;color:var(--text-primary);}
 
   /* Quick Suggestion Chips */
   .chips-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:2px;}
@@ -281,7 +286,7 @@
     <nav class="nav">
       <div class="nav-item active" onclick="setNav(this,'chat')">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
-        Chat &amp; Ask
+        Chat &amp; Conversation
       </div>
       <div class="nav-item" onclick="setNav(this,'analytics')">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
@@ -327,8 +332,8 @@
   <main class="main">
     <div class="top-bar">
       <div class="top-bar-left">
-        <h1 id="pageTitle">Voice &amp; Type RAG System</h1>
-        <p id="pageSubtitle">Ask by speaking or typing with real-time retrieval-augmented generation</p>
+        <h1 id="pageTitle">Voice &amp; Type Conversational RAG</h1>
+        <p id="pageSubtitle">Multi-turn context-aware question answering with retrieval augmented generation</p>
       </div>
       <div class="top-bar-right">
         <button class="mode-badge-btn" onclick="toggleTheme()" id="topThemeBtn">🌓 Switch Mode</button>
@@ -343,17 +348,18 @@
       </div>
     </div>
 
-    <!-- 1. CHAT TAB (Unified Voice + Typing Interface) -->
+    <!-- 1. CHAT TAB (Unified Multi-Turn Conversational Interface) -->
     <div class="tab-pane active" id="pane-chat">
       <div class="unified-input-card">
         <div class="input-header-row">
           <div>
-            <h3 style="font-size:14.5px;font-weight:600;">Ask VoxRAG</h3>
-            <p style="font-size:11.5px;color:var(--text-secondary);margin-top:2px;">Type your question below or click the microphone to speak</p>
+            <h3 style="font-size:14.5px;font-weight:600;">Ask &amp; Continue Conversation</h3>
+            <p style="font-size:11.5px;color:var(--text-secondary);margin-top:2px;">Ask follow-up questions naturally — VoxRAG remembers past turns</p>
           </div>
           <div class="input-mode-tabs">
-            <button class="mode-tab active" id="tabModeBoth" onclick="setInputMode('both')">⚡ Dual Mode</button>
-            <button class="mode-tab" id="tabModeType" onclick="setInputMode('type')">⌨️ Typing</button>
+            <button class="btn-new-chat" onclick="clearConversation()" title="Reset chat history">➕ New Chat</button>
+            <button class="mode-tab active" id="tabModeBoth" onclick="setInputMode('both')">⚡ Dual</button>
+            <button class="mode-tab" id="tabModeType" onclick="setInputMode('type')">⌨️ Type</button>
             <button class="mode-tab" id="tabModeVoice" onclick="setInputMode('voice')">🎙️ Voice</button>
           </div>
         </div>
@@ -385,7 +391,7 @@
         <!-- Typing Box (Always readily accessible) -->
         <div class="type-box-wrapper" id="typeBoxArea">
           <input type="text" class="type-box-input" id="textInput" 
-                 placeholder="Type your question here (e.g. What is a corporation?)..." 
+                 placeholder="Type your question or follow-up (e.g. What is a corporation? / What are its types?)..." 
                  onkeydown="if(event.key==='Enter')sendText()"/>
           <button class="prompt-mic-inline" id="micBtnInline" onclick="toggleRecording()" title="Record voice">🎙️</button>
           <button class="prompt-send-btn" id="sendBtn" onclick="sendText()" title="Send query">➤</button>
@@ -395,13 +401,13 @@
         <div class="chips-row">
           <span class="chips-label">Try asking:</span>
           <button class="prompt-chip" onclick="askSuggestion('What is a corporation?')">🏢 What is a corporation?</button>
+          <button class="prompt-chip" onclick="askSuggestion('What are its main types?')">📋 What are its main types?</button>
           <button class="prompt-chip" onclick="askSuggestion('How does FAISS vector search work?')">🔍 How does FAISS work?</button>
-          <button class="prompt-chip" onclick="askSuggestion('What is the MSMARCO dataset used for?')">📚 MSMARCO dataset</button>
           <button class="prompt-chip" onclick="askSuggestion('Explain dense passage retrieval')">⚡ Dense passage retrieval</button>
         </div>
       </div>
 
-      <!-- Chat history area with ChatGPT-like edit support -->
+      <!-- Chat history area with multi-turn conversation and edit support -->
       <div id="chatHistory" style="display:flex;flex-direction:column;gap:14px;"></div>
     </div>
 
@@ -517,8 +523,8 @@
           </div>
           <div style="background:var(--bg-hover);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px;">
             <div style="font-size:24px;margin-bottom:8px;">🤖</div>
-            <div style="font-size:13px;font-weight:600;margin-bottom:4px;">4. Groq LLM Harness</div>
-            <div style="font-size:11px;color:var(--text-secondary);line-height:1.5;" id="pipeDescLlm">groq/compound-mini with structured JSON output, tenacity retry back-off &amp; strict context grounding.</div>
+            <div style="font-size:13px;font-weight:600;margin-bottom:4px;">4. Conversational Harness</div>
+            <div style="font-size:11px;color:var(--text-secondary);line-height:1.5;" id="pipeDescLlm">Multi-turn memory + Groq LPU (groq/compound-mini) with structured output &amp; tenacity retries.</div>
           </div>
         </div>
       </div>
@@ -625,7 +631,7 @@
       <div class="stat-item"><label>Chunks Indexed</label><span id="statChunks">48,995</span></div>
       <div class="stat-item"><label>Vector DB</label><span id="statVectorDB">FAISS</span></div>
       <div class="stat-item"><label>Model</label><span id="statModel">groq/compound-mini</span></div>
-      <div class="stat-item"><label>STT</label><span style="color:var(--blue)">Sarvam AI / Whisper</span></div>
+      <div class="stat-item"><label>Memory</label><span style="color:var(--blue)">Multi-Turn Active</span></div>
       <div class="stat-item"><label>Status</label><span id="statStatus" style="color:var(--green)">Ready</span></div>
     </div>
   </main>
@@ -731,6 +737,7 @@
   let liveTranscript = '';
   let latHistory = [];
   let chartCtx = null;
+  let conversationHistory = []; // multi-turn conversation memory
 
   window.addEventListener('DOMContentLoaded', async () => {
     applyTheme(currentTheme);
@@ -741,6 +748,14 @@
     setInterval(loadAnalytics, 5000);
     setInterval(loadLogs, 4000);
   });
+
+  // ── Clear Conversation / New Chat ──
+  function clearConversation() {
+    conversationHistory = [];
+    document.getElementById('chatHistory').innerHTML = '';
+    document.getElementById('textInput').value = '';
+    showToast('Started a new conversation session!');
+  }
 
   // ── Input Mode Selector ──
   function setInputMode(mode) {
@@ -797,7 +812,7 @@
     if (target) target.classList.add('active');
 
     const titleMap = {
-      'chat': ['Voice & Type RAG System', 'Ask by speaking or typing with real-time retrieval-augmented generation'],
+      'chat': ['Voice & Type Conversational RAG', 'Multi-turn context-aware question answering with retrieval augmented generation'],
       'analytics': ['Latency & Pipeline Analytics', 'Performance metrics, P50/P70/P100 analysis and stage timings'],
       'pipeline': ['Pipeline Architecture & Flow', 'End-to-end component specifications and indexing status'],
       'guardrails': ['Guardrails & Safety Control', 'Input/Output verification, injection checks and hallucination guards'],
@@ -1091,6 +1106,7 @@
 
     const fd = new FormData();
     fd.append('audio', blob, 'recording.webm');
+    fd.append('history', JSON.stringify(conversationHistory));
 
     try {
       const r = await fetch('/api/query/voice', {method: 'POST', body: fd});
@@ -1099,8 +1115,12 @@
       if (!r.ok || d.error) {
         addErrorMessage(d.error || 'Could not transcribe speech. Please speak clearly.');
       } else {
-        addUserMessage(d.transcript || d.query || 'Voice query');
+        const queryText = d.transcript || d.query || 'Voice query';
+        addUserMessage(queryText);
         addAIMessage(d);
+        // Save to multi-turn conversational history
+        conversationHistory.push({role: 'user', content: queryText});
+        if (d.answer) conversationHistory.push({role: 'assistant', content: d.answer});
         updateGuardrails(d.guardrails);
         updatePipelineMs(d.latency);
         await loadAnalytics();
@@ -1112,7 +1132,7 @@
     document.getElementById('voiceStatus').textContent = 'Click the microphone to start recording';
   }
 
-  // ── Send Typed Text Query ──
+  // ── Send Typed Text Query (Multi-turn conversational context included) ──
   async function sendText() {
     const input = document.getElementById('textInput');
     const query = input.value.trim();
@@ -1136,13 +1156,16 @@
       const r = await fetch('/api/query/text', {
         method:'POST',
         headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({query, top_k: 5})
+        body: JSON.stringify({query, top_k: 5, history: conversationHistory})
       });
       const d = await r.json();
       removeThinkingMessage();
       if (!r.ok || d.error) addErrorMessage(d.error || 'Query processing failed.');
       else {
         addAIMessage(d);
+        // Save turns to conversational memory
+        conversationHistory.push({role: 'user', content: query});
+        if (d.answer) conversationHistory.push({role: 'assistant', content: d.answer});
         updateGuardrails(d.guardrails);
         updatePipelineMs(d.latency);
         await loadAnalytics();
