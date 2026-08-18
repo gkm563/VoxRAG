@@ -871,8 +871,8 @@
       <button class="btn-mic" id="micBtn" onclick="toggleVoiceInput()" title="Click to Speak">
         <svg class="icon" style="width:20px;height:20px;" viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
       </button>
-      <input type="text" class="text-box" id="chatInput" placeholder="Speak with microphone or ask any question..." onkeydown="if(event.key==='Enter')submitQuery()"/>
-      <button class="btn-send" onclick="submitQuery()">
+      <input type="text" class="text-box" id="chatInput" placeholder="Speak with microphone or type any question..." onkeydown="if(event.key==='Enter')onTextInputSubmit()"/>
+      <button class="btn-send" onclick="onTextInputSubmit()">
         <span>Ask</span>
         <svg class="icon" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
       </button>
@@ -898,9 +898,10 @@
     <div class="stat-card">
       <h4>🎙️ Voice Conversational Mode</h4>
       <div style="font-size:12px;color:var(--text-secondary);line-height:1.6;">
-        <div>• <strong>Hands-Free Loop</strong>: Speaks answer &amp; auto-rearms mic</div>
+        <div>• <strong>Voice Query</strong>: Speaks aloud via Sarvam AI Neural TTS</div>
+        <div>• <strong>Text Query</strong>: Silent instant text response</div>
+        <div>• <strong>Hands-Free Loop</strong>: Auto-rearms mic in Voice Call</div>
         <div>• <strong>Multi-Turn Memory</strong>: Preserves pronouns seamlessly</div>
-        <div>• <strong>Speech Engine</strong>: Web Speech STT + Neural TTS</div>
       </div>
     </div>
 
@@ -931,7 +932,7 @@
     </div>
     <div class="call-badge-live">
       <span style="width:8px;height:8px;border-radius:50%;background:var(--accent-green);animation:pulseGlow 1.5s infinite;"></span>
-      2-Way Voice Active
+      Sarvam AI 2-Way Voice Active
     </div>
   </div>
 
@@ -941,7 +942,7 @@
     </div>
     <div class="call-status-label" id="callStatusLabel">Listening to you…</div>
     <div class="call-transcript-box" id="callTranscriptBox">
-      Speak naturally. VoxRAG will retrieve context and speak the answer back immediately.
+      Speak naturally. VoxRAG will retrieve context and speak the answer back immediately using Sarvam AI Neural Voice.
     </div>
   </div>
 
@@ -968,6 +969,8 @@
   let autoVoiceReply = true;
   let isVoiceCallModalOpen = false;
   let isCallMuted = false;
+  let currentAudioPlayer = null;
+  let lastQuerySource = 'text'; // 'voice' or 'text'
 
   function getRealTimestamp() {
     return new Date().toLocaleTimeString('en-US', {
@@ -996,18 +999,19 @@
     const lbl = document.getElementById('autoVoiceLabel');
     const btn = document.getElementById('autoVoiceToggleBtn');
     if (autoVoiceReply) {
-      lbl.innerText = 'Auto-Voice: ON';
+      lbl.innerText = 'Voice Output: ON';
       btn.classList.add('active-voice-btn');
-      showToast('🔊 Auto-Voice Reply Enabled');
+      showToast('🔊 Voice Output Enabled for Voice Queries');
     } else {
-      lbl.innerText = 'Auto-Voice: OFF';
+      lbl.innerText = 'Voice Output: OFF';
       btn.classList.remove('active-voice-btn');
-      showToast('🔇 Auto-Voice Reply Disabled');
+      showToast('🔇 Voice Output Muted');
     }
   }
 
   function startNewChat() {
     conversationHistory = [];
+    stopAnySpeech();
     document.getElementById('chatArea').innerHTML = `
       <div class="msg-ai-card">
         <div class="msg-ai-header">
@@ -1027,13 +1031,18 @@
 
   function askPreset(q) {
     document.getElementById('chatInput').value = q;
-    submitQuery();
+    onTextInputSubmit();
+  }
+
+  function onTextInputSubmit() {
+    lastQuerySource = 'text'; // User submitted via keyboard/text -> SILENT TEXT OUTPUT
+    submitQuery('text');
   }
 
   // ── ChatGPT-Style Voice Call Mode ──
   function openVoiceCallModal() {
     isVoiceCallModalOpen = true;
-    autoVoiceReply = true;
+    lastQuerySource = 'voice';
     document.getElementById('voiceCallOverlay').classList.add('active');
     setOrbState('listening', 'Listening to you…', 'Speak your question now…');
     startListening();
@@ -1043,7 +1052,7 @@
     isVoiceCallModalOpen = false;
     document.getElementById('voiceCallOverlay').classList.remove('active');
     stopListening();
-    if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+    stopAnySpeech();
     showToast('Voice Call Ended');
   }
 
@@ -1063,9 +1072,22 @@
   }
 
   function interruptSpeaking() {
-    if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+    stopAnySpeech();
     setOrbState('listening', 'Listening to you…', 'Spoken playback interrupted. Speak your next question…');
     startListening();
+  }
+
+  function stopAnySpeech() {
+    if (currentAudioPlayer) {
+      try {
+        currentAudioPlayer.pause();
+        currentAudioPlayer.currentTime = 0;
+      } catch(e) {}
+      currentAudioPlayer = null;
+    }
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+    }
   }
 
   function setOrbState(state, statusText, transcriptText) {
@@ -1077,14 +1099,16 @@
 
   // ── Voice Input (Speech Recognition) ──
   function toggleVoiceInput() {
-    if (isListening) stopListening();
-    else startListening();
+    if (isListening) {
+      stopListening();
+    } else {
+      lastQuerySource = 'voice'; // User activated mic -> WILL SPEAK ALOUD
+      startListening();
+    }
   }
 
   function startListening() {
-    if (window.speechSynthesis && window.speechSynthesis.speaking) {
-      window.speechSynthesis.cancel();
-    }
+    stopAnySpeech();
 
     const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRec) {
@@ -1097,7 +1121,7 @@
     }
 
     recognition = new SpeechRec();
-    recognition.lang = 'en-US';
+    recognition.lang = 'en-IN';
     recognition.continuous = false;
     recognition.interimResults = true;
 
@@ -1125,13 +1149,14 @@
       stopListening();
       const q = document.getElementById('chatInput').value.trim();
       if (q) {
+        lastQuerySource = 'voice'; // VOICE QUERY
         if (isVoiceCallModalOpen) {
           setOrbState('thinking', 'Retrieving & Generating…', `"${q}"`);
         }
-        submitQuery();
+        submitQuery('voice');
       } else {
         if (isVoiceCallModalOpen && !isCallMuted) {
-          // Re-arm listening if silence
+          // Re-arm listening if silence in Voice Call mode
           setTimeout(() => { if (isVoiceCallModalOpen && !isListening) startListening(); }, 600);
         }
       }
@@ -1153,40 +1178,81 @@
     if (recognition) { try { recognition.stop(); } catch(e) {} }
   }
 
-  // ── Speech Synthesis (Continuous Voice Speaker) ──
-  function speakAnswer(text, btnEl, onCompleteCallback) {
-    if (!('speechSynthesis' in window)) return;
-
-    window.speechSynthesis.cancel();
-    const clean = text.replace(/[*#`_~>]/g, '').trim();
+  // ── Sarvam AI Bulbul:v3 Neural Text-to-Speech Engine ──
+  async function speakAnswer(text, btnEl, onCompleteCallback) {
+    stopAnySpeech();
+    const clean = text.replace(/[*#`_~>\[\]\(\)\\]/g, '').trim();
     if (!clean) return;
-
-    const u = new SpeechSynthesisUtterance(clean);
-    u.rate = 1.05;
-
-    const voices = window.speechSynthesis.getVoices();
-    const eng = voices.find(v => v.lang.includes('en-US') || v.lang.includes('en')) || voices[0];
-    if (eng) u.voice = eng;
 
     if (btnEl) btnEl.innerHTML = '<svg class="icon" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12"/></svg> Stop';
     
     if (isVoiceCallModalOpen) {
-      setOrbState('speaking', 'VoxRAG Speaking…', clean);
+      setOrbState('speaking', 'VoxRAG Speaking (Sarvam AI)…', clean);
     }
 
-    const finishHandler = () => {
-      if (btnEl) btnEl.innerHTML = '<svg class="icon" viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg> Listen';
+    const onPlaybackComplete = () => {
+      if (btnEl) btnEl.innerHTML = '<svg class="icon" viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg> Listen';
       
       if (isVoiceCallModalOpen) {
         setOrbState('listening', 'Listening to you…', 'Speak your next question…');
         setTimeout(() => { if (isVoiceCallModalOpen && !isCallMuted) startListening(); }, 300);
-      } else if (autoVoiceReply && !isListening) {
-        // Continuous hands-free loop in standard studio mode
+      } else if (lastQuerySource === 'voice' && autoVoiceReply && !isListening) {
+        // Continuous hands-free loop for voice queries
         setTimeout(() => { startListening(); }, 400);
       }
 
       if (onCompleteCallback) onCompleteCallback();
     };
+
+    // 1. Try Sarvam AI Neural TTS API first
+    try {
+      const resp = await fetch('/api/tts/sarvam', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: clean, speaker: 'priya' })
+      });
+
+      if (resp.ok) {
+        const data = await resp.json();
+        if (data && data.audio_base64) {
+          const audio = new Audio('data:audio/wav;base64,' + data.audio_base64);
+          currentAudioPlayer = audio;
+
+          audio.onended = () => {
+            currentAudioPlayer = null;
+            onPlaybackComplete();
+          };
+
+          audio.onerror = () => {
+            currentAudioPlayer = null;
+            fallbackBrowserSpeech(clean, btnEl, onPlaybackComplete);
+          };
+
+          await audio.play();
+          return;
+        }
+      }
+    } catch(e) {
+      console.warn("Sarvam TTS fallback:", e);
+    }
+
+    // 2. Fallback to browser SpeechSynthesis if Sarvam AI unavailable
+    fallbackBrowserSpeech(clean, btnEl, onPlaybackComplete);
+  }
+
+  function fallbackBrowserSpeech(cleanText, btnEl, finishHandler) {
+    if (!('speechSynthesis' in window)) {
+      if (finishHandler) finishHandler();
+      return;
+    }
+
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(cleanText);
+    u.rate = 1.05;
+
+    const voices = window.speechSynthesis.getVoices();
+    const eng = voices.find(v => v.lang.includes('en-IN') || v.lang.includes('en-US') || v.lang.includes('en')) || voices[0];
+    if (eng) u.voice = eng;
 
     u.onend = finishHandler;
     u.onerror = finishHandler;
@@ -1195,7 +1261,7 @@
   }
 
   // ── Query Engine ──
-  async function submitQuery() {
+  async function submitQuery(source = lastQuerySource) {
     const inp = document.getElementById('chatInput');
     const q = inp.value.trim();
     if (!q) return;
@@ -1259,8 +1325,9 @@
     conversationHistory.push({ role: 'user', content: q });
     conversationHistory.push({ role: 'assistant', content: answerText });
 
-    // Auto-Speak in Voice Call mode or if auto-voice is enabled
-    if (autoVoiceReply || isVoiceCallModalOpen) {
+    // ONLY AUTOMATICALLY SPEAK IF QUERY WAS TRIGGERED VIA VOICE OR IN VOICE CALL MODE!
+    // IF USER TYPED TEXT, IT STAYS SILENT!
+    if (source === 'voice' || isVoiceCallModalOpen) {
       speakAnswer(answerText);
     }
   }
@@ -1303,7 +1370,7 @@
       <div class="ai-footer-bar">
         <button class="btn-action-sm" onclick="speakAnswer('${escAttr(d.answer)}', this)">
           <svg class="icon" viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
-          Listen
+          Listen (Sarvam AI)
         </button>
         <button class="btn-action-sm" onclick="navigator.clipboard.writeText('${escAttr(d.answer)}'); showToast('Copied to clipboard!');">
           <svg class="icon" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
@@ -1319,7 +1386,7 @@
     return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   }
   function escAttr(s) {
-    return String(s||'').replace(/'/g,"\\'").replace(/"/g,'&quot;').replace(/\n/g,' ');
+    return String(s||'').replace(/'/g, "\\'").replace(/"/g, '&quot;').replace(/\n/g, ' ');
   }
 </script>
 </body>

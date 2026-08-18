@@ -1856,7 +1856,13 @@
         resBox.innerHTML = `
           <div style="margin-bottom:8px;color:#fff;font-weight:600;">${data.answer}</div>
           <div class="play-response-meta">
-            <span style="color:var(--emerald-400);font-weight:700;">✓ Grounded · Confidence: ${data.confidence * 100}%</span>
+            <div style="display:flex;align-items:center;gap:12px;">
+              <span style="color:var(--emerald-400);font-weight:700;">✓ Grounded · Confidence: ${data.confidence * 100}%</span>
+              <button onclick="speakPlaygroundText('${data.answer.replace(/'/g, "\\'").replace(/\n/g, ' ')}', this)" style="background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.4);color:var(--emerald-400);padding:3px 10px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:4px;">
+                <svg class="icon" style="width:12px;height:12px;" viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
+                Listen (Sarvam AI)
+              </button>
+            </div>
             <span style="font-family:var(--font-mono);color:var(--cyan-400);font-weight:700;">⚡ ${data.total_ms || lat}ms</span>
           </div>
         `;
@@ -1864,6 +1870,50 @@
         resBox.innerText = 'Error executing query. Please try again.';
       }
       btn.disabled = false;
+    }
+
+    let currentPlayAudio = null;
+    async function speakPlaygroundText(text, btnEl) {
+      if (currentPlayAudio) {
+        try { currentPlayAudio.pause(); } catch(e) {}
+        currentPlayAudio = null;
+      }
+      if (window.speechSynthesis) window.speechSynthesis.cancel();
+
+      const clean = text.replace(/[*#`_~>\[\]\(\)\\]/g, '').trim();
+      if (!clean) return;
+
+      if (btnEl) btnEl.innerHTML = '<svg class="icon" style="width:12px;height:12px;" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12"/></svg> Stop';
+
+      try {
+        const resp = await fetch('/api/tts/sarvam', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text: clean, speaker: 'priya' })
+        });
+        if (resp.ok) {
+          const d = await resp.json();
+          if (d && d.audio_base64) {
+            const audio = new Audio('data:audio/wav;base64,' + d.audio_base64);
+            currentPlayAudio = audio;
+            audio.onended = () => {
+              currentPlayAudio = null;
+              if (btnEl) btnEl.innerHTML = '<svg class="icon" style="width:12px;height:12px;" viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg> Listen (Sarvam AI)';
+            };
+            await audio.play();
+            return;
+          }
+        }
+      } catch(e) {}
+
+      if ('speechSynthesis' in window) {
+        const u = new SpeechSynthesisUtterance(clean);
+        u.rate = 1.05;
+        u.onend = () => {
+          if (btnEl) btnEl.innerHTML = '<svg class="icon" style="width:12px;height:12px;" viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg> Listen (Sarvam AI)';
+        };
+        window.speechSynthesis.speak(u);
+      }
     }
 
     function runPreset(q) {
