@@ -405,6 +405,25 @@ for m_idx, msg in enumerate(st.session_state.messages):
         </div>
         """, unsafe_allow_html=True)
 
+        # Voice Speech Output (Bolne wala audio player)
+        clean_text_for_js = msg['content'].replace("'", "\\'").replace('"', '\\"').replace("\n", " ").replace("\r", "")
+        speech_widget_html = f"""
+        <div style="padding-left:30px;margin-top:4px;">
+          <button onclick="
+            window.speechSynthesis.cancel();
+            var u = new SpeechSynthesisUtterance('{clean_text_for_js}');
+            u.rate = 1.05;
+            window.speechSynthesis.speak(u);
+          " style="background:#262626;color:#e5e5e5;border:1px solid #404040;padding:5px 12px;border-radius:6px;font-size:12px;cursor:pointer;display:inline-flex;align-items:center;gap:5px;">
+            <span>🔊</span> <b>Speak Answer (Listen)</b>
+          </button>
+          <button onclick="window.speechSynthesis.cancel();" style="background:#262626;color:#a3a3a3;border:1px solid #404040;padding:5px 10px;border-radius:6px;font-size:12px;cursor:pointer;margin-left:6px;">
+            <span>⏹️</span> Stop
+          </button>
+        </div>
+        """
+        components.html(speech_widget_html, height=45)
+
         # Dynamic follow-up suggestion buttons
         sugs = msg.get("suggestions", [])
         if sugs:

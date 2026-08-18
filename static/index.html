@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>VoxRAG — ChatGPT Style Conversational Voice & Text RAG</title>
+<title>VoxRAG — Conversational Voice & Text RAG (with Speech In & Speech Out)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
 <style>
@@ -35,7 +35,7 @@
   /* ── Layout ── */
   .layout{display:flex;height:100vh;width:100vw;overflow:hidden;}
 
-  /* ── Left Sidebar (ChatGPT Style) ── */
+  /* ── Left Sidebar ── */
   .sidebar{
     width: var(--sidebar-w);
     background: var(--bg-sidebar);
@@ -72,20 +72,7 @@
     border-radius: 6px;
     font-weight: 500;
   }
-  .sidebar-icon-btn {
-    background: transparent;
-    border: none;
-    color: var(--text-secondary);
-    cursor: pointer;
-    padding: 6px;
-    border-radius: 6px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  .sidebar-icon-btn:hover { background: var(--bg-capsule); color: #fff; }
 
-  /* New Chat Button */
   .btn-new-chat {
     display: flex;
     align-items: center;
@@ -107,7 +94,6 @@
     border-color: #4a4a4a;
   }
 
-  /* Nav items */
   .nav-group {
     display: flex;
     flex-direction: column;
@@ -130,7 +116,6 @@
   .nav-item.active { background: #262626; color: #fff; font-weight: 500; }
   .nav-item svg { width: 16px; height: 16px; flex-shrink: 0; }
 
-  /* Section Title */
   .sidebar-section-title {
     font-size: 11px;
     font-weight: 600;
@@ -140,7 +125,6 @@
     letter-spacing: 0.05em;
   }
 
-  /* History list */
   .chat-list {
     flex: 1;
     overflow-y: auto;
@@ -169,7 +153,6 @@
   .chat-item-dot { width: 6px; height: 6px; border-radius: 50%; background: #525252; flex-shrink: 0; }
   .chat-item.active .chat-item-dot { background: var(--green); }
 
-  /* User profile bottom bar */
   .sidebar-footer {
     border-top: 1px solid var(--border-subtle);
     padding-top: 10px;
@@ -231,12 +214,33 @@
     padding: 4px 8px;
     border-radius: 6px;
   }
-  .model-selector:hover { background: var(--bg-capsule); }
   .top-actions {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
   }
+
+  /* Voice Output Auto-Speak Toggle */
+  .voice-toggle-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #262626;
+    border: 1px solid var(--border-card);
+    color: var(--text-secondary);
+    font-size: 12px;
+    padding: 5px 12px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.15s;
+  }
+  .voice-toggle-btn.active {
+    background: #064e3b;
+    border-color: #10b981;
+    color: #a7f3d0;
+  }
+
   .btn-share {
     display: inline-flex;
     align-items: center;
@@ -267,7 +271,7 @@
   .chat-scroll-area::-webkit-scrollbar { width: 6px; }
   .chat-scroll-area::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
 
-  /* User Message (ChatGPT Blue Pill / Clean right alignment) */
+  /* User Message (ChatGPT Blue Pill) */
   .msg-row-user {
     display: flex;
     justify-content: flex-end;
@@ -302,7 +306,7 @@
     padding: 0;
   }
 
-  /* Assistant Message (ChatGPT Rich Left-aligned block) */
+  /* Assistant Message (ChatGPT Rich Typography) */
   .msg-row-ai {
     display: flex;
     flex-direction: column;
@@ -395,7 +399,7 @@
     color: #fff;
   }
 
-  /* Action Buttons bar */
+  /* Action Buttons bar (with Speak/Listen Button!) */
   .ai-action-bar {
     display: flex;
     align-items: center;
@@ -410,15 +414,21 @@
     border: none;
     color: var(--text-muted);
     cursor: pointer;
-    padding: 4px;
-    border-radius: 4px;
+    padding: 4px 8px;
+    border-radius: 6px;
     display: flex;
     align-items: center;
-    gap: 4px;
+    gap: 5px;
+    font-size: 12px;
+    transition: all 0.15s;
   }
   .action-icon-btn:hover { color: #fff; background: var(--bg-capsule); }
+  .action-icon-btn.speaking {
+    color: #10b981;
+    background: rgba(16, 185, 129, 0.15);
+  }
 
-  /* ── Floating Bottom Capsule Bar (ChatGPT Exact Style) ── */
+  /* ── Floating Bottom Capsule Bar (ChatGPT Exact Design) ── */
   .bottom-capsule-container {
     position: absolute;
     bottom: 0;
@@ -431,6 +441,24 @@
     align-items: center;
     z-index: 10;
   }
+
+  /* Live Voice Status Indicator Banner */
+  .voice-listening-banner {
+    display: none;
+    align-items: center;
+    gap: 8px;
+    background: rgba(239, 68, 68, 0.15);
+    border: 1px solid rgba(239, 68, 68, 0.4);
+    color: #fca5a5;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 4px 14px;
+    border-radius: 99px;
+    margin-bottom: 8px;
+    animation: pulse 1.5s infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.6;} }
+
   .capsule-box {
     width: 100%;
     max-width: 800px;
@@ -504,12 +532,14 @@
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    font-size: 14px;
+    font-size: 15px;
+    transition: all 0.2s;
   }
   .mic-round-btn:hover { background: #4a4a4a; }
   .mic-round-btn.recording {
     background: var(--red);
-    animation: pulse 1.2s infinite;
+    box-shadow: 0 0 12px var(--red);
+    transform: scale(1.1);
   }
 
   .send-round-btn {
@@ -535,7 +565,7 @@
     text-align: center;
   }
 
-  /* Inline edit modal / container */
+  /* Inline edit container */
   .edit-container {
     margin-top: 8px;
     display: flex;
@@ -631,9 +661,9 @@
 
     <!-- Navigation links -->
     <div class="nav-group">
-      <a href="javascript:void(0)" class="nav-item active" onclick="switchNav('chat')">
+      <a href="javascript:void(0)" class="nav-item active">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-        Chat
+        Chat (Voice &amp; Text)
       </a>
       <a href="https://docs-three-dusky-37.vercel.app" target="_blank" class="nav-item">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
@@ -677,7 +707,7 @@
 
     <!-- User Profile Footer -->
     <div class="sidebar-footer">
-      <div class="user-pill" onclick="showToast('VoxRAG v2.4 Active · 48,995 Chunks')">
+      <div class="user-pill" onclick="showToast('VoxRAG v2.5 Active · Voice In & Voice Out Ready')">
         <div class="user-avatar-badge">GM</div>
         <div class="user-name-text">Gautam Kumar Maurya</div>
       </div>
@@ -691,10 +721,14 @@
     <div class="top-nav">
       <div class="model-selector">
         <span>ChatGPT</span>
-        <span style="color:#737373;">4o-mini · Groq LPU</span>
+        <span style="color:#737373;">4o-mini · Voice Enabled</span>
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
       </div>
       <div class="top-actions">
+        <!-- Voice Output Auto-Speak Toggle Button -->
+        <button class="voice-toggle-btn active" id="autoVoiceBtn" onclick="toggleAutoVoice()" title="Toggle voice read aloud">
+          <span id="voiceIcon">🔊</span> <span id="voiceLabel">Auto-Speak: ON</span>
+        </button>
         <a href="https://docs-three-dusky-37.vercel.app" target="_blank" class="btn-share">
           <span>↗</span> Share Guide
         </a>
@@ -712,9 +746,10 @@
           <span class="ai-tag tag-grounded">✓ Ready</span>
         </div>
         <div class="ai-content-body">
-          Hello! I am <b>VoxRAG</b>, a Voice and Text Question Answering system powered by <code>ai4bharat/MSMARCO-XI</code> with <b>48,995 indexed chunks</b> and <b>Groq LPU acceleration</b>.
+          Hello! I am <b>VoxRAG</b>, a Voice and Text Question Answering system grounded in <code>ai4bharat/MSMARCO-XI</code> (48,995 chunks).
           <br/><br/>
-          You can speak into your microphone or type your question below. How can I help you today?
+          🎙️ <b>Voice Input:</b> Click the mic button below and speak your question.<br/>
+          🔊 <b>Voice Output:</b> I will answer you in <b>Text format and Speak the response out loud in Voice!</b>
         </div>
         <div class="suggestions-row">
           <button class="sug-pill-btn" onclick="askPreset('What is a corporation?')">🏢 What is a corporation?</button>
@@ -727,6 +762,10 @@
 
     <!-- ── Floating Bottom Capsule Bar (ChatGPT Exact Design) ── -->
     <div class="bottom-capsule-container">
+      <div class="voice-listening-banner" id="listeningBanner">
+        <span>🎙️ Listening... Speak your question now</span>
+      </div>
+
       <div class="capsule-box">
         <button class="btn-plus" title="Add attachment" onclick="showToast('MSMARCO-XI Knowledge Base (48,995 Chunks Attached)')">+</button>
         
@@ -734,7 +773,7 @@
           type="text" 
           id="chatInput" 
           class="capsule-input" 
-          placeholder="Ask anything" 
+          placeholder="Ask anything or click mic to speak..." 
           autocomplete="off"
           onkeydown="if(event.key==='Enter') submitQuery();"
         />
@@ -744,7 +783,8 @@
             <span>🧠</span> Think
           </div>
 
-          <button class="mic-round-btn" id="micBtn" title="Speak question" onclick="toggleVoiceRecord()">
+          <!-- Dual Mode Mic Button (Web Speech + Sarvam Fallback) -->
+          <button class="mic-round-btn" id="micBtn" title="Click to speak your question" onclick="toggleVoiceInput()">
             🎙️
           </button>
 
@@ -755,7 +795,7 @@
       </div>
 
       <div class="disclaimer-text">
-        VoxRAG answers are strictly grounded in MSMARCO-XI context passages · P50 Latency ~142ms (<200ms Target)
+        VoxRAG answers with Voice Speech &amp; Text grounded in MSMARCO-XI · P50 Latency ~142ms (<200ms Target)
       </div>
     </div>
 
@@ -764,10 +804,11 @@
 
 <script>
   let conversationHistory = [];
-  let isRecording = false;
-  let mediaRecorder = null;
-  let audioChunks = [];
   let queryCount = 0;
+  let autoVoiceEnabled = true;
+  let isListening = false;
+  let recognition = null;
+  let currentUtterance = null;
 
   function showToast(msg) {
     const box = document.getElementById('toastBox');
@@ -776,8 +817,28 @@
     setTimeout(() => { box.style.display = 'none'; }, 2400);
   }
 
+  function toggleAutoVoice() {
+    autoVoiceEnabled = !autoVoiceEnabled;
+    const btn = document.getElementById('autoVoiceBtn');
+    const label = document.getElementById('voiceLabel');
+    const icon = document.getElementById('voiceIcon');
+    if (autoVoiceEnabled) {
+      btn.classList.add('active');
+      label.textContent = 'Auto-Speak: ON';
+      icon.textContent = '🔊';
+      showToast('Voice Output: ON (Answers will be spoken aloud)');
+    } else {
+      btn.classList.remove('active');
+      label.textContent = 'Auto-Speak: OFF';
+      icon.textContent = '🔇';
+      window.speechSynthesis.cancel();
+      showToast('Voice Output: OFF (Silent text mode)');
+    }
+  }
+
   function startNewChat() {
     conversationHistory = [];
+    window.speechSynthesis.cancel();
     document.getElementById('chatArea').innerHTML = `
       <div class="msg-row-ai">
         <div class="ai-header-line">
@@ -786,7 +847,7 @@
           <span class="ai-tag tag-grounded">✓ Ready</span>
         </div>
         <div class="ai-content-body">
-          Started a new conversation! Speak or type any question grounded in MSMARCO-XI.
+          Started a new session! Speak or type any question grounded in MSMARCO-XI.
         </div>
         <div class="suggestions-row">
           <button class="sug-pill-btn" onclick="askPreset('What is a corporation?')">🏢 What is a corporation?</button>
@@ -803,7 +864,175 @@
     submitQuery();
   }
 
-  async function submitQuery() {
+  // ── Text-to-Speech (TTS Voice Output / "Bolne Wala") ──
+  function speakText(text, btnId) {
+    if (!('speechSynthesis' in window)) return;
+
+    window.speechSynthesis.cancel(); // stop previous speech
+
+    // Clean text of markdown/code fences
+    const cleanText = text.replace(/[*#`_~>]/g, '').trim();
+    if (!cleanText) return;
+
+    const utterance = new SpeechSynthesisUtterance(cleanText);
+    utterance.rate = 1.05;
+    utterance.pitch = 1.0;
+
+    // Pick English natural voice
+    const voices = window.speechSynthesis.getVoices();
+    const englishVoice = voices.find(v => v.lang.includes('en') && (v.name.includes('Google') || v.name.includes('Natural') || v.name.includes('Neural') || v.name.includes('India'))) || voices[0];
+    if (englishVoice) utterance.voice = englishVoice;
+
+    currentUtterance = utterance;
+
+    if (btnId) {
+      const btn = document.getElementById(btnId);
+      if (btn) btn.classList.add('speaking');
+    }
+
+    utterance.onend = () => {
+      if (btnId) {
+        const btn = document.getElementById(btnId);
+        if (btn) btn.classList.remove('speaking');
+      }
+    };
+    utterance.onerror = () => {
+      if (btnId) {
+        const btn = document.getElementById(btnId);
+        if (btn) btn.classList.remove('speaking');
+      }
+    };
+
+    window.speechSynthesis.speak(utterance);
+  }
+
+  function stopSpeaking() {
+    window.speechSynthesis.cancel();
+  }
+
+  // ── Speech-to-Text (Instant Web Speech Recognition) ──
+  function toggleVoiceInput() {
+    if (isListening) {
+      stopListening();
+    } else {
+      startListening();
+    }
+  }
+
+  function startListening() {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      showToast('Web Speech API not supported in this browser. Trying MediaRecorder...');
+      startMediaRecorderFallback();
+      return;
+    }
+
+    recognition = new SpeechRecognition();
+    recognition.lang = 'en-US';
+    recognition.continuous = false;
+    recognition.interimResults = true;
+
+    const micBtn = document.getElementById('micBtn');
+    const banner = document.getElementById('listeningBanner');
+
+    recognition.onstart = () => {
+      isListening = true;
+      micBtn.classList.add('recording');
+      banner.style.display = 'flex';
+      showToast('🎙️ Listening... Speak your question clearly');
+    };
+
+    recognition.onresult = (e) => {
+      const transcript = Array.from(e.results)
+        .map(r => r[0].transcript)
+        .join('');
+      document.getElementById('chatInput').value = transcript;
+    };
+
+    recognition.onend = () => {
+      stopListening();
+      const q = document.getElementById('chatInput').value.trim();
+      if (q) {
+        submitQuery(true); // pass true to auto-speak response
+      }
+    };
+
+    recognition.onerror = (e) => {
+      stopListening();
+      if (e.error !== 'no-speech') {
+        showToast('Speech recognition note: ' + e.error);
+      }
+    };
+
+    try {
+      recognition.start();
+    } catch(err) {
+      stopListening();
+    }
+  }
+
+  function stopListening() {
+    isListening = false;
+    const micBtn = document.getElementById('micBtn');
+    const banner = document.getElementById('listeningBanner');
+    micBtn.classList.remove('recording');
+    banner.style.display = 'none';
+    if (recognition) {
+      try { recognition.stop(); } catch(e) {}
+    }
+  }
+
+  // Fallback MediaRecorder for older devices
+  let mediaRecorder = null;
+  let audioChunks = [];
+  async function startMediaRecorderFallback() {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      mediaRecorder = new MediaRecorder(stream);
+      audioChunks = [];
+      mediaRecorder.ondataavailable = e => { if (e.data.size > 0) audioChunks.push(e.data); };
+      mediaRecorder.onstop = async () => {
+        const blob = new Blob(audioChunks, { type: 'audio/webm' });
+        stream.getTracks().forEach(t => t.stop());
+        await sendVoiceBlob(blob);
+      };
+      mediaRecorder.start();
+      isListening = true;
+      document.getElementById('micBtn').classList.add('recording');
+      document.getElementById('listeningBanner').style.display = 'flex';
+    } catch(e) {
+      showToast('Microphone permission required: ' + e.message);
+    }
+  }
+
+  async function sendVoiceBlob(blob) {
+    renderThinking();
+    const fd = new FormData();
+    fd.append('audio', blob, 'voice.webm');
+    fd.append('history', JSON.stringify(conversationHistory));
+
+    try {
+      const r = await fetch('/api/query/voice', { method: 'POST', body: fd });
+      const d = await r.json();
+      removeThinking();
+      if (!r.ok || d.error) {
+        renderErrorMessage(d.error || 'Voice transcription failed.');
+      } else {
+        const qText = d.transcript || d.query || 'Voice query';
+        queryCount++;
+        renderUserBubble(qText, queryCount);
+        renderAIBubble(d, true);
+        conversationHistory.push({ role: 'user', content: qText });
+        if (d.answer) conversationHistory.push({ role: 'assistant', content: d.answer });
+      }
+    } catch(e) {
+      removeThinking();
+      renderErrorMessage('Voice query failed: ' + e.message);
+    }
+  }
+
+  // ── Query Execution ──
+  async function submitQuery(fromVoice = false) {
     const input = document.getElementById('chatInput');
     const q = input.value.trim();
     if (!q) return;
@@ -811,7 +1040,6 @@
     input.value = '';
     queryCount++;
 
-    // Update Sidebar Recent Title if first query
     if (queryCount === 1) {
       document.getElementById('activeChatTitle').textContent = q.length > 24 ? q.substring(0, 24) + '...' : q;
     }
@@ -831,7 +1059,7 @@
       if (!resp.ok || data.error) {
         renderErrorMessage(data.error || 'Query execution failed.');
       } else {
-        renderAIBubble(data);
+        renderAIBubble(data, fromVoice || autoVoiceEnabled);
         conversationHistory.push({ role: 'user', content: q });
         if (data.answer) conversationHistory.push({ role: 'assistant', content: data.answer });
       }
@@ -888,12 +1116,13 @@
     submitQuery();
   }
 
-  function renderAIBubble(d) {
+  function renderAIBubble(d, shouldSpeak = false) {
     const t = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     const area = document.getElementById('chatArea');
     const row = document.createElement('div');
     row.className = 'msg-row-ai';
 
+    const speakBtnId = `speak-btn-${queryCount}`;
     const groundedTag = d.grounded 
       ? '<span class="ai-tag tag-grounded">✓ Grounded</span>' 
       : '<span class="ai-tag" style="background:#7f1d1d;color:#fca5a5;">⚠ Ungrounded</span>';
@@ -925,12 +1154,27 @@
       ${sourcesHtml}
       ${sugsHtml}
       <div class="ai-action-bar">
-        <button class="action-icon-btn" onclick="copyText('${escAttr(d.answer)}')">📋 Copy</button>
-        <button class="action-icon-btn" onclick="askPreset('${escAttr(d.query)}')">🔄 Retry</button>
+        <button class="action-icon-btn" id="${speakBtnId}" onclick="speakText('${escAttr(d.answer)}', '${speakBtnId}')">
+          <span>🔊</span> Speak Out Loud
+        </button>
+        <button class="action-icon-btn" onclick="stopSpeaking()">
+          <span>⏹️</span> Stop
+        </button>
+        <button class="action-icon-btn" onclick="copyText('${escAttr(d.answer)}')">
+          <span>📋</span> Copy
+        </button>
+        <button class="action-icon-btn" onclick="askPreset('${escAttr(d.query)}')">
+          <span>🔄</span> Retry
+        </button>
       </div>
     `;
     area.appendChild(row);
     row.scrollIntoView({ behavior: 'smooth', block: 'end' });
+
+    // Automatically speak the response if voice is active
+    if (shouldSpeak && autoVoiceEnabled && d.answer) {
+      speakText(d.answer, speakBtnId);
+    }
   }
 
   let thinkingEl = null;
@@ -953,64 +1197,6 @@
     area.appendChild(row);
   }
 
-  // ── Voice Recording (Browser MediaRecorder) ──
-  async function toggleVoiceRecord() {
-    const btn = document.getElementById('micBtn');
-    if (isRecording) {
-      // Stop recording
-      if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
-      isRecording = false;
-      btn.classList.remove('recording');
-      btn.textContent = '🎙️';
-    } else {
-      // Start recording
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        mediaRecorder = new MediaRecorder(stream);
-        audioChunks = [];
-        mediaRecorder.ondataavailable = e => { if (e.data.size > 0) audioChunks.push(e.data); };
-        mediaRecorder.onstop = async () => {
-          const blob = new Blob(audioChunks, { type: 'audio/webm' });
-          stream.getTracks().forEach(t => t.stop());
-          await sendVoiceBlob(blob);
-        };
-        mediaRecorder.start();
-        isRecording = true;
-        btn.classList.add('recording');
-        btn.textContent = '⏹️';
-        showToast('Recording... Speak your question now');
-      } catch(e) {
-        showToast('Microphone access denied: ' + e.message);
-      }
-    }
-  }
-
-  async function sendVoiceBlob(blob) {
-    renderThinking();
-    const fd = new FormData();
-    fd.append('audio', blob, 'voice.webm');
-    fd.append('history', JSON.stringify(conversationHistory));
-
-    try {
-      const r = await fetch('/api/query/voice', { method: 'POST', body: fd });
-      const d = await r.json();
-      removeThinking();
-      if (!r.ok || d.error) {
-        renderErrorMessage(d.error || 'Voice transcription failed.');
-      } else {
-        const qText = d.transcript || d.query || 'Voice query';
-        queryCount++;
-        renderUserBubble(qText, queryCount);
-        renderAIBubble(d);
-        conversationHistory.push({ role: 'user', content: qText });
-        if (d.answer) conversationHistory.push({ role: 'assistant', content: d.answer });
-      }
-    } catch(e) {
-      removeThinking();
-      renderErrorMessage('Voice query failed: ' + e.message);
-    }
-  }
-
   function copyText(txt) {
     navigator.clipboard.writeText(txt).then(() => showToast('Copied to clipboard!'));
   }
@@ -1020,6 +1206,13 @@
   }
   function escAttr(s) {
     return String(s||'').replace(/'/g,"\\'").replace(/"/g,'&quot;').replace(/\n/g,' ');
+  }
+
+  // Preload browser speech voices
+  if ('speechSynthesis' in window) {
+    window.speechSynthesis.onvoiceschanged = () => {
+      window.speechSynthesis.getVoices();
+    };
   }
 </script>
 </body>
