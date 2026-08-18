@@ -1,0 +1,8 @@
+{
+  "cleanUrls": true,
+  "rewrites": [
+    { "source": "/docs", "destination": "/whitepaper.html" },
+    { "source": "/whitepaper", "destination": "/whitepaper.html" },
+    { "source": "/architecture", "destination": "/whitepaper.html" }
+  ]
+}

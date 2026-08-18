@@ -229,8 +229,9 @@ with st.sidebar:
     c2.metric("P70", f"{p70}ms")
 
     st.markdown("---")
-    st.caption("🔗 **Technical Whitepaper & Source**")
-    st.markdown("[📖 **Read Technical Whitepaper (Vercel)** ↗](https://docs-three-dusky-37.vercel.app)")
+    st.caption("🔗 **Live Platforms & Whitepaper**")
+    st.markdown("[🚀 **Live Web Studio (Vercel)** ↗](https://voxrag-platform.vercel.app/)")
+    st.markdown("[📖 **Technical Whitepaper (Docs)** ↗](https://voxrag-platform.vercel.app/docs)")
     st.markdown("[📂 **Open Source GitHub Repo** ↗](https://github.com/gkm563/VoxRAG)")
 
     st.markdown("---")

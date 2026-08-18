@@ -5,21 +5,21 @@
 # VoxRAG
 ### Production-Grade, Sub-200ms Voice-Enabled Conversational Retrieval-Augmented Generation
 
-[![Live Demo](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://voxrag.streamlit.app/)
-[![Technical Documentation](https://img.shields.io/badge/Architecture-Vercel_Docs-000000?style=for-the-badge&logo=vercel)](https://docs-three-dusky-37.vercel.app)
+[![Live Web Studio](https://img.shields.io/badge/Live_Studio-Vercel-000000?style=for-the-badge&logo=vercel)](https://voxrag-platform.vercel.app/)
+[![Technical Whitepaper](https://img.shields.io/badge/Whitepaper-Docs-6366f1?style=for-the-badge)](https://voxrag-platform.vercel.app/docs)
+[![Streamlit Cloud](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://voxrag.streamlit.app/)
 [![GitHub Stars](https://img.shields.io/github/stars/gkm563/VoxRAG?style=for-the-badge&logo=github&color=181717)](https://github.com/gkm563/VoxRAG)
-[![P50 Latency](https://img.shields.io/badge/Latency_P50-142ms-10b981?style=for-the-badge)](https://voxrag.streamlit.app/)
+[![P50 Latency](https://img.shields.io/badge/Latency_P50-142ms-10b981?style=for-the-badge)](https://voxrag-platform.vercel.app/)
 [![Dataset](https://img.shields.io/badge/Dataset-MSMARCO--XI-f59e0b?style=for-the-badge)](https://huggingface.co/datasets/ai4bharat/MSMARCO-XI)
-[![Python 3.10+](https://img.shields.io/badge/Python-3.10+-3776ab?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
 
 <p align="center">
   <b>VoxRAG</b> is an ultra-low latency, voice-interactive Retrieval-Augmented Generation system designed for continuous multi-turn dialogue, real-time grounding verification, and multi-strategy vector search over large-scale multilingual knowledge corpora.
 </p>
 
 <p align="center">
-  <a href="https://voxrag.streamlit.app/"><b>🚀 Launch Live Web App</b></a> • 
-  <a href="https://docs-three-dusky-37.vercel.app/"><b>📊 Technical Architecture Guide</b></a> • 
-  <a href="#-performance--latency-benchmarks"><b>📑 Latency Benchmarks</b></a> • 
+  <a href="https://voxrag-platform.vercel.app/"><b>🚀 Launch Live Web Studio</b></a> • 
+  <a href="https://voxrag-platform.vercel.app/docs"><b>📖 Technical Whitepaper</b></a> • 
+  <a href="https://voxrag.streamlit.app/"><b>☁️ Streamlit Cloud</b></a> • 
   <a href="#-authors--contributors"><b>👥 Engineering Team</b></a>
 </p>
 
@@ -31,8 +31,9 @@
 
 > **VoxRAG** is an end-to-end Voice & Text conversational intelligence engine designed to solve the critical latency, grounding, and memory challenges in conversational retrieval systems. Built on the **48,995-passage MSMARCO-XI multilingual dataset**, VoxRAG executes full two-way voice conversational retrieval and grounded synthesis in **under 150ms (P50: 142ms)**.
 >
-> 🔗 **Live Demo Application**: [https://voxrag.streamlit.app/](https://voxrag.streamlit.app/)  
-> 🔗 **Interactive Architecture Whitepaper**: [https://docs-three-dusky-37.vercel.app/](https://docs-three-dusky-37.vercel.app/)
+> 🔗 **Live Web Studio & Showcase**: [https://voxrag-platform.vercel.app/](https://voxrag-platform.vercel.app/)  
+> 🔗 **Interactive Architecture Whitepaper**: [https://voxrag-platform.vercel.app/docs](https://voxrag-platform.vercel.app/docs)  
+> 🔗 **Streamlit Cloud Deployment**: [https://voxrag.streamlit.app/](https://voxrag.streamlit.app/)
 
 ---
 
