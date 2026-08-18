@@ -52,21 +52,20 @@
 
 ## 🏛️ End-to-End System Execution Flow
 
-<div align="center">
-  <img src="assets/architecture_flow.png" alt="VoxRAG End-to-End Execution Flowchart" width="700" style="border-radius:14px;border:1px solid #2c3850;box-shadow:0 8px 30px rgba(0,0,0,0.5);" />
-</div>
-
-<br/>
-
 ```mermaid
 flowchart TD
-    A["🎙️ User Voice / Text Query"] --> B["📝 Speech-to-Text (Sarvam AI / Whisper Turbo <70ms)"]
-    B --> C["🛡️ Stage 2: Input Guardrails & Injection Filtering"]
-    C --> D["🔄 Stage 3: Contextual Query Formulation & Pronoun Resolution"]
-    D --> E["🔍 Stage 4: FAISS FlatIP 384-dim Dense Retrieval (<25ms)"]
-    E --> F["⚡ Stage 5: Fast Neural LPU Inference (<65ms)"]
-    F --> G["🛡️ Stage 6: Output Grounding Cosine Alignment Audit (<10ms)"]
-    G --> H["🔊 Stage 7: 1-Click Audio TTS + Streamed Grounded Answer"]
+    A["👤 User Input: Voice Mic OR Typed Text"] --> B{"Input Type?"}
+    B -- "Voice Audio" --> C["🎙️ Stage 1: STT Engine (Sarvam AI saarika:v1 / Groq Whisper Turbo)"]
+    B -- "Typed Text" --> D["📄 Clean Transcribed Text"]
+    C --> D
+    D --> E["🛡️ Stage 2: Input Guardrails (Prompt Injection, Toxicity, Length Checks)"]
+    E -- "Blocked" --> F["🚫 Return Blocked Response"]
+    E -- "Passed" --> G["🧠 Stage 3: Conversational Memory Engine (Contextual Pronoun Resolution)"]
+    H[("🗄️ 48,995 MSMARCO-XI Chunks\n4 Chunking Strategies")] -.-> I["🔍 Stage 4: Dense Vector Retrieval (all-MiniLM-L6-v2 384-dim + FAISS FlatIP)"]
+    G --> I
+    I --> J["⚡ Stage 5: Groq LPU Inference (openai/gpt-oss-20b + Pydantic Schema)"]
+    J --> K["🔬 Stage 6: Output Grounding & Hallucination Audit (Cosine Check >= 0.82)"]
+    K --> L["💻 Stage 7: UI Delivery (Answer + Timestamps + Sources + 3 Suggestions)"]
 ```
 
 ---

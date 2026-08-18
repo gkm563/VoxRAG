@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>VoxRAG — Sub-200ms Voice-Enabled Conversational RAG Engine</title>
   
-  <meta name="description" content="Introducing VoxRAG: The production-grade Voice-Enabled Conversational RAG engine with multi-turn memory, multi-strategy chunking, and sub-200ms latency on MSMARCO-XI. Engineered by Gautam Kumar Maurya." />
+  <meta name="description" content="Introducing VoxRAG: The production-grade Voice-Enabled Conversational RAG engine with multi-turn memory, 4-strategy chunking, and sub-200ms latency on MSMARCO-XI. Engineered by Gautam Kumar Maurya." />
   <meta name="author" content="Gautam Kumar Maurya" />
   <meta name="keywords" content="VoxRAG, Voice RAG, Conversational AI, FAISS, MSMARCO-XI, Sarvam AI, Gautam Kumar Maurya, Low Latency AI" />
   
@@ -18,8 +18,8 @@
 
   <link rel="icon" type="image/png" href="favicon.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
   <style>
     :root {
@@ -34,6 +34,7 @@
       --cyan-400: #38bdf8;
       --amber-400: #fbbf24;
       --indigo-400: #818cf8;
+      --rose-400: #f43f5e;
       --text-primary: #f8fafc;
       --text-secondary: #94a3b8;
       --text-muted: #64748b;
@@ -160,7 +161,7 @@
     .hero {
       max-width: 1200px;
       margin: 0 auto;
-      padding: 90px 24px 70px;
+      padding: 80px 24px 60px;
       text-align: center;
     }
     .hero-badge {
@@ -191,7 +192,7 @@
       100% { opacity: 0.5; transform: scale(0.9); }
     }
     .hero h1 {
-      font-size: 56px;
+      font-size: 54px;
       font-weight: 900;
       letter-spacing: -0.04em;
       line-height: 1.12;
@@ -205,7 +206,7 @@
       -webkit-text-fill-color: transparent;
     }
     .hero p.lead {
-      font-size: 18.5px;
+      font-size: 18px;
       color: var(--text-secondary);
       max-width: 760px;
       margin: 0 auto 36px;
@@ -299,7 +300,7 @@
     }
     .section-header {
       text-align: center;
-      margin-bottom: 50px;
+      margin-bottom: 45px;
     }
     .section-tag {
       font-size: 11.5px;
@@ -333,7 +334,7 @@
       background: var(--bg-surface);
       border: 1px solid var(--border-subtle);
       border-radius: 18px;
-      padding: 30px 26px;
+      padding: 28px 24px;
       transition: all 0.25s ease;
       display: flex;
       flex-direction: column;
@@ -345,8 +346,8 @@
       box-shadow: 0 10px 30px rgba(0,0,0,0.35);
     }
     .feature-icon-wrapper {
-      width: 48px;
-      height: 48px;
+      width: 46px;
+      height: 46px;
       border-radius: 12px;
       background: rgba(16, 185, 129, 0.12);
       border: 1px solid rgba(16, 185, 129, 0.3);
@@ -354,7 +355,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      margin-bottom: 20px;
+      margin-bottom: 18px;
       font-size: 22px;
     }
     .feature-card h3 {
@@ -369,22 +370,324 @@
       line-height: 1.65;
     }
 
-    /* ── Architecture Diagram Box ── */
-    .arch-box {
+    /* ── Interactive Architecture Flowchart ── */
+    .flowchart-visualizer-card {
       background: var(--bg-surface);
       border: 1px solid var(--border-subtle);
       border-radius: 24px;
-      padding: 40px 32px;
+      padding: 36px 28px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+    }
+    .flowchart-top-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border-subtle);
+      padding-bottom: 20px;
+      margin-bottom: 30px;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    .flowchart-status {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 13.5px;
+      font-weight: 700;
+      color: var(--emerald-400);
+    }
+    .live-flow-beacon {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--emerald-400);
+      box-shadow: 0 0 12px var(--emerald-400);
+      animation: pulseGlow 1.8s infinite;
+    }
+    .flowchart-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .flow-timer-pill {
+      background: var(--bg-surface-elevated);
+      border: 1px solid var(--border-subtle);
+      padding: 7px 14px;
+      border-radius: 8px;
+      font-size: 12.5px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn-flow-sim {
+      background: linear-gradient(135deg, #059669, #10b981);
+      color: #fff;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 12.5px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+      box-shadow: 0 0 15px rgba(16, 185, 129, 0.3);
+    }
+    .btn-flow-sim:hover { transform: translateY(-1px); filter: brightness(1.1); }
+    .btn-flow-sim.secondary {
+      background: var(--bg-surface-elevated);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-primary);
+      box-shadow: none;
+    }
+    .btn-flow-sim.secondary:hover { border-color: var(--cyan-400); color: #fff; }
+
+    /* Flow Tree Hierarchy */
+    .flow-tree-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0;
+      max-width: 820px;
+      margin: 0 auto;
+    }
+    .flow-node {
+      background: var(--bg-surface-elevated);
+      border: 1px solid var(--border-subtle);
+      border-radius: 14px;
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      transition: all 0.3s ease;
+      width: 100%;
+      max-width: 520px;
+      position: relative;
+    }
+    .flow-node.root-node {
+      max-width: 440px;
+      border-color: #3b82f6;
+      background: rgba(59, 130, 246, 0.06);
+    }
+    .flow-node.stage-node {
+      border-color: var(--border-accent);
+    }
+    .flow-node.data-node {
+      border-color: #f59e0b;
+      background: rgba(245, 158, 11, 0.05);
+      max-width: 440px;
+    }
+    .flow-node.error-node {
+      border-color: #ef4444;
+      background: rgba(239, 68, 68, 0.05);
+    }
+    .flow-node.full-stage {
+      max-width: 620px;
+    }
+    .flow-node.active-highlight {
+      border-color: var(--emerald-400) !important;
+      background: rgba(16, 185, 129, 0.15) !important;
+      box-shadow: 0 0 25px rgba(16, 185, 129, 0.45) !important;
+      transform: scale(1.02);
+    }
+
+    .fn-icon-box {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      color: var(--emerald-400);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .fn-icon-box.stt-box { color: #38bdf8; }
+    .fn-icon-box.guard-box { color: #10b981; }
+    .fn-icon-box.mem-box { color: #f43f5e; }
+    .fn-icon-box.ret-box { color: #818cf8; }
+    .fn-icon-box.inf-box { color: #fbbf24; }
+    .fn-icon-box.aud-box { color: #34d399; }
+    .fn-icon-box.del-box { color: #38bdf8; }
+    .fn-icon-box.err-box { color: #f87171; }
+    .fn-icon-box.data-box { color: #f59e0b; }
+
+    .fn-text-wrap { flex: 1; text-align: left; }
+    .fn-title-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .fn-title {
+      font-size: 14.5px;
+      font-weight: 800;
+      color: #fff;
+    }
+    .fn-sub {
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-top: 2px;
+    }
+    .fn-lat {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--emerald-400);
+      background: rgba(16, 185, 129, 0.12);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      padding: 2px 7px;
+      border-radius: 6px;
+    }
+
+    /* Decision Diamond */
+    .flow-diamond {
+      width: 130px;
+      height: 130px;
+      transform: rotate(45deg);
+      background: var(--bg-surface-elevated);
+      border: 1.5px solid var(--border-accent);
+      margin: 18px 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s;
+      box-shadow: 0 0 20px rgba(0,0,0,0.3);
+    }
+    .flow-diamond.active-highlight {
+      border-color: var(--cyan-400);
+      background: rgba(56, 189, 248, 0.15);
+      box-shadow: 0 0 25px rgba(56, 189, 248, 0.5);
+    }
+    .diamond-inner {
+      transform: rotate(-45deg);
       text-align: center;
     }
-    .arch-box img {
-      max-width: 100%;
-      height: auto;
-      border-radius: 16px;
-      border: 1px solid var(--border-accent);
-      box-shadow: 0 12px 40px rgba(0,0,0,0.5);
-      margin-bottom: 28px;
+    .diamond-title {
+      font-size: 13px;
+      font-weight: 800;
+      color: #fff;
     }
+
+    /* Connectors & Laser Beams */
+    .flow-connector-vertical {
+      width: 2px;
+      height: 32px;
+      background: var(--border-subtle);
+      position: relative;
+      overflow: hidden;
+    }
+    .flow-pulse {
+      position: absolute;
+      top: -100%;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(180deg, transparent, var(--emerald-400), transparent);
+      animation: pulseTravel 2s infinite linear;
+    }
+    @keyframes pulseTravel {
+      0% { top: -100%; }
+      100% { top: 100%; }
+    }
+
+    /* Branch Rows */
+    .flow-split-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 36px;
+      width: 100%;
+      max-width: 680px;
+      margin: 6px 0;
+    }
+    .flow-branch {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .branch-pill {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 12px;
+      border-radius: 99px;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .voice-pill {
+      background: rgba(56, 189, 248, 0.15);
+      border: 1px solid rgba(56, 189, 248, 0.4);
+      color: var(--cyan-400);
+    }
+    .text-pill {
+      background: rgba(251, 191, 36, 0.15);
+      border: 1px solid rgba(251, 191, 36, 0.4);
+      color: var(--amber-400);
+    }
+    .pass-pill {
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      color: var(--emerald-400);
+    }
+    .block-pill {
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid rgba(239, 68, 68, 0.4);
+      color: #f87171;
+    }
+    .flow-bypass-line {
+      width: 2px;
+      height: 90px;
+      background: var(--border-subtle);
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Guard Split */
+    .flow-guard-row {
+      display: grid;
+      grid-template-columns: 1fr 1.6fr;
+      gap: 24px;
+      width: 100%;
+      max-width: 720px;
+      margin: 6px 0;
+    }
+    .guard-col {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* Joint Retrieval Row & Corpus Cylinder */
+    .retrieval-joint-row {
+      display: grid;
+      grid-template-columns: 1.8fr 1fr;
+      gap: 20px;
+      width: 100%;
+      max-width: 720px;
+      margin: 6px 0;
+      align-items: center;
+    }
+    .corpus-cylinder {
+      background: rgba(251, 191, 36, 0.06);
+      border: 1.5px dashed rgba(251, 191, 36, 0.4);
+      border-radius: 16px;
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-align: left;
+    }
+    .corpus-cylinder.active-highlight {
+      border-color: var(--amber-400);
+      background: rgba(251, 191, 36, 0.2);
+      box-shadow: 0 0 20px rgba(251, 191, 36, 0.4);
+    }
+    .cyl-icon { color: var(--amber-400); font-size: 24px; }
+    .cyl-title { font-size: 13px; font-weight: 800; color: #fff; }
+    .cyl-sub { font-size: 11px; color: var(--text-secondary); }
 
     /* ── Benchmarks Table ── */
     .benchmarks-card {
@@ -535,10 +838,13 @@
 
     /* ── Responsive ── */
     @media (max-width: 900px) {
-      .hero h1 { font-size: 38px; }
+      .hero h1 { font-size: 36px; }
       .metrics-strip { grid-template-columns: repeat(2, 1fr); }
       .features-grid { grid-template-columns: 1fr; }
       .team-grid { grid-template-columns: 1fr; }
+      .flow-split-row { grid-template-columns: 1fr; }
+      .flow-guard-row { grid-template-columns: 1fr; }
+      .retrieval-joint-row { grid-template-columns: 1fr; }
       .nav-menu { display: none; }
     }
   </style>
@@ -678,20 +984,234 @@
     </div>
   </section>
 
-  <!-- ── Architecture Section ── -->
+  <!-- ── Architecture Section (Exact Branching Flowchart Visualizer) ── -->
   <section class="section-container" id="architecture">
     <div class="section-header">
-      <div class="section-tag">System Blueprint</div>
+      <div class="section-tag">Interactive Architecture Flow</div>
       <h2 class="section-title">End-to-End System Execution Flow</h2>
-      <p class="section-desc">Trace every conversational query through our 7 deterministic pipeline stages.</p>
+      <p class="section-desc">Interactive execution engine tracing speech input, decision branching, vector retrieval, and grounded synthesis.</p>
     </div>
 
-    <div class="arch-box">
-      <img src="architecture_flow.png" alt="VoxRAG End-to-End System Execution Flow" />
-      <div style="display:flex;justify-content:center;gap:16px;">
+    <div class="flowchart-visualizer-card">
+      <div class="flowchart-top-bar">
+        <div class="flowchart-status">
+          <span class="live-flow-beacon"></span>
+          <span id="flowStatusLabel">Interactive Execution Engine · Ready</span>
+        </div>
+        <div class="flowchart-actions">
+          <div class="flow-timer-pill">
+            <span style="color:var(--text-muted);">Simulated Latency:</span>
+            <strong id="liveFlowTimer" style="color:var(--emerald-400);font-family:var(--font-mono);">142.0 ms</strong>
+          </div>
+          <button class="btn-flow-sim" id="btnSimVoice" onclick="startFlowSimulation('voice')">
+            <svg class="icon" viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/></svg>
+            Simulate Voice Flow
+          </button>
+          <button class="btn-flow-sim secondary" id="btnSimText" onclick="startFlowSimulation('text')">
+            <svg class="icon" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            Simulate Text Flow
+          </button>
+        </div>
+      </div>
+
+      <!-- Flowchart Nodes Hierarchy -->
+      <div class="flow-tree-wrapper">
+        <!-- 1. Root Input Node -->
+        <div class="flow-node root-node" id="fn-input">
+          <div class="fn-icon-box">
+            <svg class="icon" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          </div>
+          <div class="fn-text-wrap">
+            <div class="fn-title">User Input</div>
+            <div class="fn-sub">Voice Microphone Audio OR Typed Text</div>
+          </div>
+        </div>
+
+        <div class="flow-connector-vertical"><div class="flow-pulse"></div></div>
+
+        <!-- 2. Decision Diamond: Input Type? -->
+        <div class="flow-diamond" id="fn-decision">
+          <div class="diamond-inner">
+            <div class="diamond-title">Input Type?</div>
+          </div>
+        </div>
+
+        <!-- Split Branches: Voice vs Text -->
+        <div class="flow-split-row">
+          <!-- Left Branch: Voice Audio -->
+          <div class="flow-branch left-branch">
+            <div class="branch-pill voice-pill">Voice Audio</div>
+            <div class="flow-connector-vertical"><div class="flow-pulse"></div></div>
+            <div class="flow-node stage-node" id="fn-stt">
+              <div class="fn-icon-box stt-box">
+                <svg class="icon" viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+              </div>
+              <div class="fn-text-wrap">
+                <div class="fn-title-row">
+                  <span class="fn-title">Stage 1: STT Engine</span>
+                  <span class="fn-lat">62.4 ms</span>
+                </div>
+                <div class="fn-sub">Sarvam AI saarika:v1 / Groq Whisper Turbo</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Branch: Typed Text Bypass -->
+          <div class="flow-branch right-branch">
+            <div class="branch-pill text-pill">Typed Text</div>
+            <div class="flow-bypass-line"><div class="flow-pulse"></div></div>
+          </div>
+        </div>
+
+        <div class="flow-connector-vertical"><div class="flow-pulse"></div></div>
+
+        <!-- Clean Transcribed Text Convergence -->
+        <div class="flow-node data-node" id="fn-clean-text">
+          <div class="fn-icon-box data-box">
+            <svg class="icon" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          </div>
+          <div class="fn-text-wrap">
+            <div class="fn-title">Clean Normalized Text</div>
+            <div class="fn-sub">UTF-8 Sanitized Query String</div>
+          </div>
+        </div>
+
+        <div class="flow-connector-vertical"><div class="flow-pulse"></div></div>
+
+        <!-- Stage 2: Guardrails -->
+        <div class="flow-node stage-node" id="fn-guardrails">
+          <div class="fn-icon-box guard-box">
+            <svg class="icon" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
+          </div>
+          <div class="fn-text-wrap">
+            <div class="fn-title-row">
+              <span class="fn-title">Stage 2: Input Guardrails</span>
+              <span class="fn-lat">2.1 ms</span>
+            </div>
+            <div class="fn-sub">Prompt Injection, Toxicity &amp; Length Filtering</div>
+          </div>
+        </div>
+
+        <!-- Guardrails Split: Blocked vs Passed -->
+        <div class="flow-guard-row">
+          <!-- Blocked Dropoff -->
+          <div class="guard-col blocked-col" id="fn-blocked">
+            <div class="branch-pill block-pill">Blocked</div>
+            <div class="flow-connector-vertical"><div class="flow-pulse"></div></div>
+            <div class="flow-node error-node">
+              <div class="fn-icon-box err-box">
+                <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+              </div>
+              <div class="fn-text-wrap">
+                <div class="fn-title">Return Blocked Response</div>
+                <div class="fn-sub">Sanitized Safety Intercept</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Passed Stream -->
+          <div class="guard-col passed-col">
+            <div class="branch-pill pass-pill">Passed</div>
+            <div class="flow-connector-vertical"><div class="flow-pulse"></div></div>
+            <div class="flow-node stage-node" id="fn-memory">
+              <div class="fn-icon-box mem-box">
+                <svg class="icon" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+              </div>
+              <div class="fn-text-wrap">
+                <div class="fn-title-row">
+                  <span class="fn-title">Stage 3: Conversational Memory Engine</span>
+                  <span class="fn-lat">1.8 ms</span>
+                </div>
+                <div class="fn-sub">Contextual Pronoun Resolution &amp; History Injection</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Stage 4: Dense Vector Retrieval with Knowledge Cylinder -->
+        <div class="retrieval-joint-row">
+          <div class="flow-node stage-node full-stage" id="fn-retrieval">
+            <div class="fn-icon-box ret-box">
+              <svg class="icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            </div>
+            <div class="fn-text-wrap">
+              <div class="fn-title-row">
+                <span class="fn-title">Stage 4: Dense Vector Retrieval</span>
+                <span class="fn-lat">18.3 ms</span>
+              </div>
+              <div class="fn-sub">all-MiniLM-L6-v2 384-dim + FAISS FlatIP Exact Dot Product</div>
+            </div>
+          </div>
+
+          <!-- 48,995 Corpus Cylinder Badge -->
+          <div class="corpus-cylinder" id="fn-corpus">
+            <div class="cyl-icon">
+              <svg class="icon" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+            </div>
+            <div>
+              <div class="cyl-title">48,995 MSMARCO-XI Chunks</div>
+              <div class="cyl-sub">4 Chunking Strategy Matrices</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="flow-connector-vertical"><div class="flow-pulse"></div></div>
+
+        <!-- Stage 5: Groq LPU Inference -->
+        <div class="flow-node stage-node full-stage" id="fn-inference">
+          <div class="fn-icon-box inf-box">
+            <svg class="icon" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          </div>
+          <div class="fn-text-wrap">
+            <div class="fn-title-row">
+              <span class="fn-title">Stage 5: Groq LPU Neural Inference</span>
+              <span class="fn-lat">54.2 ms</span>
+            </div>
+            <div class="fn-sub">openai/gpt-oss-20b / groq/compound-mini + Pydantic Schema</div>
+          </div>
+        </div>
+
+        <div class="flow-connector-vertical"><div class="flow-pulse"></div></div>
+
+        <!-- Stage 6: Output Grounding Audit -->
+        <div class="flow-node stage-node full-stage" id="fn-audit">
+          <div class="fn-icon-box aud-box">
+            <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>
+          </div>
+          <div class="fn-text-wrap">
+            <div class="fn-title-row">
+              <span class="fn-title">Stage 6: Output Grounding &amp; Hallucination Audit</span>
+              <span class="fn-lat">5.0 ms</span>
+            </div>
+            <div class="fn-sub">Semantic Cosine Similarity Check (&gt;= 0.82)</div>
+          </div>
+        </div>
+
+        <div class="flow-connector-vertical"><div class="flow-pulse"></div></div>
+
+        <!-- Stage 7: UI Delivery -->
+        <div class="flow-node stage-node full-stage target-node" id="fn-delivery">
+          <div class="fn-icon-box del-box">
+            <svg class="icon" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+          </div>
+          <div class="fn-text-wrap">
+            <div class="fn-title-row">
+              <span class="fn-title">Stage 7: Conversational UI &amp; Voice Delivery</span>
+              <span class="fn-lat">&lt; 1.0 ms</span>
+            </div>
+            <div class="fn-sub">Streamed Answer + Timestamps + Sources + 3 Smart Suggestions</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;justify-content:center;margin-top:36px;gap:16px;">
+        <a href="/chat" class="btn-hero-primary">
+          <svg class="icon" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          Launch Live Voice Studio
+        </a>
         <a href="/docs" class="btn-hero-secondary">
           <svg class="icon" viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
-          Read Mathematical &amp; Architecture Details
+          Read Technical Whitepaper
         </a>
       </div>
     </div>
@@ -844,6 +1364,63 @@
       <a href="https://github.com/gkm563/VoxRAG" target="_blank">GitHub Repository</a>
     </p>
   </footer>
+
+  <script>
+    // ── Interactive Flow Simulation Script ──
+    async function startFlowSimulation(mode) {
+      const statusLbl = document.getElementById('flowStatusLabel');
+      const timerEl = document.getElementById('liveFlowTimer');
+      const btnV = document.getElementById('btnSimVoice');
+      const btnT = document.getElementById('btnSimText');
+
+      btnV.disabled = true;
+      btnT.disabled = true;
+
+      // Clear previous active states
+      document.querySelectorAll('.flow-node, .flow-diamond, .corpus-cylinder').forEach(el => {
+        el.classList.remove('active-highlight');
+      });
+
+      const sequence = mode === 'voice' ? [
+        { id: 'fn-input', name: 'User Voice Input Received', ms: 0 },
+        { id: 'fn-decision', name: 'Evaluating Input Type -> Voice Audio', ms: 5 },
+        { id: 'fn-stt', name: 'Stage 1: STT Transcription (Sarvam / Whisper)', ms: 62.4 },
+        { id: 'fn-clean-text', name: 'Transcribed Text Normalized', ms: 68.0 },
+        { id: 'fn-guardrails', name: 'Stage 2: Prompt Injection & Length Filtering', ms: 70.1 },
+        { id: 'fn-memory', name: 'Stage 3: Conversational Memory & Coreference Resolver', ms: 71.9 },
+        { id: 'fn-corpus', name: 'Referencing 48,995 Multilingual Chunks', ms: 78.0 },
+        { id: 'fn-retrieval', name: 'Stage 4: FAISS FlatIP Inner-Product Vector Search', ms: 90.2 },
+        { id: 'fn-inference', name: 'Stage 5: Groq LPU Neural Generation (openai/gpt-oss-20b)', ms: 137.0 },
+        { id: 'fn-audit', name: 'Stage 6: Output Grounding Cosine Alignment Audit (0.94)', ms: 142.0 },
+        { id: 'fn-delivery', name: 'Stage 7: UI Stream + 1-Click Audio Playback Ready', ms: 142.0 }
+      ] : [
+        { id: 'fn-input', name: 'User Typed Text Input Received', ms: 0 },
+        { id: 'fn-decision', name: 'Evaluating Input Type -> Typed Text (Bypassing STT)', ms: 2 },
+        { id: 'fn-clean-text', name: 'Text Query Cleaned & Normalized', ms: 3 },
+        { id: 'fn-guardrails', name: 'Stage 2: Prompt Injection & Length Filtering', ms: 5.1 },
+        { id: 'fn-memory', name: 'Stage 3: Conversational Memory & History Injection', ms: 6.9 },
+        { id: 'fn-corpus', name: 'Referencing 48,995 Multilingual Chunks', ms: 12.0 },
+        { id: 'fn-retrieval', name: 'Stage 4: FAISS FlatIP Inner-Product Vector Search', ms: 25.2 },
+        { id: 'fn-inference', name: 'Stage 5: Groq LPU Neural Generation', ms: 74.0 },
+        { id: 'fn-audit', name: 'Stage 6: Cosine Grounding Verification (0.96)', ms: 79.0 },
+        { id: 'fn-delivery', name: 'Stage 7: Streamed Answer + Follow-Up Chips Ready', ms: 79.0 }
+      ];
+
+      for (let step of sequence) {
+        statusLbl.innerText = `● ${step.name}…`;
+        timerEl.innerText = `${step.ms.toFixed(1)} ms`;
+        const node = document.getElementById(step.id);
+        if (node) {
+          node.classList.add('active-highlight');
+        }
+        await new Promise(r => setTimeout(r, 480));
+      }
+
+      statusLbl.innerText = `✓ Execution Flow Complete (${mode === 'voice' ? '142.0ms' : '79.0ms'})`;
+      btnV.disabled = false;
+      btnT.disabled = false;
+    }
+  </script>
 
 </body>
 </html>
