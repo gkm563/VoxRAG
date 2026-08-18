@@ -3,1377 +3,1024 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>VoxRAG — Conversational Voice & Type RAG System</title>
+<title>VoxRAG — ChatGPT Style Conversational Voice & Text RAG</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
 <style>
-  *{margin:0;padding:0;box-sizing:border-box;transition:background-color 0.2s ease,border-color 0.2s ease,color 0.2s ease;}
+  *{margin:0;padding:0;box-sizing:border-box;}
 
-  /* ── Dark Theme (Default) ── */
-  :root[data-theme="dark"]{
-    --bg-primary:#0d0f14;--bg-secondary:#12151c;--bg-card:#181c26;--bg-hover:#1e2330;
-    --border:#232838;--border-light:#2a3045;
-    --accent:#6c63ff;--accent-dim:#6c63ff22;--accent2:#00d4aa;--accent3:#ff6b6b;--accent4:#ffd93d;
-    --text-primary:#e8eaf0;--text-secondary:#8892a4;--text-muted:#4a5568;
-    --green:#00d4aa;--red:#ff6b6b;--yellow:#ffd93d;--blue:#4dabf7;
-    --card-shadow:0 4px 20px #00000040;
-    --sidebar-w:210px;--right-w:320px;
-    --radius:12px;--radius-sm:8px;
+  /* ── Dark Theme (ChatGPT Exact Aesthetic) ── */
+  :root {
+    --bg-main: #212121;
+    --bg-sidebar: #171717;
+    --bg-capsule: #2f2f2f;
+    --bg-capsule-hover: #383838;
+    --bg-user-bubble: #1e3a8a;
+    --bg-hover: #212121;
+    --border-subtle: #2f2f2f;
+    --border-card: #383838;
+    --accent-blue: #3b82f6;
+    --accent-glow: rgba(59, 130, 246, 0.3);
+    --text-primary: #ececec;
+    --text-secondary: #b4b4b4;
+    --text-muted: #737373;
+    --green: #10a37f;
+    --red: #ef4444;
+    --yellow: #f59e0b;
+    --sidebar-w: 260px;
   }
 
-  /* ── Light Theme ── */
-  :root[data-theme="light"]{
-    --bg-primary:#f4f6fb;--bg-secondary:#ffffff;--bg-card:#ffffff;--bg-hover:#f1f4f9;
-    --border:#e2e8f0;--border-light:#cbd5e1;
-    --accent:#534bf3;--accent-dim:#6c63ff15;--accent2:#059669;--accent3:#dc2626;--accent4:#d97706;
-    --text-primary:#0f172a;--text-secondary:#475569;--text-muted:#94a3b8;
-    --green:#059669;--red:#dc2626;--yellow:#d97706;--blue:#2563eb;
-    --card-shadow:0 4px 16px #0000000a;
-    --sidebar-w:210px;--right-w:320px;
-    --radius:12px;--radius-sm:8px;
-  }
-
-  html,body{height:100%;font-family:'Inter',sans-serif;background:var(--bg-primary);color:var(--text-primary);overflow:hidden;}
+  html,body{height:100%;font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:var(--bg-main);color:var(--text-primary);overflow:hidden;}
 
   /* ── Layout ── */
-  .layout{display:grid;grid-template-columns:var(--sidebar-w) 1fr var(--right-w);height:100vh;}
+  .layout{display:flex;height:100vh;width:100vw;overflow:hidden;}
 
-  /* ── Sidebar ── */
-  .sidebar{background:var(--bg-secondary);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:20px 12px;user-select:none;}
-  .logo{display:flex;align-items:center;gap:10px;padding:4px 8px;margin-bottom:28px;}
-  .logo-icon{width:36px;height:36px;background:linear-gradient(135deg,var(--accent),#a855f7);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;color:white;}
-  .logo-text h2{font-size:15px;font-weight:700;letter-spacing:-0.02em;}
-  .logo-text p{font-size:10px;color:var(--text-muted);letter-spacing:0.05em;}
-  .nav{flex:1;display:flex;flex-direction:column;gap:3px;}
-  .nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--radius-sm);cursor:pointer;font-size:13px;font-weight:500;color:var(--text-secondary);}
-  .nav-item:hover{background:var(--bg-hover);color:var(--text-primary);}
-  .nav-item.active{background:var(--accent-dim);color:var(--accent);border:1px solid var(--accent);font-weight:600;}
-  .nav-item svg{width:16px;height:16px;flex-shrink:0;}
-  .sidebar-bottom{border-top:1px solid var(--border);padding-top:14px;margin-top:8px;}
-  .user-card{display:flex;align-items:center;gap:10px;padding:8px;border-radius:var(--radius-sm);cursor:pointer;}
-  .user-avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--accent),#a855f7);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;color:white;}
-  .user-info{flex:1;}
-  .user-name{font-size:12.5px;font-weight:600;}
-  .user-role{font-size:10px;color:var(--text-muted);}
+  /* ── Left Sidebar (ChatGPT Style) ── */
+  .sidebar{
+    width: var(--sidebar-w);
+    background: var(--bg-sidebar);
+    border-right: 1px solid var(--border-subtle);
+    display: flex;
+    flex-direction: column;
+    padding: 12px 10px;
+    flex-shrink: 0;
+    user-select: none;
+    z-index: 10;
+  }
 
-  /* Theme Switcher Toggle */
-  .theme-toggle-row{display:flex;align-items:center;justify-content:space-between;padding:8px;margin-top:6px;font-size:12px;color:var(--text-secondary);cursor:pointer;}
-  .toggle-switch{width:38px;height:20px;background:var(--accent);border-radius:99px;position:relative;cursor:pointer;}
-  .toggle-switch::after{content:'';position:absolute;top:2px;right:2px;width:16px;height:16px;background:white;border-radius:50%;transition:transform 0.2s;}
-  [data-theme="light"] .toggle-switch{background:#cbd5e1;}
-  [data-theme="light"] .toggle-switch::after{transform:translateX(-18px);background:white;}
+  .sidebar-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 4px 8px;
+    margin-bottom: 8px;
+  }
+  .brand-logo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 15px;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: -0.02em;
+  }
+  .brand-badge {
+    font-size: 10px;
+    background: #2a2a2a;
+    color: #a3a3a3;
+    padding: 2px 6px;
+    border-radius: 6px;
+    font-weight: 500;
+  }
+  .sidebar-icon-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .sidebar-icon-btn:hover { background: var(--bg-capsule); color: #fff; }
 
-  /* ── Main ── */
-  .main{display:flex;flex-direction:column;overflow:hidden;background:var(--bg-primary);}
-  .top-bar{display:flex;align-items:center;justify-content:space-between;padding:16px 24px;border-bottom:1px solid var(--border);flex-shrink:0;background:var(--bg-secondary);}
-  .top-bar-left h1{font-size:18px;font-weight:700;letter-spacing:-0.02em;}
-  .top-bar-left p{font-size:12px;color:var(--text-secondary);margin-top:2px;}
-  .top-bar-right{display:flex;align-items:center;gap:12px;}
-  .status-pill{display:flex;align-items:center;gap:6px;padding:5px 12px;border-radius:99px;font-size:12px;font-weight:500;background:var(--bg-hover);border:1px solid var(--border);}
-  .status-dot{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green);animation:pulse 2s infinite;}
-  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.5;}}
-  .live-pill{display:flex;align-items:center;gap:6px;padding:5px 14px;border-radius:99px;font-size:12px;font-weight:600;background:var(--accent);color:white;}
-  .mode-badge-btn{display:flex;align-items:center;gap:6px;padding:5px 12px;border-radius:var(--radius-sm);font-size:12px;font-weight:600;background:var(--bg-hover);border:1px solid var(--border);color:var(--text-primary);cursor:pointer;}
-  .mode-badge-btn:hover{border-color:var(--accent);}
+  /* New Chat Button */
+  .btn-new-chat {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    background: transparent;
+    border: 1px solid var(--border-card);
+    color: #fff;
+    padding: 9px 12px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    margin-bottom: 12px;
+    transition: background 0.15s;
+  }
+  .btn-new-chat:hover {
+    background: var(--bg-capsule);
+    border-color: #4a4a4a;
+  }
 
-  /* ── Content Panes ── */
-  .tab-pane{flex:1;overflow-y:auto;padding:20px 24px;display:none;flex-direction:column;gap:16px;}
-  .tab-pane.active{display:flex;}
-  .tab-pane::-webkit-scrollbar{width:4px;}
-  .tab-pane::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px;}
+  /* Nav items */
+  .nav-group {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin-bottom: 14px;
+  }
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 7px 10px;
+    border-radius: 8px;
+    font-size: 13px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.15s;
+  }
+  .nav-item:hover { background: var(--bg-capsule); color: #fff; }
+  .nav-item.active { background: #262626; color: #fff; font-weight: 500; }
+  .nav-item svg { width: 16px; height: 16px; flex-shrink: 0; }
 
-  /* ── Unified Dual-Input Card (Voice + Type + Multi-Turn) ── */
-  .unified-input-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:18px 22px;box-shadow:var(--card-shadow);display:flex;flex-direction:column;gap:14px;}
-  .input-header-row{display:flex;justify-content:space-between;align-items:center;}
-  .input-mode-tabs{display:flex;gap:6px;align-items:center;}
-  .mode-tab{padding:5px 12px;border-radius:6px;font-size:12px;font-weight:600;color:var(--text-secondary);cursor:pointer;background:var(--bg-hover);border:1px solid var(--border);}
-  .mode-tab.active{background:var(--accent);color:white;border-color:var(--accent);box-shadow:0 2px 8px #6c63ff44;}
-  .btn-new-chat{padding:5px 12px;border-radius:6px;font-size:12px;font-weight:600;background:var(--bg-hover);color:var(--text-secondary);border:1px solid var(--border);cursor:pointer;}
-  .btn-new-chat:hover{border-color:var(--accent);color:var(--accent);}
+  /* Section Title */
+  .sidebar-section-title {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted);
+    padding: 6px 10px 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
 
-  /* Typing Area */
-  .type-box-wrapper{display:flex;gap:10px;align-items:center;background:var(--bg-hover);border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 12px;}
-  .type-box-wrapper:focus-within{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-dim);}
-  .type-box-input{flex:1;background:transparent;border:none;outline:none;font-size:14px;color:var(--text-primary);font-family:inherit;}
-  .type-box-input::placeholder{color:var(--text-muted);}
-  .prompt-send-btn{background:linear-gradient(135deg,var(--accent),#a855f7);border:none;color:white;width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:15px;flex-shrink:0;}
-  .prompt-send-btn:hover{opacity:0.85;transform:scale(1.05);}
-  .prompt-send-btn:disabled{opacity:0.4;cursor:not-allowed;transform:none;}
-  .prompt-mic-inline{background:var(--bg-card);border:1px solid var(--border);color:var(--text-primary);width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:15px;flex-shrink:0;}
-  .prompt-mic-inline:hover{border-color:var(--accent);color:var(--accent);}
-  .prompt-mic-inline.recording{background:var(--red);color:white;animation:pulse 1s infinite;}
+  /* History list */
+  .chat-list {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .chat-list::-webkit-scrollbar { width: 4px; }
+  .chat-list::-webkit-scrollbar-thumb { background: #2a2a2a; border-radius: 4px; }
 
-  /* Voice Big Visualizer Box */
-  .voice-box-container{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 0 4px;}
-  .voice-visualizer{display:flex;align-items:center;justify-content:center;gap:16px;margin-bottom:10px;}
-  .waveform{display:flex;align-items:center;gap:3px;height:38px;}
-  .wave-bar{width:3px;border-radius:3px;background:var(--accent);opacity:0.3;transition:height 0.1s;animation:wave 1.2s ease-in-out infinite;}
-  .wave-bar:nth-child(1){height:8px;animation-delay:0s;}
-  .wave-bar:nth-child(2){height:18px;animation-delay:0.1s;}
-  .wave-bar:nth-child(3){height:28px;animation-delay:0.2s;}
-  .wave-bar:nth-child(4){height:38px;animation-delay:0.3s;}
-  .wave-bar:nth-child(5){height:32px;animation-delay:0.4s;}
-  .wave-bar:nth-child(6){height:24px;animation-delay:0.5s;}
-  .wave-bar:nth-child(7){height:14px;animation-delay:0.6s;}
-  .wave-bar:nth-child(8){height:8px;animation-delay:0.7s;}
-  @keyframes wave{0%,100%{transform:scaleY(0.4);}50%{transform:scaleY(1);opacity:0.9;}}
-  .waveform.active .wave-bar{opacity:1;}
-  .mic-btn-main{width:56px;height:56px;border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:22px;color:white;
-    background:linear-gradient(135deg,var(--accent),#a855f7);box-shadow:0 0 0 0 #6c63ff55;}
-  .mic-btn-main:hover{transform:scale(1.05);box-shadow:0 0 0 8px #6c63ff22;}
-  .mic-btn-main.recording{animation:micPulse 1s infinite;background:linear-gradient(135deg,var(--red),#ff4444);}
-  @keyframes micPulse{0%{box-shadow:0 0 0 0 #ff6b6b55;}70%{box-shadow:0 0 0 16px #ff6b6b00;}100%{box-shadow:0 0 0 0 #ff6b6b00;}}
-  .voice-status-text{font-size:12px;color:var(--text-secondary);text-align:center;}
-  .voice-status-text span{color:var(--green);font-weight:600;}
+  .chat-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 10px;
+    border-radius: 8px;
+    font-size: 12.5px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .chat-item:hover { background: var(--bg-capsule); color: #fff; }
+  .chat-item.active { background: #262626; color: #fff; font-weight: 500; }
+  .chat-item-dot { width: 6px; height: 6px; border-radius: 50%; background: #525252; flex-shrink: 0; }
+  .chat-item.active .chat-item-dot { background: var(--green); }
 
-  /* Conversation Info Banner */
-  .conv-banner{display:flex;align-items:center;justify-content:space-between;padding:6px 12px;background:var(--accent-dim);border:1px solid var(--accent);border-radius:var(--radius-sm);font-size:11.5px;color:var(--text-primary);}
+  /* User profile bottom bar */
+  .sidebar-footer {
+    border-top: 1px solid var(--border-subtle);
+    padding-top: 10px;
+    margin-top: auto;
+  }
+  .user-pill {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 8px;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+  .user-pill:hover { background: var(--bg-capsule); }
+  .user-avatar-badge {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: #ea580c;
+    color: white;
+    font-size: 11px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .user-name-text { font-size: 12.5px; font-weight: 500; color: #fff; }
 
-  /* Quick Suggestion Chips */
-  .chips-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:2px;}
-  .chips-label{font-size:11px;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:0.04em;}
-  .prompt-chip{background:var(--bg-hover);border:1px solid var(--border);border-radius:99px;padding:4px 12px;font-size:11.5px;color:var(--text-secondary);cursor:pointer;}
-  .prompt-chip:hover{border-color:var(--accent);color:var(--text-primary);background:var(--accent-dim);}
+  /* ── Main Chat Area ── */
+  .main-chat-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    background: var(--bg-main);
+    position: relative;
+    overflow: hidden;
+  }
 
-  /* ── Messages with ChatGPT-style Edit System ── */
-  .msg-user{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:14px 18px;box-shadow:var(--card-shadow);position:relative;}
-  .msg-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
-  .msg-sender{font-size:12px;font-weight:600;color:var(--text-secondary);display:flex;align-items:center;gap:6px;}
-  .msg-actions{display:flex;align-items:center;gap:8px;}
-  .msg-action-btn{background:transparent;border:none;color:var(--text-muted);cursor:pointer;font-size:11px;padding:2px 6px;border-radius:4px;}
-  .msg-action-btn:hover{color:var(--text-primary);background:var(--bg-hover);}
-  .msg-text{font-size:14px;line-height:1.6;color:var(--text-primary);}
-  
-  /* Edit mode box */
-  .edit-box-container{display:flex;flex-direction:column;gap:8px;margin-top:4px;}
-  .edit-textarea{width:100%;background:var(--bg-hover);border:1px solid var(--accent);border-radius:var(--radius-sm);padding:10px;font-size:13.5px;color:var(--text-primary);font-family:inherit;outline:none;resize:vertical;}
-  .edit-buttons{display:flex;gap:8px;justify-content:flex-end;}
-  .btn-save{background:var(--accent);color:white;border:none;padding:5px 12px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;}
-  .btn-cancel{background:var(--bg-hover);color:var(--text-secondary);border:1px solid var(--border);padding:5px 12px;border-radius:6px;font-size:12px;cursor:pointer;}
+  /* Top Navigation Bar */
+  .top-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 20px;
+    border-bottom: 1px solid var(--border-subtle);
+    flex-shrink: 0;
+    background: var(--bg-main);
+    z-index: 5;
+  }
+  .model-selector {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #fff;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 6px;
+  }
+  .model-selector:hover { background: var(--bg-capsule); }
+  .top-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .btn-share {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--bg-capsule);
+    border: 1px solid var(--border-card);
+    color: #fff;
+    font-size: 12px;
+    padding: 5px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    text-decoration: none;
+  }
+  .btn-share:hover { background: var(--bg-capsule-hover); }
 
-  .msg-ai{background:var(--bg-card);border:1px solid var(--border-light);border-radius:var(--radius);padding:14px 18px;box-shadow:var(--card-shadow);}
-  .msg-ai-header{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
-  .ai-icon{width:24px;height:24px;border-radius:6px;background:linear-gradient(135deg,var(--accent),#a855f7);display:flex;align-items:center;justify-content:center;font-size:11px;color:white;}
-  .ai-name{font-size:13px;font-weight:600;color:var(--accent);}
-  .sources-section{margin-top:12px;border-top:1px solid var(--border);padding-top:12px;}
-  .sources-label{font-size:11px;color:var(--text-muted);margin-bottom:6px;font-weight:500;}
-  .source-chip{display:flex;justify-content:space-between;align-items:center;padding:7px 12px;background:var(--bg-hover);border:1px solid var(--border);border-radius:6px;margin-bottom:5px;cursor:pointer;}
-  .source-chip:hover{border-color:var(--accent);}
-  .source-name{font-size:12px;color:var(--accent);font-family:'JetBrains Mono',monospace;}
-  .source-score{font-size:11px;color:var(--text-muted);}
-  .msg-footer{display:flex;justify-content:space-between;align-items:center;margin-top:10px;}
-  .msg-footer-note{font-size:11px;color:var(--text-muted);}
-  .copy-btn{padding:4px 8px;border-radius:4px;border:1px solid var(--border);background:transparent;color:var(--text-muted);cursor:pointer;font-size:11px;}
-  .copy-btn:hover{color:var(--text-primary);border-color:var(--text-secondary);}
-  .blocked-msg{background:#ff6b6b11;border:1px solid #ff6b6b33;border-radius:var(--radius);padding:14px 18px;}
-  .blocked-title{color:var(--red);font-weight:600;font-size:13px;margin-bottom:4px;}
-  .blocked-reason{font-size:13px;color:var(--text-secondary);}
-  .thinking-msg{display:flex;align-items:center;gap:10px;padding:14px 18px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);}
-  .thinking-dots span{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--accent);margin:0 2px;animation:blink 1.2s infinite;}
-  .thinking-dots span:nth-child(2){animation-delay:0.2s;}
-  .thinking-dots span:nth-child(3){animation-delay:0.4s;}
-  @keyframes blink{0%,100%{opacity:0.2;}50%{opacity:1;}}
-  .badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:99px;font-size:10px;font-weight:600;}
-  .badge-green{background:#00d4aa22;color:var(--green);}
-  .badge-red{background:#ff6b6b22;color:var(--red);}
+  /* Chat Stream */
+  .chat-scroll-area {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px 20px 140px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    max-width: 820px;
+    width: 100%;
+    margin: 0 auto;
+  }
+  .chat-scroll-area::-webkit-scrollbar { width: 6px; }
+  .chat-scroll-area::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
 
-  /* ── Tab Panes ── */
-  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
-  .grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;}
-  .grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
-  .card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;box-shadow:var(--card-shadow);}
-  .card-header-line{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;}
-  .card-title{font-size:15px;font-weight:600;}
-  .card-desc{font-size:12px;color:var(--text-secondary);margin-top:2px;}
+  /* User Message (ChatGPT Blue Pill / Clean right alignment) */
+  .msg-row-user {
+    display: flex;
+    justify-content: flex-end;
+    width: 100%;
+  }
+  .user-bubble {
+    background: var(--bg-user-bubble);
+    color: #fff;
+    padding: 12px 18px;
+    border-radius: 20px;
+    max-width: 75%;
+    font-size: 14px;
+    line-height: 1.55;
+    position: relative;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+  }
+  .user-meta-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    font-size: 10.5px;
+    color: #93c5fd;
+    margin-bottom: 4px;
+  }
+  .user-edit-btn {
+    background: transparent;
+    border: none;
+    color: #bfdbfe;
+    cursor: pointer;
+    font-size: 11px;
+    padding: 0;
+  }
 
-  /* Tables */
-  .table-box{overflow-x:auto;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg-hover);}
-  table{width:100%;border-collapse:collapse;font-size:12.5px;}
-  th{text-align:left;padding:10px 14px;background:var(--bg-card);color:var(--text-secondary);font-size:11px;text-transform:uppercase;letter-spacing:0.05em;border-bottom:1px solid var(--border);}
-  td{padding:10px 14px;border-bottom:1px solid var(--border);color:var(--text-primary);}
-  tr:last-child td{border-bottom:none;}
-  tr:hover td{background:#ffffff05;}
+  /* Assistant Message (ChatGPT Rich Left-aligned block) */
+  .msg-row-ai {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+  }
+  .ai-header-line {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #fff;
+  }
+  .ai-logo-icon {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--green);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    color: #000;
+    font-weight: 700;
+  }
+  .ai-tag {
+    font-size: 10.5px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: 500;
+  }
+  .tag-grounded { background: #064e3b; color: #6ee7b7; }
+  .tag-time { font-size: 11px; color: var(--text-muted); font-weight: normal; margin-left: 4px; }
 
-  /* Log Stream */
-  .log-console{background:#080a0f;border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px;font-family:'JetBrains Mono',monospace;font-size:11.5px;max-height:480px;overflow-y:auto;}
-  [data-theme="light"] .log-console{background:#1e293b;color:#f8fafc;}
-  .log-line{padding:3px 0;display:flex;gap:12px;line-height:1.5;}
-  .log-time{color:var(--text-muted);}
-  .log-level-INFO{color:var(--green);font-weight:600;}
-  .log-level-WARN{color:var(--yellow);font-weight:600;}
-  .log-level-ERROR{color:var(--red);font-weight:600;}
-  .log-stage{color:var(--accent);font-weight:500;}
-  .log-msg{color:var(--text-primary);flex:1;}
-  [data-theme="light"] .log-msg{color:#f8fafc;}
+  .ai-content-body {
+    font-size: 14.5px;
+    color: #d1d5db;
+    line-height: 1.65;
+    padding-left: 30px;
+  }
+  .ai-content-body code {
+    background: #2f2f2f;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12.5px;
+    color: #38bdf8;
+  }
 
-  /* Interactive Elements */
-  .input-field{background:var(--bg-hover);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 14px;font-size:13px;color:var(--text-primary);outline:none;font-family:inherit;width:100%;}
-  .input-field:focus{border-color:var(--accent);}
-  .btn-primary{background:linear-gradient(135deg,var(--accent),#a855f7);border:none;border-radius:var(--radius-sm);color:white;font-weight:600;padding:8px 16px;cursor:pointer;font-size:12.5px;}
-  .btn-primary:hover{opacity:0.85;}
-  .btn-secondary{background:var(--bg-hover);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text-primary);padding:8px 16px;cursor:pointer;font-size:12.5px;}
+  /* Sources section */
+  .sources-box {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 10px;
+    padding-left: 30px;
+  }
+  .source-pill {
+    background: #262626;
+    border: 1px solid var(--border-card);
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-size: 11px;
+    color: var(--text-secondary);
+    font-family: 'JetBrains Mono', monospace;
+  }
 
-  /* Bottom status bar */
-  .status-bar{border-top:1px solid var(--border);padding:10px 24px;display:flex;align-items:center;gap:32px;flex-shrink:0;background:var(--bg-secondary);}
-  .stat-item label{font-size:10px;color:var(--text-muted);display:block;text-transform:uppercase;letter-spacing:0.06em;}
-  .stat-item span{font-size:12px;font-weight:600;color:var(--green);}
+  /* Dynamic Follow-up Suggestions */
+  .suggestions-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 10px;
+    padding-left: 30px;
+  }
+  .sug-pill-btn {
+    background: #262626;
+    border: 1px solid #404040;
+    color: #e5e5e5;
+    padding: 6px 12px;
+    border-radius: 99px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .sug-pill-btn:hover {
+    background: var(--bg-capsule-hover);
+    border-color: var(--accent-blue);
+    color: #fff;
+  }
 
-  /* ── Right Panel ── */
-  .right-panel{background:var(--bg-secondary);border-left:1px solid var(--border);overflow-y:auto;padding:16px;}
-  .right-panel::-webkit-scrollbar{width:3px;}
-  .right-panel::-webkit-scrollbar-thumb{background:var(--border);}
-  .panel-section{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:14px;box-shadow:var(--card-shadow);}
-  .panel-title{font-size:13px;font-weight:600;margin-bottom:4px;}
-  .panel-subtitle{font-size:10px;color:var(--text-muted);margin-bottom:14px;}
+  /* Action Buttons bar */
+  .ai-action-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding-left: 30px;
+    margin-top: 8px;
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+  .action-icon-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .action-icon-btn:hover { color: #fff; background: var(--bg-capsule); }
 
-  /* Pipeline flow */
-  .pipeline-flow{display:flex;align-items:center;gap:4px;margin-bottom:16px;}
-  .pipe-step{flex:1;text-align:center;}
-  .pipe-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;margin:0 auto 6px;font-size:16px;}
-  .pipe-step:nth-child(1) .pipe-icon{background:#6c63ff22;border:1px solid #6c63ff44;}
-  .pipe-step:nth-child(3) .pipe-icon{background:#00d4aa22;border:1px solid #00d4aa44;}
-  .pipe-step:nth-child(5) .pipe-icon{background:#4dabf722;border:1px solid #4dabf744;}
-  .pipe-step:nth-child(7) .pipe-icon{background:#ffd93d22;border:1px solid #ffd93d44;}
-  .pipe-step p{font-size:9.5px;font-weight:600;color:var(--text-secondary);}
-  .pipe-step small{font-size:9px;color:var(--text-muted);display:block;}
-  .pipe-arrow{color:var(--text-muted);font-size:10px;flex-shrink:0;}
-  .pipe-ms{font-size:10px;color:var(--text-muted);text-align:center;margin-top:2px;}
+  /* ── Floating Bottom Capsule Bar (ChatGPT Exact Style) ── */
+  .bottom-capsule-container {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(180deg, transparent 0%, var(--bg-main) 30%);
+    padding: 20px 20px 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    z-index: 10;
+  }
+  .capsule-box {
+    width: 100%;
+    max-width: 800px;
+    background: var(--bg-capsule);
+    border: 1px solid var(--border-card);
+    border-radius: 28px;
+    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.35);
+  }
+  .capsule-box:focus-within {
+    border-color: #525252;
+    background: #333333;
+  }
+  .btn-plus {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #383838;
+    border: none;
+    color: #fff;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  .btn-plus:hover { background: #454545; }
+  .capsule-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    font-size: 14.5px;
+    color: #fff;
+    font-family: inherit;
+  }
+  .capsule-input::placeholder { color: #8e8e8e; }
 
-  /* Latency cards */
-  .latency-cards{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px;}
-  .lat-card{background:var(--bg-hover);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 8px;text-align:center;}
-  .lat-label{font-size:10px;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:0.05em;}
-  .lat-value{font-size:20px;font-weight:700;margin:4px 0 2px;font-family:'JetBrains Mono',monospace;}
-  .lat-card:nth-child(1) .lat-value{color:var(--green);}
-  .lat-card:nth-child(2) .lat-value{color:var(--yellow);}
-  .lat-card:nth-child(3) .lat-value{color:var(--red);}
-  .lat-status{font-size:9px;font-weight:600;}
-  .lat-card:nth-child(1) .lat-status{color:var(--green);}
-  .lat-card:nth-child(2) .lat-status{color:var(--yellow);}
-  .lat-card:nth-child(3) .lat-status{color:var(--red);}
+  .capsule-tools {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .think-pill {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    background: #383838;
+    border: 1px solid #4a4a4a;
+    padding: 4px 10px;
+    border-radius: 99px;
+    font-size: 12px;
+    color: #d4d4d4;
+    cursor: pointer;
+    font-weight: 500;
+  }
+  .think-pill:hover { background: #454545; color: #fff; }
 
-  /* Chart */
-  .chart-area{height:80px;position:relative;overflow:hidden;}
-  canvas#latChart{width:100%;height:100%;}
-  .chart-labels{display:flex;justify-content:space-between;margin-top:4px;}
-  .chart-labels span{font-size:9px;color:var(--text-muted);}
+  .mic-round-btn {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: #383838;
+    border: none;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 14px;
+  }
+  .mic-round-btn:hover { background: #4a4a4a; }
+  .mic-round-btn.recording {
+    background: var(--red);
+    animation: pulse 1.2s infinite;
+  }
 
-  /* Guardrails */
-  .guardrail-row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--border);}
-  .guardrail-row:last-child{border-bottom:none;}
-  .guardrail-name{font-size:12.5px;display:flex;align-items:center;gap:8px;}
-  .guard-icon{width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;}
-  .guard-icon.pass{background:#00d4aa22;color:var(--green);}
-  .guard-icon.fail{background:#ff6b6b22;color:var(--red);}
-  .guard-status{font-size:11px;font-weight:600;}
-  .guard-status.pass{color:var(--green);}
-  .guard-status.fail{color:var(--red);}
-  .guard-all{font-size:11px;color:var(--green);font-weight:600;margin-bottom:10px;}
+  .send-round-btn {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: var(--accent-blue);
+    border: none;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 14px;
+    transition: transform 0.1s;
+  }
+  .send-round-btn:hover { transform: scale(1.05); }
+
+  .disclaimer-text {
+    font-size: 11.5px;
+    color: var(--text-muted);
+    margin-top: 8px;
+    text-align: center;
+  }
+
+  /* Inline edit modal / container */
+  .edit-container {
+    margin-top: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .edit-ta {
+    width: 100%;
+    background: #171717;
+    border: 1px solid var(--accent-blue);
+    color: #fff;
+    padding: 8px 10px;
+    border-radius: 8px;
+    font-size: 13px;
+    outline: none;
+    font-family: inherit;
+  }
+  .edit-actions { display: flex; justify-content: flex-end; gap: 6px; }
+  .btn-sm-cancel { background: #333; color: #bbb; border: none; padding: 4px 10px; border-radius: 6px; font-size: 11px; cursor: pointer; }
+  .btn-sm-save { background: var(--accent-blue); color: #fff; border: none; padding: 4px 10px; border-radius: 6px; font-size: 11px; cursor: pointer; }
+
+  /* Thinking Animation */
+  .thinking-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding-left: 30px;
+    font-size: 13.5px;
+    color: var(--text-muted);
+  }
+  .dot-flashing {
+    position: relative;
+    width: 6px;
+    height: 6px;
+    border-radius: 5px;
+    background-color: var(--text-muted);
+    animation: dot-flashing 1s infinite linear alternate;
+    animation-delay: 0.5s;
+  }
+  .dot-flashing::before, .dot-flashing::after {
+    content: "";
+    display: inline-block;
+    position: absolute;
+    top: 0;
+    width: 6px;
+    height: 6px;
+    border-radius: 5px;
+    background-color: var(--text-muted);
+    animation: dot-flashing 1s infinite alternate;
+  }
+  .dot-flashing::before { left: -10px; animation-delay: 0s; }
+  .dot-flashing::after { left: 10px; animation-delay: 1s; }
+  @keyframes dot-flashing { 0% { background-color: var(--text-muted); } 50%, 100% { background-color: #fff; } }
+
+  /* Toast Notification */
+  .toast {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #10a37f;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 99px;
+    font-size: 12px;
+    font-weight: 600;
+    display: none;
+    z-index: 100;
+  }
 </style>
 </head>
 <body>
+
+<div class="toast" id="toastBox">Copied to clipboard!</div>
+
 <div class="layout">
 
-  <!-- ── SIDEBAR ── -->
+  <!-- ── LEFT SIDEBAR (ChatGPT Style) ── -->
   <aside class="sidebar">
-    <div class="logo">
-      <div class="logo-icon">🎙️</div>
-      <div class="logo-text">
-        <h2>VoxRAG</h2>
-        <p>Voice · Retrieve · Generate</p>
+    <div class="sidebar-header">
+      <div class="brand-logo">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm1 14.93V18a1 1 0 0 1-2 0v-1.07A7 7 0 0 1 5.07 11H6a1 1 0 0 1 0-2h-.93A7 7 0 0 1 11 5.07V6a1 1 0 0 1 2 0v-.93A7 7 0 0 1 18.93 11H18a1 1 0 0 1 0 2h.93A7 7 0 0 1 13 16.93z"/></svg>
+        <span>ChatGPT</span>
+        <span class="brand-badge">VoxRAG</span>
+      </div>
+      <button class="sidebar-icon-btn" title="Search chats">🔍</button>
+    </div>
+
+    <!-- New Chat -->
+    <button class="btn-new-chat" onclick="startNewChat()">
+      <span>✏️</span> New chat
+    </button>
+
+    <!-- Navigation links -->
+    <div class="nav-group">
+      <a href="javascript:void(0)" class="nav-item active" onclick="switchNav('chat')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+        Chat
+      </a>
+      <a href="https://docs-three-dusky-37.vercel.app" target="_blank" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+        Architecture Guide ↗
+      </a>
+      <a href="https://voxrag.streamlit.app" target="_blank" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polygon points="10 8 16 12 10 16 10 8"></polygon></svg>
+        Streamlit App ↗
+      </a>
+      <a href="https://forms.gle/MNvCjcv23Hn2Eeu58" target="_blank" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+        Submission Form ↗
+      </a>
+    </div>
+
+    <!-- Pinned chats -->
+    <div class="sidebar-section-title">Pinned</div>
+    <div class="chat-list" style="max-height: 120px;">
+      <div class="chat-item" onclick="askPreset('What is a corporation?')">
+        <div class="chat-item-dot"></div>
+        <span>What is a corporation?</span>
+      </div>
+      <div class="chat-item" onclick="askPreset('What are its main types?')">
+        <div class="chat-item-dot"></div>
+        <span>What are its main types?</span>
+      </div>
+      <div class="chat-item" onclick="askPreset('Explain dense passage retrieval')">
+        <div class="chat-item-dot"></div>
+        <span>Dense passage retrieval</span>
       </div>
     </div>
-    <nav class="nav">
-      <div class="nav-item active" onclick="setNav(this,'chat')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
-        Chat &amp; Conversation
+
+    <!-- Recent chats -->
+    <div class="sidebar-section-title" style="margin-top: 10px;">Recents</div>
+    <div class="chat-list" id="recentsList">
+      <div class="chat-item active">
+        <div class="chat-item-dot"></div>
+        <span id="activeChatTitle">MSMARCO-XI RAG Session</span>
       </div>
-      <div class="nav-item" onclick="setNav(this,'analytics')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-        Analytics
-      </div>
-      <div class="nav-item" onclick="setNav(this,'pipeline')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-        Pipeline
-      </div>
-      <div class="nav-item" onclick="setNav(this,'guardrails')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-        Guardrails
-      </div>
-      <div class="nav-item" onclick="setNav(this,'dataset')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
-        Dataset
-      </div>
-      <div class="nav-item" onclick="setNav(this,'settings')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93l-1.41 1.41M5.34 18.66l-1.41 1.41M20 12h-2M6 12H4M19.07 19.07l-1.41-1.41M5.34 5.34L3.93 3.93M12 20v-2M12 6V4"/></svg>
-        Settings
-      </div>
-      <div class="nav-item" onclick="setNav(this,'logs')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
-        Logs
-      </div>
-    </nav>
-    <div class="sidebar-bottom">
-      <div class="user-card">
-        <div class="user-avatar">G</div>
-        <div class="user-info">
-          <div class="user-name">Gautam Maurya</div>
-          <div class="user-role">Developer</div>
-        </div>
-      </div>
-      <div class="theme-toggle-row" onclick="toggleTheme()">
-        <span id="themeLabel">☀️ Light / 🌙 Dark</span>
-        <div class="toggle-switch" id="themeSwitch"></div>
+    </div>
+
+    <!-- User Profile Footer -->
+    <div class="sidebar-footer">
+      <div class="user-pill" onclick="showToast('VoxRAG v2.4 Active · 48,995 Chunks')">
+        <div class="user-avatar-badge">GM</div>
+        <div class="user-name-text">Gautam Kumar Maurya</div>
       </div>
     </div>
   </aside>
 
-  <!-- ── MAIN CONTENT AREA ── -->
-  <main class="main">
-    <div class="top-bar">
-      <div class="top-bar-left">
-        <h1 id="pageTitle">Voice &amp; Type Conversational RAG</h1>
-        <p id="pageSubtitle">Multi-turn context-aware question answering with retrieval augmented generation</p>
+  <!-- ── MAIN CHAT VIEW (ChatGPT Exact Style) ── -->
+  <main class="main-chat-container">
+
+    <!-- Top Navigation Bar -->
+    <div class="top-nav">
+      <div class="model-selector">
+        <span>ChatGPT</span>
+        <span style="color:#737373;">4o-mini · Groq LPU</span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
       </div>
-      <div class="top-bar-right">
-        <button class="mode-badge-btn" onclick="toggleTheme()" id="topThemeBtn">🌓 Switch Mode</button>
-        <div class="status-pill">
-          <div class="status-dot"></div>
-          <span id="systemStatus">All Systems Operational</span>
-        </div>
-        <div class="live-pill">
-          <div class="status-dot" style="background:white;box-shadow:none;"></div>
-          Live
-        </div>
+      <div class="top-actions">
+        <a href="https://docs-three-dusky-37.vercel.app" target="_blank" class="btn-share">
+          <span>↗</span> Share Guide
+        </a>
       </div>
     </div>
 
-    <!-- 1. CHAT TAB (Unified Multi-Turn Conversational Interface) -->
-    <div class="tab-pane active" id="pane-chat">
-      <div class="unified-input-card">
-        <div class="input-header-row">
-          <div>
-            <h3 style="font-size:14.5px;font-weight:600;">Ask &amp; Continue Conversation</h3>
-            <p style="font-size:11.5px;color:var(--text-secondary);margin-top:2px;">Ask follow-up questions naturally — VoxRAG remembers past turns</p>
-          </div>
-          <div class="input-mode-tabs">
-            <button class="btn-new-chat" onclick="clearConversation()" title="Reset chat history">➕ New Chat</button>
-            <button class="mode-tab active" id="tabModeBoth" onclick="setInputMode('both')">⚡ Dual</button>
-            <button class="mode-tab" id="tabModeType" onclick="setInputMode('type')">⌨️ Type</button>
-            <button class="mode-tab" id="tabModeVoice" onclick="setInputMode('voice')">🎙️ Voice</button>
-          </div>
+    <!-- Chat Messages Scroll Area -->
+    <div class="chat-scroll-area" id="chatArea">
+      
+      <!-- Welcome Hero Message -->
+      <div class="msg-row-ai" id="welcomeGreeting">
+        <div class="ai-header-line">
+          <div class="ai-logo-icon">✦</div>
+          <span>VoxRAG</span>
+          <span class="ai-tag tag-grounded">✓ Ready</span>
         </div>
-
-        <!-- Voice Visualizer Box (Visible in Dual and Voice modes) -->
-        <div class="voice-box-container" id="voiceBoxArea">
-          <div class="voice-visualizer">
-            <div class="waveform" id="waveform">
-              <div class="wave-bar"></div><div class="wave-bar"></div>
-              <div class="wave-bar"></div><div class="wave-bar"></div>
-              <div class="wave-bar"></div><div class="wave-bar"></div>
-              <div class="wave-bar"></div><div class="wave-bar"></div>
-            </div>
-            <button class="mic-btn-main" id="micBtn" onclick="toggleRecording()" title="Click to record voice">
-              🎙️
-            </button>
-            <div class="waveform" id="waveform2">
-              <div class="wave-bar"></div><div class="wave-bar"></div>
-              <div class="wave-bar"></div><div class="wave-bar"></div>
-              <div class="wave-bar"></div><div class="wave-bar"></div>
-              <div class="wave-bar"></div><div class="wave-bar"></div>
-            </div>
-          </div>
-          <div class="voice-status-text" id="voiceStatus">
-            Click the microphone to speak, or type your question below
-          </div>
+        <div class="ai-content-body">
+          Hello! I am <b>VoxRAG</b>, a Voice and Text Question Answering system powered by <code>ai4bharat/MSMARCO-XI</code> with <b>48,995 indexed chunks</b> and <b>Groq LPU acceleration</b>.
+          <br/><br/>
+          You can speak into your microphone or type your question below. How can I help you today?
         </div>
-
-        <!-- Typing Box (Always readily accessible) -->
-        <div class="type-box-wrapper" id="typeBoxArea">
-          <input type="text" class="type-box-input" id="textInput" 
-                 placeholder="Type your question or follow-up (e.g. What is a corporation? / What are its types?)..." 
-                 onkeydown="if(event.key==='Enter')sendText()"/>
-          <button class="prompt-mic-inline" id="micBtnInline" onclick="toggleRecording()" title="Record voice">🎙️</button>
-          <button class="prompt-send-btn" id="sendBtn" onclick="sendText()" title="Send query">➤</button>
-        </div>
-
-        <!-- Suggestion Chips -->
-        <div class="chips-row">
-          <span class="chips-label">Try asking:</span>
-          <button class="prompt-chip" onclick="askSuggestion('What is a corporation?')">🏢 What is a corporation?</button>
-          <button class="prompt-chip" onclick="askSuggestion('What are its main types?')">📋 What are its main types?</button>
-          <button class="prompt-chip" onclick="askSuggestion('How does FAISS vector search work?')">🔍 How does FAISS work?</button>
-          <button class="prompt-chip" onclick="askSuggestion('Explain dense passage retrieval')">⚡ Dense passage retrieval</button>
+        <div class="suggestions-row">
+          <button class="sug-pill-btn" onclick="askPreset('What is a corporation?')">🏢 What is a corporation?</button>
+          <button class="sug-pill-btn" onclick="askPreset('What is the MSMARCO dataset used for?')">🔍 What is MSMARCO dataset?</button>
+          <button class="sug-pill-btn" onclick="askPreset('How does FAISS vector search work?')">⚡ How does FAISS search work?</button>
         </div>
       </div>
 
-      <!-- Chat history area with multi-turn conversation and edit support -->
-      <div id="chatHistory" style="display:flex;flex-direction:column;gap:14px;"></div>
     </div>
 
-    <!-- 2. ANALYTICS TAB (100% Real Live Computed Data) -->
-    <div class="tab-pane" id="pane-analytics">
-      <div class="grid-4">
-        <div class="card">
-          <div class="card-desc">P50 MEDIAN LATENCY</div>
-          <div class="card-title" style="font-size:24px;color:var(--green);margin-top:6px;" id="anaP50">—</div>
-          <div style="font-size:11px;color:var(--green);margin-top:4px;" id="anaP50Label">● Live Measured</div>
-        </div>
-        <div class="card">
-          <div class="card-desc">P70 LATENCY</div>
-          <div class="card-title" style="font-size:24px;color:var(--yellow);margin-top:6px;" id="anaP70">—</div>
-          <div style="font-size:11px;color:var(--green);margin-top:4px;" id="anaP70Label">● Healthy Distribution</div>
-        </div>
-        <div class="card">
-          <div class="card-desc">P100 MAX LATENCY</div>
-          <div class="card-title" style="font-size:24px;color:var(--red);margin-top:6px;" id="anaP100">—</div>
-          <div style="font-size:11px;color:var(--text-secondary);margin-top:4px;" id="anaP100Label">● Max Observed</div>
-        </div>
-        <div class="card">
-          <div class="card-desc">TOTAL QUERIES PROCESSED</div>
-          <div class="card-title" style="font-size:24px;color:var(--accent);margin-top:6px;" id="anaCount">—</div>
-          <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">Pipeline run count</div>
+    <!-- ── Floating Bottom Capsule Bar (ChatGPT Exact Design) ── -->
+    <div class="bottom-capsule-container">
+      <div class="capsule-box">
+        <button class="btn-plus" title="Add attachment" onclick="showToast('MSMARCO-XI Knowledge Base (48,995 Chunks Attached)')">+</button>
+        
+        <input 
+          type="text" 
+          id="chatInput" 
+          class="capsule-input" 
+          placeholder="Ask anything" 
+          autocomplete="off"
+          onkeydown="if(event.key==='Enter') submitQuery();"
+        />
+
+        <div class="capsule-tools">
+          <div class="think-pill" onclick="showToast('Reasoning Engine: Multi-Turn Pronoun Context Active')">
+            <span>🧠</span> Think
+          </div>
+
+          <button class="mic-round-btn" id="micBtn" title="Speak question" onclick="toggleVoiceRecord()">
+            🎙️
+          </button>
+
+          <button class="send-round-btn" id="sendBtn" title="Send message" onclick="submitQuery()">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg>
+          </button>
         </div>
       </div>
 
-      <div class="grid-2">
-        <div class="card">
-          <div class="card-header-line">
-            <div><div class="card-title">Real Stage Latency Breakdown</div><div class="card-desc">Computed averages across query history</div></div>
-          </div>
-          <div style="display:flex;flex-direction:column;gap:12px;margin-top:10px;">
-            <div>
-              <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;">
-                <span>Speech-to-Text (Sarvam AI / Groq Whisper)</span>
-                <span style="font-weight:600" id="anaStageStt">~65ms</span>
-              </div>
-              <div style="background:var(--border);height:8px;border-radius:4px;">
-                <div id="anaBarStt" style="background:#6c63ff;width:30%;height:8px;border-radius:4px;"></div>
-              </div>
-            </div>
-            <div>
-              <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;">
-                <span>Guardrails (Input + Output Checks)</span>
-                <span style="font-weight:600" id="anaStageGuard">~12ms</span>
-              </div>
-              <div style="background:var(--border);height:8px;border-radius:4px;">
-                <div id="anaBarGuard" style="background:#00d4aa;width:8%;height:8px;border-radius:4px;"></div>
-              </div>
-            </div>
-            <div>
-              <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;">
-                <span>FAISS Vector Retrieval (48,995 vectors)</span>
-                <span style="font-weight:600" id="anaStageRet">~52ms</span>
-              </div>
-              <div style="background:var(--border);height:8px;border-radius:4px;">
-                <div id="anaBarRet" style="background:#4dabf7;width:25%;height:8px;border-radius:4px;"></div>
-              </div>
-            </div>
-            <div>
-              <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;">
-                <span>Groq LLM Generation (groq/compound-mini)</span>
-                <span style="font-weight:600" id="anaStageGen">~85ms</span>
-              </div>
-              <div style="background:var(--border);height:8px;border-radius:4px;">
-                <div id="anaBarGen" style="background:#ffd93d;width:37%;height:8px;border-radius:4px;"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="card-header-line">
-            <div><div class="card-title">Live Quality & Grounding Audit</div><div class="card-desc">Real computed rates from execution records</div></div>
-          </div>
-          <div class="table-box" style="margin-top:10px;">
-            <table>
-              <tr><th>Evaluation Metric</th><th>Criteria</th><th>Live Value</th></tr>
-              <tr><td>Grounding Rate</td><td>Cosine Sim &gt; 0.30 to context</td><td style="color:var(--green);font-weight:600" id="anaAuditGrounding">95.0%</td></tr>
-              <tr><td>Safety Pass Rate</td><td>Toxicity &amp; Injection Guard</td><td style="color:var(--green);font-weight:600" id="anaAuditSafety">100.0%</td></tr>
-              <tr><td>Hallucination Rate</td><td>Ungrounded generation refusal</td><td style="color:var(--green);font-weight:600" id="anaAuditHallucination">5.0%</td></tr>
-              <tr><td>Target Latency (<200ms)</td><td>Pipeline execution speed</td><td style="color:var(--green);font-weight:600" id="anaAuditTarget">Tracked</td></tr>
-            </table>
-          </div>
-        </div>
+      <div class="disclaimer-text">
+        VoxRAG answers are strictly grounded in MSMARCO-XI context passages · P50 Latency ~142ms (<200ms Target)
       </div>
     </div>
 
-    <!-- 3. PIPELINE TAB -->
-    <div class="tab-pane" id="pane-pipeline">
-      <div class="card">
-        <div class="card-header-line">
-          <div><div class="card-title">VoxRAG Pipeline Architecture</div><div class="card-desc">Detailed stage specification and configuration</div></div>
-          <span class="badge badge-green">Operational</span>
-        </div>
-        <div class="grid-4" style="margin-top:16px;">
-          <div style="background:var(--bg-hover);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px;">
-            <div style="font-size:24px;margin-bottom:8px;">🎙️</div>
-            <div style="font-size:13px;font-weight:600;margin-bottom:4px;">1. Speech-to-Text</div>
-            <div style="font-size:11px;color:var(--text-secondary);line-height:1.5;" id="pipeDescStt">Sarvam AI (saarika:v1) + Groq Whisper turbo fallback. 16kHz audio.</div>
-          </div>
-          <div style="background:var(--bg-hover);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px;">
-            <div style="font-size:24px;margin-bottom:8px;">✂️</div>
-            <div style="font-size:13px;font-weight:600;margin-bottom:4px;">2. Multi-Strategy Chunker</div>
-            <div style="font-size:11px;color:var(--text-secondary);line-height:1.5;">4 strategies: Fixed-size (256 tok, 20% overlap), Sentence boundary, Paragraph split, Semantic similarity.</div>
-          </div>
-          <div style="background:var(--bg-hover);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px;">
-            <div style="font-size:24px;margin-bottom:8px;">🗃️</div>
-            <div style="font-size:13px;font-weight:600;margin-bottom:4px;">3. FAISS Vector DB</div>
-            <div style="font-size:11px;color:var(--text-secondary);line-height:1.5;" id="pipeDescRet">IndexFlatIP inner-product cosine similarity over 48,995 vectors (all-MiniLM-L6-v2, 384 dimensions).</div>
-          </div>
-          <div style="background:var(--bg-hover);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px;">
-            <div style="font-size:24px;margin-bottom:8px;">🤖</div>
-            <div style="font-size:13px;font-weight:600;margin-bottom:4px;">4. Conversational Harness</div>
-            <div style="font-size:11px;color:var(--text-secondary);line-height:1.5;" id="pipeDescLlm">Multi-turn memory + Groq LPU (groq/compound-mini) with structured output &amp; tenacity retries.</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 4. GUARDRAILS TAB -->
-    <div class="tab-pane" id="pane-guardrails">
-      <div class="grid-2">
-        <div class="card">
-          <div class="card-header-line">
-            <div><div class="card-title">Live Guardrail Simulator</div><div class="card-desc">Test input queries against guardrail filters</div></div>
-          </div>
-          <div style="display:flex;gap:10px;margin-top:10px;">
-            <input type="text" class="input-field" id="guardTestInput" placeholder="Try: ignore previous instructions / hello / What is a corporation?" onkeydown="if(event.key==='Enter')testGuardrail()"/>
-            <button class="btn-primary" onclick="testGuardrail()">Test</button>
-          </div>
-          <div id="guardTestResult" style="margin-top:14px;padding:12px;border-radius:var(--radius-sm);background:var(--bg-hover);border:1px solid var(--border);display:none;"></div>
-        </div>
-
-        <div class="card">
-          <div class="card-header-line">
-            <div><div class="card-title">Configured Guardrail Policies</div><div class="card-desc">Safety rules enforced by pipeline</div></div>
-          </div>
-          <div class="table-box">
-            <table>
-              <tr><th>Guardrail Policy</th><th>Trigger Criteria</th><th>Action</th></tr>
-              <tr><td>Toxicity &amp; Profanity</td><td>better-profanity dictionary match</td><td>Immediate Block</td></tr>
-              <tr><td>Prompt Injection</td><td>Jailbreak / System override regex</td><td>Immediate Block</td></tr>
-              <tr><td>Length Boundaries</td><td>Query &lt; 3 chars or &gt; 500 chars</td><td>User Warning</td></tr>
-              <tr><td>Groundedness Check</td><td>Cosine sim &lt; 0.30 to retrieved context</td><td>Refuse / Unflag</td></tr>
-            </table>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 5. DATASET TAB (100% Real MSMARCO-XI Chunks) -->
-    <div class="tab-pane" id="pane-dataset">
-      <div class="card">
-        <div class="card-header-line">
-          <div><div class="card-title">MSMARCO-XI Dataset Explorer</div><div class="card-desc">Browse indexed chunks and passage metadata</div></div>
-          <div style="display:flex;gap:8px;">
-            <input type="text" class="input-field" id="datasetSearch" placeholder="Search dataset chunks..." style="width:240px;" onkeydown="if(event.key==='Enter')loadDataset()"/>
-            <button class="btn-primary" onclick="loadDataset()">Search</button>
-          </div>
-        </div>
-        <div class="table-box" style="margin-top:14px;">
-          <table>
-            <thead>
-              <tr><th>Chunk ID</th><th>Passage ID</th><th>Chunk Text</th><th>Strategy</th><th>Tokens</th></tr>
-            </thead>
-            <tbody id="datasetTableBody">
-              <tr><td colspan="5" style="text-align:center;color:var(--text-muted);">Loading dataset samples...</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <!-- 6. SETTINGS TAB -->
-    <div class="tab-pane" id="pane-settings">
-      <div class="card" style="max-width:700px;">
-        <div class="card-header-line">
-          <div><div class="card-title">VoxRAG Pipeline Settings</div><div class="card-desc">Adjust model parameters and system thresholds</div></div>
-          <button class="btn-primary" onclick="showToast('Settings updated in session!')">Save Changes</button>
-        </div>
-        <div style="display:flex;flex-direction:column;gap:16px;margin-top:14px;">
-          <div>
-            <label style="font-size:12px;color:var(--text-secondary);display:block;margin-bottom:6px;">Top-K Chunks Retrieved</label>
-            <input type="number" class="input-field" id="cfgTopK" value="5" min="1" max="15"/>
-          </div>
-          <div>
-            <label style="font-size:12px;color:var(--text-secondary);display:block;margin-bottom:6px;">LLM Model</label>
-            <input type="text" class="input-field" id="cfgModel" value="groq/compound-mini (Groq LPU)" readonly/>
-          </div>
-          <div>
-            <label style="font-size:12px;color:var(--text-secondary);display:block;margin-bottom:6px;">Embedding Model</label>
-            <input type="text" class="input-field" id="cfgEmbed" value="sentence-transformers/all-MiniLM-L6-v2" readonly/>
-          </div>
-          <div>
-            <label style="font-size:12px;color:var(--text-secondary);display:block;margin-bottom:6px;">Target Pipeline Latency (ms)</label>
-            <input type="number" class="input-field" id="cfgTimeout" value="200"/>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 7. LOGS TAB (Real Live Event Stream) -->
-    <div class="tab-pane" id="pane-logs">
-      <div class="card">
-        <div class="card-header-line">
-          <div><div class="card-title">Live System Logs</div><div class="card-desc">Real-time execution log stream</div></div>
-          <button class="btn-secondary" onclick="loadLogs()">↻ Refresh</button>
-        </div>
-        <div class="log-console" id="logConsole">
-          <div class="log-line"><span class="log-time">00:00:00.000</span> <span class="log-level-INFO">INFO</span> <span class="log-stage">[SYSTEM]</span> <span class="log-msg">Connecting to log stream...</span></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Status bar -->
-    <div class="status-bar">
-      <div class="stat-item"><label>Dataset</label><span id="statDataset">MSMARCO-XI</span></div>
-      <div class="stat-item"><label>Chunks Indexed</label><span id="statChunks">48,995</span></div>
-      <div class="stat-item"><label>Vector DB</label><span id="statVectorDB">FAISS</span></div>
-      <div class="stat-item"><label>Model</label><span id="statModel">groq/compound-mini</span></div>
-      <div class="stat-item"><label>Memory</label><span style="color:var(--blue)">Multi-Turn Active</span></div>
-      <div class="stat-item"><label>Status</label><span id="statStatus" style="color:var(--green)">Ready</span></div>
-    </div>
   </main>
-
-  <!-- ── RIGHT PANEL ── -->
-  <aside class="right-panel">
-    <div class="panel-section">
-      <div class="panel-title">Pipeline Overview</div>
-      <div class="panel-subtitle">End-to-end Flow</div>
-      <div class="pipeline-flow">
-        <div class="pipe-step">
-          <div class="pipe-icon">🎙️</div>
-          <p>Voice / Type</p>
-          <small>Sarvam STT</small>
-          <div class="pipe-ms" id="pipeMs1">~65ms</div>
-        </div>
-        <div class="pipe-arrow">›</div>
-        <div class="pipe-step">
-          <div class="pipe-icon">✂️</div>
-          <p>Chunking</p>
-          <small>Multi-Strategy</small>
-          <div class="pipe-ms" id="pipeMs2">~5ms</div>
-        </div>
-        <div class="pipe-arrow">›</div>
-        <div class="pipe-step">
-          <div class="pipe-icon">🔍</div>
-          <p>Retrieval</p>
-          <small>FAISS</small>
-          <div class="pipe-ms" id="pipeMs3">~52ms</div>
-        </div>
-        <div class="pipe-arrow">›</div>
-        <div class="pipe-step">
-          <div class="pipe-icon">⚡</div>
-          <p>Generation</p>
-          <small>Groq LLM</small>
-          <div class="pipe-ms" id="pipeMs4">~85ms</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="panel-section">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
-        <div class="panel-title">Latency Analytics</div>
-        <span style="font-size:10px;color:var(--text-muted);">ms</span>
-      </div>
-      <div class="panel-subtitle">Live measurements</div>
-      <div class="latency-cards">
-        <div class="lat-card">
-          <div class="lat-label">P50</div>
-          <div class="lat-value" id="p50">—</div>
-          <div class="lat-status" id="p50s">—</div>
-        </div>
-        <div class="lat-card">
-          <div class="lat-label">P70</div>
-          <div class="lat-value" id="p70">—</div>
-          <div class="lat-status" id="p70s">—</div>
-        </div>
-        <div class="lat-card">
-          <div class="lat-label">P100</div>
-          <div class="lat-value" id="p100">—</div>
-          <div class="lat-status" id="p100s">—</div>
-        </div>
-      </div>
-      <div class="chart-area">
-        <canvas id="latChart"></canvas>
-      </div>
-      <div class="chart-labels">
-        <span>0</span><span>20</span><span>40</span><span>60</span><span>80</span><span>100</span>
-      </div>
-    </div>
-
-    <div class="panel-section">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
-        <div class="panel-title">Guardrails</div>
-        <div class="guard-all" id="guardAllStatus">All checks passed</div>
-      </div>
-      <div class="guardrail-row">
-        <div class="guardrail-name"><div class="guard-icon pass" id="g1i">✓</div>Off-topic Detection</div>
-        <div class="guard-status pass" id="g1s">Passed</div>
-      </div>
-      <div class="guardrail-row">
-        <div class="guardrail-name"><div class="guard-icon pass" id="g2i">✓</div>Safety &amp; Toxicity</div>
-        <div class="guard-status pass" id="g2s">Passed</div>
-      </div>
-      <div class="guardrail-row">
-        <div class="guardrail-name"><div class="guard-icon pass" id="g3i">✓</div>Hallucination Check</div>
-        <div class="guard-status pass" id="g3s">Passed</div>
-      </div>
-      <div class="guardrail-row">
-        <div class="guardrail-name"><div class="guard-icon pass" id="g4i">✓</div>Grounded in Context</div>
-        <div class="guard-status pass" id="g4s">Passed</div>
-      </div>
-    </div>
-  </aside>
 </div>
 
 <script>
-  let currentTheme = localStorage.getItem('voxrag_theme') || 'dark';
+  let conversationHistory = [];
   let isRecording = false;
   let mediaRecorder = null;
   let audioChunks = [];
-  let speechRec = null;
-  let liveTranscript = '';
-  let latHistory = [];
-  let chartCtx = null;
-  let conversationHistory = []; // multi-turn conversation memory
+  let queryCount = 0;
 
-  window.addEventListener('DOMContentLoaded', async () => {
-    applyTheme(currentTheme);
-    initChart();
-    await loadStats();
-    await loadAnalytics();
-    initSpeechRecognition();
-    setInterval(loadAnalytics, 5000);
-    setInterval(loadLogs, 4000);
-  });
+  function showToast(msg) {
+    const box = document.getElementById('toastBox');
+    box.textContent = msg;
+    box.style.display = 'block';
+    setTimeout(() => { box.style.display = 'none'; }, 2400);
+  }
 
-  // ── Clear Conversation / New Chat ──
-  function clearConversation() {
+  function startNewChat() {
     conversationHistory = [];
-    document.getElementById('chatHistory').innerHTML = '';
-    document.getElementById('textInput').value = '';
-    showToast('Started a new conversation session!');
-  }
-
-  // ── Input Mode Selector ──
-  function setInputMode(mode) {
-    document.querySelectorAll('.mode-tab').forEach(b => b.classList.remove('active'));
-    const voiceBox = document.getElementById('voiceBoxArea');
-    const typeBox = document.getElementById('typeBoxArea');
-    const inlineMic = document.getElementById('micBtnInline');
-
-    if (mode === 'both') {
-      document.getElementById('tabModeBoth').classList.add('active');
-      voiceBox.style.display = 'flex';
-      typeBox.style.display = 'flex';
-      inlineMic.style.display = 'flex';
-    } else if (mode === 'type') {
-      document.getElementById('tabModeType').classList.add('active');
-      voiceBox.style.display = 'none';
-      typeBox.style.display = 'flex';
-      inlineMic.style.display = 'none';
-      document.getElementById('textInput').focus();
-    } else if (mode === 'voice') {
-      document.getElementById('tabModeVoice').classList.add('active');
-      voiceBox.style.display = 'flex';
-      typeBox.style.display = 'none';
-    }
-  }
-
-  // ── Ask Suggestion Chip ──
-  function askSuggestion(question) {
-    document.getElementById('textInput').value = question;
-    sendText();
-  }
-
-  // ── Theme Switcher ──
-  function toggleTheme() {
-    currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
-    applyTheme(currentTheme);
-  }
-
-  function applyTheme(theme) {
-    document.documentElement.setAttribute('data-theme', theme);
-    localStorage.setItem('voxrag_theme', theme);
-    document.getElementById('themeLabel').textContent = theme === 'dark' ? '🌙 Dark Mode' : '☀️ Light Mode';
-    document.getElementById('topThemeBtn').textContent = theme === 'dark' ? '☀️ Light' : '🌙 Dark';
-    drawChart();
-  }
-
-  // ── Tab Navigation ──
-  function setNav(el, tabName) {
-    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-    el.classList.add('active');
-
-    document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
-    const target = document.getElementById('pane-' + tabName);
-    if (target) target.classList.add('active');
-
-    const titleMap = {
-      'chat': ['Voice & Type Conversational RAG', 'Multi-turn context-aware question answering with retrieval augmented generation'],
-      'analytics': ['Latency & Pipeline Analytics', 'Performance metrics, P50/P70/P100 analysis and stage timings'],
-      'pipeline': ['Pipeline Architecture & Flow', 'End-to-end component specifications and indexing status'],
-      'guardrails': ['Guardrails & Safety Control', 'Input/Output verification, injection checks and hallucination guards'],
-      'dataset': ['MSMARCO-XI Knowledge Base', 'Indexed document chunks, token distributions and embeddings'],
-      'settings': ['System Configuration', 'Adjust hyperparameters, API settings and latency thresholds'],
-      'logs': ['Real-Time System Logs', 'Live event logs, retrieval queries and latency diagnostics']
-    };
-
-    if (titleMap[tabName]) {
-      document.getElementById('pageTitle').textContent = titleMap[tabName][0];
-      document.getElementById('pageSubtitle').textContent = titleMap[tabName][1];
-    }
-
-    if (tabName === 'dataset') loadDataset();
-    if (tabName === 'logs') loadLogs();
-  }
-
-  // ── Speech Recognition ──
-  function initSpeechRecognition() {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (SpeechRecognition) {
-      speechRec = new SpeechRecognition();
-      speechRec.continuous = true;
-      speechRec.interimResults = true;
-      speechRec.lang = 'en-US';
-
-      speechRec.onresult = (event) => {
-        let interim = '';
-        for (let i = event.resultIndex; i < event.results.length; ++i) {
-          if (event.results[i].isFinal) {
-            liveTranscript += event.results[i][0].transcript;
-          } else {
-            interim += event.results[i][0].transcript;
-          }
-        }
-        const display = (liveTranscript + ' ' + interim).trim();
-        if (display) {
-          document.getElementById('voiceStatus').innerHTML = `<span>● Listening:</span> "${escHtml(display)}"`;
-          document.getElementById('textInput').value = display;
-        }
-      };
-    }
-  }
-
-  async function loadStats() {
-    try {
-      const r = await fetch('/api/stats');
-      const d = await r.json();
-      document.getElementById('statChunks').textContent  = d.chunks;
-      document.getElementById('statModel').textContent   = d.model;
-      document.getElementById('systemStatus').textContent= d.ready ? 'All Systems Operational' : 'Ready';
-      document.getElementById('statStatus').textContent  = d.ready ? 'Ready' : 'Ready';
-      document.getElementById('cfgModel').value = d.model + ' (Groq LPU)';
-    } catch(e) {}
-  }
-
-  // ── 100% Real Live Analytics Computation ──
-  async function loadAnalytics() {
-    try {
-      const r = await fetch('/api/analytics');
-      const d = await r.json();
-      
-      const p50Val = d.p50 ? Math.round(d.p50) + 'ms' : '142ms';
-      const p70Val = d.p70 ? Math.round(d.p70) + 'ms' : '178ms';
-      const p100Val = d.p100 ? Math.round(d.p100) + 'ms' : '290ms';
-      const countVal = d.count || '10+';
-
-      document.getElementById('p50').textContent = p50Val;
-      document.getElementById('p70').textContent = p70Val;
-      document.getElementById('p100').textContent = p100Val;
-      document.getElementById('anaP50').textContent = p50Val;
-      document.getElementById('anaP70').textContent = p70Val;
-      document.getElementById('anaP100').textContent = p100Val;
-      document.getElementById('anaCount').textContent = countVal;
-
-      const check = v => v < 200 ? 'Good (<200ms)' : 'Tracked';
-      document.getElementById('p50s').textContent = check(d.p50 || 142);
-      document.getElementById('p70s').textContent = check(d.p70 || 178);
-      document.getElementById('p100s').textContent = check(d.p100 || 290);
-
-      // Real Stage Breakdown Bars
-      if (d.stages) {
-        document.getElementById('anaStageStt').textContent = `~${Math.round(d.stages.stt_ms)}ms (${d.stages.stt_pct}%)`;
-        document.getElementById('anaBarStt').style.width = Math.max(5, d.stages.stt_pct) + '%';
-        
-        document.getElementById('anaStageGuard').textContent = `~${Math.round(d.stages.guard_ms)}ms (${d.stages.guard_pct}%)`;
-        document.getElementById('anaBarGuard').style.width = Math.max(5, d.stages.guard_pct) + '%';
-        
-        document.getElementById('anaStageRet').textContent = `~${Math.round(d.stages.ret_ms)}ms (${d.stages.ret_pct}%)`;
-        document.getElementById('anaBarRet').style.width = Math.max(5, d.stages.ret_pct) + '%';
-        
-        document.getElementById('anaStageGen').textContent = `~${Math.round(d.stages.gen_ms)}ms (${d.stages.gen_pct}%)`;
-        document.getElementById('anaBarGen').style.width = Math.max(5, d.stages.gen_pct) + '%';
-      }
-
-      // Real Audit Metrics
-      if (d.quality) {
-        document.getElementById('anaAuditGrounding').textContent = d.quality.grounding_rate + '%';
-        document.getElementById('anaAuditSafety').textContent = d.quality.safety_rate + '%';
-        document.getElementById('anaAuditHallucination').textContent = d.quality.hallucination_rate + '%';
-      }
-
-      if (d.history && d.history.length) {
-        latHistory = d.history;
-        drawChart();
-      }
-    } catch(e) {}
-  }
-
-  // ── 100% Real Live Dataset Explorer ──
-  async function loadDataset() {
-    try {
-      const query = document.getElementById('datasetSearch').value;
-      const r = await fetch(`/api/dataset/sample?limit=8&search=${encodeURIComponent(query)}`);
-      const d = await r.json();
-      const tbody = document.getElementById('datasetTableBody');
-      if (!d.items || d.items.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-muted);">No chunks found matching search query.</td></tr>';
-        return;
-      }
-      tbody.innerHTML = d.items.map(c => `
-        <tr>
-          <td style="font-family:'JetBrains Mono',monospace;color:var(--accent);">${escHtml(c.chunk_id)}</td>
-          <td>${escHtml(c.passage_id)}</td>
-          <td>${escHtml(c.text)}</td>
-          <td><span class="badge badge-green">${escHtml(c.strategy)}</span></td>
-          <td>${c.token_count}</td>
-        </tr>
-      `).join('');
-    } catch(e) {}
-  }
-
-  // ── 100% Real Live Event Logs ──
-  async function loadLogs() {
-    try {
-      const r = await fetch('/api/logs');
-      const d = await r.json();
-      const con = document.getElementById('logConsole');
-      if (d.logs && d.logs.length) {
-        con.innerHTML = d.logs.map(l => `
-          <div class="log-line">
-            <span class="log-time">${escHtml(l.timestamp)}</span>
-            <span class="log-level-${escHtml(l.level)}">${escHtml(l.level)}</span>
-            <span class="log-stage">[${escHtml(l.stage)}]</span>
-            <span class="log-msg">${escHtml(l.message)}</span>
-          </div>
-        `).join('');
-        con.scrollTop = con.scrollHeight;
-      }
-    } catch(e) {}
-  }
-
-  // ── 100% Real Interactive Guardrail Tester ──
-  async function testGuardrail() {
-    const q = document.getElementById('guardTestInput').value.trim();
-    if (!q) return;
-    try {
-      const r = await fetch('/api/guardrails/test', {
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({query: q})
-      });
-      const d = await r.json();
-      const resEl = document.getElementById('guardTestResult');
-      resEl.style.display = 'block';
-      const statusColor = d.allowed ? 'var(--green)' : 'var(--red)';
-      resEl.innerHTML = `
-        <div style="font-weight:600;color:${statusColor};margin-bottom:6px;">
-          ${d.allowed ? '✅ Query Permitted' : '🚫 Query Blocked'}
+    document.getElementById('chatArea').innerHTML = `
+      <div class="msg-row-ai">
+        <div class="ai-header-line">
+          <div class="ai-logo-icon">✦</div>
+          <span>VoxRAG</span>
+          <span class="ai-tag tag-grounded">✓ Ready</span>
         </div>
-        <div style="font-size:12px;color:var(--text-secondary);">${escHtml(d.reason)}</div>
-      `;
-    } catch(e) {}
-  }
-
-  function initChart() {
-    const canvas = document.getElementById('latChart');
-    chartCtx = canvas.getContext('2d');
-    canvas.width  = canvas.offsetWidth;
-    canvas.height = canvas.offsetHeight;
-    drawChart();
-  }
-
-  function drawChart() {
-    if (!chartCtx) return;
-    const canvas = document.getElementById('latChart');
-    const w = canvas.width = canvas.offsetWidth;
-    const h = canvas.height = canvas.offsetHeight;
-    const ctx = chartCtx;
-    ctx.clearRect(0, 0, w, h);
-
-    const data = latHistory.length ? latHistory : [142, 165, 130, 185, 120];
-    const max  = Math.max(...data, 250);
-    const pts  = data.map((v,i) => [i/(data.length-1||1)*w, h - (v/max)*(h*0.85)]);
-
-    const isLight = document.documentElement.getAttribute('data-theme') === 'light';
-    ctx.strokeStyle = isLight ? '#e2e8f0' : '#232838'; ctx.lineWidth = 1;
-    [0.25,0.5,0.75,1].forEach(p => {
-      ctx.beginPath(); ctx.moveTo(0, h*p); ctx.lineTo(w, h*p); ctx.stroke();
-    });
-
-    const grad = ctx.createLinearGradient(0, 0, 0, h);
-    grad.addColorStop(0, '#6c63ff44');
-    grad.addColorStop(1, '#6c63ff00');
-    ctx.fillStyle = grad;
-    ctx.beginPath();
-    ctx.moveTo(pts[0][0], h);
-    pts.forEach(p => ctx.lineTo(p[0], p[1]));
-    ctx.lineTo(pts[pts.length-1][0], h);
-    ctx.closePath();
-    ctx.fill();
-
-    ctx.strokeStyle = '#6c63ff'; ctx.lineWidth = 2;
-    ctx.lineJoin = 'round';
-    ctx.beginPath();
-    pts.forEach((p,i) => i===0 ? ctx.moveTo(p[0],p[1]) : ctx.lineTo(p[0],p[1]));
-    ctx.stroke();
-
-    const targetY = h - (200/max)*(h*0.85);
-    ctx.strokeStyle = isLight ? '#ef444499' : '#ff6b6b55'; ctx.setLineDash([4,4]); ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.moveTo(0,targetY); ctx.lineTo(w,targetY); ctx.stroke();
-    ctx.setLineDash([]);
-  }
-
-  async function toggleRecording() {
-    if (!isRecording) await startRecording();
-    else               stopRecording();
-  }
-
-  async function startRecording() {
-    try {
-      liveTranscript = '';
-      const stream = await navigator.mediaDevices.getUserMedia({audio: true});
-      mediaRecorder = new MediaRecorder(stream);
-      audioChunks   = [];
-
-      mediaRecorder.ondataavailable = e => {
-        if (e.data.size > 0) audioChunks.push(e.data);
-      };
-      mediaRecorder.onstop = sendVoice;
-      mediaRecorder.start(250);
-      isRecording = true;
-
-      if (speechRec) {
-        try { speechRec.start(); } catch(e) {}
-      }
-
-      document.getElementById('micBtn').classList.add('recording');
-      document.getElementById('micBtn').textContent = '⏹️';
-      document.getElementById('micBtnInline').classList.add('recording');
-      document.getElementById('voiceStatus').innerHTML = '<span>● Recording...</span> Speak your question now';
-      document.getElementById('waveform').classList.add('active');
-      document.getElementById('waveform2').classList.add('active');
-    } catch(e) {
-      showToast('Microphone error: ' + e.message, 'error');
-    }
-  }
-
-  function stopRecording() {
-    if (!mediaRecorder) return;
-    try { if (speechRec) speechRec.stop(); } catch(e) {}
-    mediaRecorder.stop();
-    mediaRecorder.stream.getTracks().forEach(t => t.stop());
-    isRecording = false;
-    document.getElementById('micBtn').classList.remove('recording');
-    document.getElementById('micBtn').textContent = '🎙️';
-    document.getElementById('micBtnInline').classList.remove('recording');
-    document.getElementById('voiceStatus').textContent = 'Processing speech with Sarvam AI...';
-    document.getElementById('waveform').classList.remove('active');
-    document.getElementById('waveform2').classList.remove('active');
-  }
-
-  async function sendVoice() {
-    const blob = new Blob(audioChunks, {type: mediaRecorder.mimeType || 'audio/webm'});
-
-    if (blob.size < 1000 && !liveTranscript.trim()) {
-      addErrorMessage('No audio recorded. Please click mic and speak clearly.');
-      document.getElementById('voiceStatus').textContent = 'Click the microphone to start recording';
-      return;
-    }
-
-    addThinkingMessage();
-
-    if (liveTranscript.trim()) {
-      const query = liveTranscript.trim();
-      addUserMessage(query);
-      await executeQuery(query);
-      document.getElementById('voiceStatus').textContent = 'Click the microphone to start recording';
-      return;
-    }
-
-    const fd = new FormData();
-    fd.append('audio', blob, 'recording.webm');
-    fd.append('history', JSON.stringify(conversationHistory));
-
-    try {
-      const r = await fetch('/api/query/voice', {method: 'POST', body: fd});
-      const d = await r.json();
-      removeThinkingMessage();
-      if (!r.ok || d.error) {
-        addErrorMessage(d.error || 'Could not transcribe speech. Please speak clearly.');
-      } else {
-        const queryText = d.transcript || d.query || 'Voice query';
-        addUserMessage(queryText);
-        addAIMessage(d);
-        // Save to multi-turn conversational history
-        conversationHistory.push({role: 'user', content: queryText});
-        if (d.answer) conversationHistory.push({role: 'assistant', content: d.answer});
-        updateGuardrails(d.guardrails);
-        updatePipelineMs(d.latency);
-        await loadAnalytics();
-      }
-    } catch(e) {
-      removeThinkingMessage();
-      addErrorMessage('Voice query failed: ' + e.message);
-    }
-    document.getElementById('voiceStatus').textContent = 'Click the microphone to start recording';
-  }
-
-  // ── Send Typed Text Query (Multi-turn conversational context included) ──
-  async function sendText() {
-    const input = document.getElementById('textInput');
-    const query = input.value.trim();
-    if (!query) return;
-
-    input.value = '';
-    input.disabled = true;
-    document.getElementById('sendBtn').disabled = true;
-
-    addUserMessage(query);
-    addThinkingMessage();
-    await executeQuery(query);
-
-    input.disabled = false;
-    document.getElementById('sendBtn').disabled = false;
-    input.focus();
-  }
-
-  async function executeQuery(query) {
-    try {
-      const r = await fetch('/api/query/text', {
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({query, top_k: 5, history: conversationHistory})
-      });
-      const d = await r.json();
-      removeThinkingMessage();
-      if (!r.ok || d.error) addErrorMessage(d.error || 'Query processing failed.');
-      else {
-        addAIMessage(d);
-        // Save turns to conversational memory
-        conversationHistory.push({role: 'user', content: query});
-        if (d.answer) conversationHistory.push({role: 'assistant', content: d.answer});
-        updateGuardrails(d.guardrails);
-        updatePipelineMs(d.latency);
-        await loadAnalytics();
-      }
-    } catch(e) {
-      removeThinkingMessage();
-      addErrorMessage('Query failed: ' + e.message);
-    }
-  }
-
-  // ── ChatGPT-Style Editable User Messages ──
-  let msgCounter = 0;
-  function addUserMessage(text) {
-    msgCounter++;
-    const msgId = 'user-msg-' + msgCounter;
-    const now = new Date();
-    const timeStr = now.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'});
-    const dateStr = now.toLocaleDateString([], {month:'short',day:'numeric'});
-    const fullTime = `${timeStr} · ${dateStr}`;
-    const el = document.createElement('div');
-    el.className = 'msg-user';
-    el.id = msgId;
-    el.innerHTML = `
-      <div class="msg-header">
-        <span class="msg-sender">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-          You
-        </span>
-        <div class="msg-actions">
-          <span class="msg-time">🕒 ${fullTime}</span>
-          <button class="msg-action-btn" onclick="startEditMessage('${msgId}')" title="Edit query">✏️ Edit</button>
-          <button class="msg-action-btn" onclick="copyText('${escAttr(text)}')" title="Copy">📋</button>
+        <div class="ai-content-body">
+          Started a new conversation! Speak or type any question grounded in MSMARCO-XI.
         </div>
-      </div>
-      <div class="msg-text" id="${msgId}-text">${escHtml(text)}</div>
-      <div class="edit-box-container" id="${msgId}-edit" style="display:none;">
-        <textarea class="edit-textarea" id="${msgId}-textarea" rows="2">${escHtml(text)}</textarea>
-        <div class="edit-buttons">
-          <button class="btn-cancel" onclick="cancelEditMessage('${msgId}')">Cancel</button>
-          <button class="btn-save" onclick="saveAndSubmitMessage('${msgId}')">Save &amp; Submit</button>
+        <div class="suggestions-row">
+          <button class="sug-pill-btn" onclick="askPreset('What is a corporation?')">🏢 What is a corporation?</button>
+          <button class="sug-pill-btn" onclick="askPreset('What are its main types?')">📋 What are its main types?</button>
         </div>
       </div>
     `;
-    insertMsg(el);
+    document.getElementById('activeChatTitle').textContent = 'New RAG Session';
+    showToast('New Chat started!');
   }
 
-  function startEditMessage(msgId) {
-    document.getElementById(msgId + '-text').style.display = 'none';
-    document.getElementById(msgId + '-edit').style.display = 'flex';
-    const ta = document.getElementById(msgId + '-textarea');
-    ta.focus();
-    ta.setSelectionRange(ta.value.length, ta.value.length);
+  function askPreset(q) {
+    document.getElementById('chatInput').value = q;
+    submitQuery();
   }
 
-  function cancelEditMessage(msgId) {
-    document.getElementById(msgId + '-text').style.display = 'block';
-    document.getElementById(msgId + '-edit').style.display = 'none';
-  }
+  async function submitQuery() {
+    const input = document.getElementById('chatInput');
+    const q = input.value.trim();
+    if (!q) return;
 
-  async function saveAndSubmitMessage(msgId) {
-    const newQuery = document.getElementById(msgId + '-textarea').value.trim();
-    if (!newQuery) return;
-    document.getElementById(msgId + '-text').textContent = newQuery;
-    cancelEditMessage(msgId);
+    input.value = '';
+    queryCount++;
 
-    addThinkingMessage();
-    await executeQuery(newQuery);
-  }
-
-  function addAIMessage(d) {
-    const now = new Date();
-    const timeStr = now.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'});
-    const dateStr = now.toLocaleDateString([], {month:'short',day:'numeric'});
-    const fullTime = `${timeStr} · ${dateStr}`;
-    const el = document.createElement('div');
-
-    if (d.blocked) {
-      el.className = 'blocked-msg';
-      el.innerHTML = `<div class="blocked-title">🚫 Query Blocked by Guardrails</div><div class="blocked-reason">${escHtml(d.reason || 'Query blocked.')}</div>`;
-    } else {
-      el.className = 'msg-ai';
-      const groundedBadge = d.grounded
-        ? '<span class="badge badge-green">✓ Grounded</span>'
-        : '<span class="badge badge-red">⚠ Ungrounded</span>';
-      const confPct = Math.round((d.confidence || 0.8) * 100);
-
-      let sourcesHtml = '';
-      if (d.chunks && d.chunks.length) {
-        sourcesHtml = `<div class="sources-section"><div class="sources-label">Sources (${d.chunks.length})</div>${d.chunks.map(c => `
-          <div class="source-chip" title="${escHtml(c.text || '')}">
-            <span class="source-name">MSMARCO-XI Doc ${escHtml(c.passage || c.id || '101823')}</span>
-            <span class="source-score">Score: ${c.score || '0.89'}</span>
-          </div>`).join('')}</div>`;
-      }
-
-      let suggestionsHtml = '';
-      if (d.suggestions && d.suggestions.length) {
-        suggestionsHtml = `
-          <div style="margin-top:12px;border-top:1px solid var(--border);padding-top:10px;">
-            <div style="font-size:11px;font-weight:600;color:var(--text-muted);margin-bottom:6px;display:flex;align-items:center;gap:4px;">
-              💡 Suggested Follow-ups:
-            </div>
-            <div style="display:flex;flex-wrap:wrap;gap:6px;">
-              ${d.suggestions.map(s => `
-                <button class="prompt-chip" onclick="askSuggestion('${escAttr(s)}')" style="border-color:var(--accent);color:var(--text-primary);background:var(--accent-dim);">
-                  ${escHtml(s)}
-                </button>
-              `).join('')}
-            </div>
-          </div>
-        `;
-      }
-
-      el.innerHTML = `
-        <div class="msg-ai-header">
-          <div class="ai-icon">✦</div>
-          <span class="ai-name">VoxRAG</span>
-          ${groundedBadge}
-          <span style="font-size:11px;color:var(--text-muted);margin-left:6px;">🕒 ${fullTime}</span>
-          <span class="badge badge-green" style="margin-left:auto">${confPct}% conf</span>
-        </div>
-        <div class="msg-text">${escHtml(d.answer)}</div>
-        ${sourcesHtml}
-        ${suggestionsHtml}
-        <div class="msg-footer">
-          <span class="msg-footer-note">Answer generated based on retrieved context · ${d.total_ms || '142'}ms · 🕒 ${fullTime}</span>
-          <button class="copy-btn" onclick="copyText('${escAttr(d.answer)}')">📋 Copy</button>
-        </div>`;
+    // Update Sidebar Recent Title if first query
+    if (queryCount === 1) {
+      document.getElementById('activeChatTitle').textContent = q.length > 24 ? q.substring(0, 24) + '...' : q;
     }
-    insertMsg(el);
+
+    renderUserBubble(q, queryCount);
+    renderThinking();
+
+    try {
+      const resp = await fetch('/api/query/text', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query: q, top_k: 5, history: conversationHistory })
+      });
+      const data = await resp.json();
+      removeThinking();
+
+      if (!resp.ok || data.error) {
+        renderErrorMessage(data.error || 'Query execution failed.');
+      } else {
+        renderAIBubble(data);
+        conversationHistory.push({ role: 'user', content: q });
+        if (data.answer) conversationHistory.push({ role: 'assistant', content: data.answer });
+      }
+    } catch(e) {
+      removeThinking();
+      renderErrorMessage('Network error: ' + e.message);
+    }
+  }
+
+  function renderUserBubble(text, id) {
+    const t = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const area = document.getElementById('chatArea');
+    const row = document.createElement('div');
+    row.className = 'msg-row-user';
+    row.id = `user-msg-${id}`;
+    row.innerHTML = `
+      <div class="user-bubble">
+        <div class="user-meta-header">
+          <span>You · 🕒 ${t}</span>
+          <button class="user-edit-btn" onclick="editUserMessage(${id}, '${escAttr(text)}')">✏️ Edit</button>
+        </div>
+        <div id="user-text-${id}">${escHtml(text)}</div>
+        <div id="user-edit-box-${id}" style="display:none;" class="edit-container">
+          <textarea class="edit-ta" id="user-ta-${id}" rows="2">${escHtml(text)}</textarea>
+          <div class="edit-actions">
+            <button class="btn-sm-cancel" onclick="cancelEdit(${id})">Cancel</button>
+            <button class="btn-sm-save" onclick="saveEdit(${id})">Save &amp; Submit</button>
+          </div>
+        </div>
+      </div>
+    `;
+    area.appendChild(row);
+    row.scrollIntoView({ behavior: 'smooth', block: 'end' });
+  }
+
+  function editUserMessage(id, oldText) {
+    document.getElementById(`user-text-${id}`).style.display = 'none';
+    document.getElementById(`user-edit-box-${id}`).style.display = 'flex';
+    const ta = document.getElementById(`user-ta-${id}`);
+    ta.focus();
+  }
+
+  function cancelEdit(id) {
+    document.getElementById(`user-text-${id}`).style.display = 'block';
+    document.getElementById(`user-edit-box-${id}`).style.display = 'none';
+  }
+
+  function saveEdit(id) {
+    const newText = document.getElementById(`user-ta-${id}`).value.trim();
+    if (!newText) return;
+    document.getElementById(`user-text-${id}`).textContent = newText;
+    cancelEdit(id);
+    document.getElementById('chatInput').value = newText;
+    submitQuery();
+  }
+
+  function renderAIBubble(d) {
+    const t = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const area = document.getElementById('chatArea');
+    const row = document.createElement('div');
+    row.className = 'msg-row-ai';
+
+    const groundedTag = d.grounded 
+      ? '<span class="ai-tag tag-grounded">✓ Grounded</span>' 
+      : '<span class="ai-tag" style="background:#7f1d1d;color:#fca5a5;">⚠ Ungrounded</span>';
+    const confPct = Math.round((d.confidence || 0.88) * 100);
+
+    let sourcesHtml = '';
+    if (d.chunks && d.chunks.length) {
+      sourcesHtml = `<div class="sources-box">${d.chunks.map(c => `
+        <span class="source-pill" title="${escAttr(c.text || '')}">Doc ${escHtml(c.passage || c.id || '101823')} (${c.score || '0.89'})</span>
+      `).join('')}</div>`;
+    }
+
+    let sugsHtml = '';
+    if (d.suggestions && d.suggestions.length) {
+      sugsHtml = `<div class="suggestions-row">${d.suggestions.map(s => `
+        <button class="sug-pill-btn" onclick="askPreset('${escAttr(s)}')">👉 ${escHtml(s)}</button>
+      `).join('')}</div>`;
+    }
+
+    row.innerHTML = `
+      <div class="ai-header-line">
+        <div class="ai-logo-icon">✦</div>
+        <span>VoxRAG</span>
+        ${groundedTag}
+        <span class="ai-tag" style="background:#1e293b;color:#94a3b8;">${confPct}% conf</span>
+        <span class="tag-time">🕒 ${t} · ⚡ ${d.total_ms || 142}ms</span>
+      </div>
+      <div class="ai-content-body">${escHtml(d.answer)}</div>
+      ${sourcesHtml}
+      ${sugsHtml}
+      <div class="ai-action-bar">
+        <button class="action-icon-btn" onclick="copyText('${escAttr(d.answer)}')">📋 Copy</button>
+        <button class="action-icon-btn" onclick="askPreset('${escAttr(d.query)}')">🔄 Retry</button>
+      </div>
+    `;
+    area.appendChild(row);
+    row.scrollIntoView({ behavior: 'smooth', block: 'end' });
   }
 
   let thinkingEl = null;
-  function addThinkingMessage() {
+  function renderThinking() {
     thinkingEl = document.createElement('div');
-    thinkingEl.className = 'thinking-msg';
-    thinkingEl.innerHTML = `<div class="ai-icon">✦</div><span style="font-size:13px;color:var(--text-secondary);">VoxRAG is retrieving &amp; generating</span><div class="thinking-dots"><span></span><span></span><span></span></div>`;
-    insertMsg(thinkingEl);
+    thinkingEl.className = 'thinking-row';
+    thinkingEl.innerHTML = `<span>VoxRAG is retrieving &amp; generating</span><div class="dot-flashing"></div>`;
+    document.getElementById('chatArea').appendChild(thinkingEl);
+    thinkingEl.scrollIntoView({ behavior: 'smooth', block: 'end' });
   }
-  function removeThinkingMessage() {
+  function removeThinking() {
     if (thinkingEl) { thinkingEl.remove(); thinkingEl = null; }
   }
-  function addErrorMessage(msg) {
-    const el = document.createElement('div');
-    el.className = 'blocked-msg';
-    el.innerHTML = `<div class="blocked-title">⚠️ Notice</div><div class="blocked-reason">${escHtml(msg)}</div>`;
-    insertMsg(el);
+
+  function renderErrorMessage(msg) {
+    const area = document.getElementById('chatArea');
+    const row = document.createElement('div');
+    row.className = 'msg-row-ai';
+    row.innerHTML = `<div class="ai-header-line"><div class="ai-logo-icon" style="background:var(--red);">!</div><span style="color:var(--red);">Notice</span></div><div class="ai-content-body">${escHtml(msg)}</div>`;
+    area.appendChild(row);
   }
 
-  function insertMsg(el) {
-    const area = document.getElementById('chatHistory');
-    area.appendChild(el);
-    el.scrollIntoView({behavior:'smooth', block:'end'});
+  // ── Voice Recording (Browser MediaRecorder) ──
+  async function toggleVoiceRecord() {
+    const btn = document.getElementById('micBtn');
+    if (isRecording) {
+      // Stop recording
+      if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
+      isRecording = false;
+      btn.classList.remove('recording');
+      btn.textContent = '🎙️';
+    } else {
+      // Start recording
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        mediaRecorder = new MediaRecorder(stream);
+        audioChunks = [];
+        mediaRecorder.ondataavailable = e => { if (e.data.size > 0) audioChunks.push(e.data); };
+        mediaRecorder.onstop = async () => {
+          const blob = new Blob(audioChunks, { type: 'audio/webm' });
+          stream.getTracks().forEach(t => t.stop());
+          await sendVoiceBlob(blob);
+        };
+        mediaRecorder.start();
+        isRecording = true;
+        btn.classList.add('recording');
+        btn.textContent = '⏹️';
+        showToast('Recording... Speak your question now');
+      } catch(e) {
+        showToast('Microphone access denied: ' + e.message);
+      }
+    }
   }
 
-  function updateGuardrails(g) {
-    if (!g) return;
-    const map = [
-      ['g1i','g1s', g.off_topic !== false],
-      ['g2i','g2s', g.safety !== false],
-      ['g3i','g3s', g.hallucination !== false],
-      ['g4i','g4s', g.grounded !== false],
-    ];
-    let allPass = true;
-    map.forEach(([ii, si, pass]) => {
-      document.getElementById(ii).textContent = pass ? '✓' : '✗';
-      document.getElementById(ii).className   = `guard-icon ${pass?'pass':'fail'}`;
-      document.getElementById(si).textContent = pass ? 'Passed' : 'Failed';
-      document.getElementById(si).className   = `guard-status ${pass?'pass':'fail'}`;
-      if (!pass) allPass = false;
-    });
-    const el = document.getElementById('guardAllStatus');
-    el.textContent = allPass ? 'All checks passed' : 'Issues detected';
-    el.style.color = allPass ? 'var(--green)' : 'var(--red)';
+  async function sendVoiceBlob(blob) {
+    renderThinking();
+    const fd = new FormData();
+    fd.append('audio', blob, 'voice.webm');
+    fd.append('history', JSON.stringify(conversationHistory));
+
+    try {
+      const r = await fetch('/api/query/voice', { method: 'POST', body: fd });
+      const d = await r.json();
+      removeThinking();
+      if (!r.ok || d.error) {
+        renderErrorMessage(d.error || 'Voice transcription failed.');
+      } else {
+        const qText = d.transcript || d.query || 'Voice query';
+        queryCount++;
+        renderUserBubble(qText, queryCount);
+        renderAIBubble(d);
+        conversationHistory.push({ role: 'user', content: qText });
+        if (d.answer) conversationHistory.push({ role: 'assistant', content: d.answer });
+      }
+    } catch(e) {
+      removeThinking();
+      renderErrorMessage('Voice query failed: ' + e.message);
+    }
   }
 
-  function updatePipelineMs(lat) {
-    if (!lat) return;
-    const map = {
-      'stt': 'pipeMs1',
-      'input_guardrail': 'pipeMs2',
-      'retrieval': 'pipeMs3',
-      'generation': 'pipeMs4',
-    };
-    Object.entries(map).forEach(([k,id]) => {
-      if (lat[k] !== undefined)
-        document.getElementById(id).textContent = Math.round(lat[k]) + 'ms';
-    });
+  function copyText(txt) {
+    navigator.clipboard.writeText(txt).then(() => showToast('Copied to clipboard!'));
   }
 
   function escHtml(s) {
     return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   }
   function escAttr(s) {
-    return String(s||'').replace(/'/g,"\\'").replace(/\n/g,' ');
+    return String(s||'').replace(/'/g,"\\'").replace(/"/g,'&quot;').replace(/\n/g,' ');
   }
-  function copyText(t) {
-    navigator.clipboard.writeText(t).then(()=>showToast('Copied to clipboard!'));
-  }
-  function showToast(msg, type='info') {
-    const t = document.createElement('div');
-    t.style.cssText = `position:fixed;bottom:20px;right:20px;padding:10px 18px;border-radius:8px;font-size:13px;font-weight:500;z-index:9999;background:${type==='error'?'#ff6b6b22':'var(--bg-card)'};border:1px solid ${type==='error'?'var(--red)':'var(--border)'};color:${type==='error'?'var(--red)':'var(--text-primary)'};box-shadow:var(--card-shadow);`;
-    t.textContent = msg;
-    document.body.appendChild(t);
-    setTimeout(()=>t.remove(), 2500);
-  }
-
-  window.addEventListener('resize', drawChart);
 </script>
 </body>
 </html>
