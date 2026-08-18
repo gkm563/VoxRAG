@@ -3,10 +3,17 @@ app.py — VoxRAG Voice & Type Conversational RAG (Clean & Minimal #RAGInGoa Edi
 """
 
 import os, sys, tempfile, time, json
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 import streamlit as st
 import streamlit.components.v1 as components
 import numpy as np
+
+# Indian Standard Time (UTC+5:30)
+IST = timezone(timedelta(hours=5, minutes=30))
+
+def get_current_time_str() -> str:
+    """Returns real-time timestamp in Indian Standard Time (e.g. 01:15 PM · Aug 18)."""
+    return datetime.now(IST).strftime("%I:%M %p · %b %d")
 
 # Fix Windows/Cloud stdout encoding
 if sys.platform == "win32":
@@ -285,7 +292,7 @@ if chat_input_val and chat_input_val.strip():
 
 # ── Execute Query ──
 if query_to_run and harness:
-    real_time_now = datetime.now().strftime("%I:%M %p · %b %d")
+    real_time_now = get_current_time_str()
     st.session_state.messages.append({
         "role": "user",
         "content": query_to_run,
@@ -314,7 +321,7 @@ if query_to_run and harness:
             "total_ms": out.total_latency_ms,
             "sources": out.sources,
             "suggestions": getattr(out, "suggestions", []),
-            "time": datetime.now().strftime("%I:%M %p · %b %d"),
+            "time": get_current_time_str(),
         })
 
         if not out.blocked:
@@ -350,7 +357,7 @@ if not st.session_state.messages and not query_to_run:
             st.rerun()
 
 for m_idx, msg in enumerate(st.session_state.messages):
-    t_str = msg.get("time", datetime.now().strftime("%I:%M %p · %b %d"))
+    t_str = msg.get("time", get_current_time_str())
     if msg["role"] == "user":
         st.markdown(f"""
         <div class="user-msg-bubble">
