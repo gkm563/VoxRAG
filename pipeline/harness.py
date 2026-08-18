@@ -42,6 +42,7 @@ class PipelineOutput(BaseModel):
     confidence:     float
     sources:        list[str]
     grounded:       bool
+    suggestions:    list[str] = []
     blocked:        bool   = False
     block_reason:   str    = ""
     latency: dict[str, float] = {}   # stage → ms
@@ -140,6 +141,7 @@ class RAGHarness:
             confidence        = answer_obj.confidence,
             sources           = answer_obj.sources,
             grounded          = answer_obj.grounded,
+            suggestions       = answer_obj.suggestions,
             latency           = latency,
             total_latency_ms  = total_ms,
         )

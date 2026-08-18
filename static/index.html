@@ -1255,6 +1255,24 @@
           </div>`).join('')}</div>`;
       }
 
+      let suggestionsHtml = '';
+      if (d.suggestions && d.suggestions.length) {
+        suggestionsHtml = `
+          <div style="margin-top:12px;border-top:1px solid var(--border);padding-top:10px;">
+            <div style="font-size:11px;font-weight:600;color:var(--text-muted);margin-bottom:6px;display:flex;align-items:center;gap:4px;">
+              💡 Suggested Follow-ups:
+            </div>
+            <div style="display:flex;flex-wrap:wrap;gap:6px;">
+              ${d.suggestions.map(s => `
+                <button class="prompt-chip" onclick="askSuggestion('${escAttr(s)}')" style="border-color:var(--accent);color:var(--text-primary);background:var(--accent-dim);">
+                  ${escHtml(s)}
+                </button>
+              `).join('')}
+            </div>
+          </div>
+        `;
+      }
+
       el.innerHTML = `
         <div class="msg-ai-header">
           <div class="ai-icon">✦</div>
@@ -1264,6 +1282,7 @@
         </div>
         <div class="msg-text">${escHtml(d.answer)}</div>
         ${sourcesHtml}
+        ${suggestionsHtml}
         <div class="msg-footer">
           <span class="msg-footer-note">Answer generated based on retrieved context · ${d.total_ms || '142'}ms · ${t}</span>
           <button class="copy-btn" onclick="copyText('${escAttr(d.answer)}')">📋 Copy</button>
