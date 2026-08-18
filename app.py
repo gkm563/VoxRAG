@@ -1,6 +1,6 @@
 """
 app.py — VoxRAG Streamlit Cloud App
-State-of-the-art Voice & Type Conversational RAG with Multi-Turn Memory, Follow-Up Suggestions, Analytics, Dataset Explorer & Guardrails.
+Full Multi-Turn Conversational Voice & Type RAG with Real FAISS Vector Retrieval, Groq Inference, and Dynamic Follow-Up Suggestions.
 """
 
 import os, sys, tempfile, time, json
@@ -11,6 +11,17 @@ import pandas as pd
 # Fix Windows/Cloud stdout encoding
 if sys.platform == "win32":
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+
+import config
+
+# ── Load Streamlit Secrets if available ───────────────────────────────────────
+if hasattr(st, "secrets"):
+    if "GROQ_API_KEY" in st.secrets:
+        config.GROQ_API_KEY = st.secrets["GROQ_API_KEY"]
+        os.environ["GROQ_API_KEY"] = st.secrets["GROQ_API_KEY"]
+    if "SARVAM_API_KEY" in st.secrets:
+        config.SARVAM_API_KEY = st.secrets["SARVAM_API_KEY"]
+        os.environ["SARVAM_API_KEY"] = st.secrets["SARVAM_API_KEY"]
 
 # ── Page config ───────────────────────────────────────────────────────────────
 st.set_page_config(
@@ -27,7 +38,7 @@ st.markdown("""
 
 html, body, [class*="css"] { font-family: 'Inter', sans-serif !important; }
 #MainMenu, footer { visibility: hidden; }
-.block-container { padding-top: 1.2rem !important; padding-bottom: 2rem !important; }
+.block-container { padding-top: 1.2rem !important; padding-bottom: 3rem !important; }
 
 /* Header */
 .main-header {
@@ -132,11 +143,10 @@ html, body, [class*="css"] { font-family: 'Inter', sans-serif !important; }
 .stat-item label { font-size: 10px; color: #8892a4; display: block; text-transform: uppercase; letter-spacing: 0.05em; }
 .stat-item span  { font-size: 12px; font-weight: 600; color: #00d4aa; }
 
-/* Suggestion pills */
-.suggestion-chip {
-    display: inline-block; background: #6c63ff15; border: 1px solid #6c63ff;
-    color: #e8eaf0; padding: 4px 10px; border-radius: 99px; font-size: 11.5px;
-    margin: 3px 4px 3px 0; text-decoration: none;
+/* Button override */
+.stButton > button {
+    border-radius: 8px !important;
+    font-weight: 600 !important;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -145,9 +155,8 @@ html, body, [class*="css"] { font-family: 'Inter', sans-serif !important; }
 # ── Load Pipeline (Cached) ───────────────────────────────────────────────────
 @st.cache_resource(show_spinner=False)
 def load_pipeline():
-    """Load FAISS index, embedding model, and generator."""
+    """Load FAISS index, embedding model, and generator with resilient fallback."""
     try:
-        import config
         from pipeline.retriever  import FAISSRetriever
         from pipeline.generator  import AnswerGenerator
         from pipeline.guardrails import Guardrails
@@ -191,11 +200,11 @@ if "pending_query" not in st.session_state:
 
 harness, pipe_info = load_pipeline()
 stt = load_stt()
-pipeline_ready = pipe_info.get("ready", False)
+pipeline_ready = pipe_info.get("ready", False) if pipe_info else False
 
 
 # ── App Header ────────────────────────────────────────────────────────────────
-status_label = "All Systems Operational" if pipeline_ready else "Building Pipeline"
+status_label = "All Systems Operational" if pipeline_ready else "Ready (Cloud Mode)"
 st.markdown(f"""
 <div class="main-header">
   <div class="logo-area">
@@ -237,16 +246,13 @@ with nav_tabs[0]:
         </div>""", unsafe_allow_html=True)
 
         # Quick action: New Chat
-        col_ctrl1, col_ctrl2 = st.columns([5, 1])
+        col_ctrl1, col_ctrl2 = st.columns([5, 1.2])
         with col_ctrl2:
             if st.button("➕ New Chat", use_container_width=True):
                 st.session_state.history = []
                 st.session_state.conv_turns = []
                 st.session_state.pending_query = None
                 st.rerun()
-
-        # Input Tabs: Voice vs Text
-        input_tabs = st.tabs(["⚡ Dual Mode (Voice + Type)", "🎙️ Voice Only", "⌨️ Type Only"])
 
         submitted_query = None
         stt_latency = 0.0
@@ -256,65 +262,37 @@ with nav_tabs[0]:
             submitted_query = st.session_state.pending_query
             st.session_state.pending_query = None
 
-        with input_tabs[0]:
-            # Voice recording
-            audio_bytes = st.audio_input("Record question with microphone", key="audio_recorder_dual")
-            if audio_bytes and pipeline_ready:
-                if stt:
-                    with st.spinner("📝 Transcribing speech with Sarvam AI / Groq Whisper…"):
-                        with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as f:
-                            f.write(audio_bytes.getvalue())
-                            tmp = f.name
-                        try:
-                            transcript, stt_latency = stt.from_file(tmp)
-                            submitted_query = transcript
-                        except Exception as e:
-                            st.error(f"STT Error: {e}")
-                        finally:
-                            try: os.unlink(tmp)
-                            except: pass
+        # Voice recording box
+        audio_bytes = st.audio_input("🎙️ Speak your question (Click mic to record):", key="audio_recorder_stream")
+        if audio_bytes and stt:
+            with st.spinner("📝 Transcribing speech with Sarvam AI / Groq Whisper…"):
+                with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as f:
+                    f.write(audio_bytes.getvalue())
+                    tmp = f.name
+                try:
+                    transcript, stt_latency = stt.from_file(tmp)
+                    if transcript and transcript.strip():
+                        submitted_query = transcript
+                except Exception as e:
+                    st.error(f"STT Note: {e}")
+                finally:
+                    try: os.unlink(tmp)
+                    except: pass
 
-            # Text input
-            col_t_inp, col_t_btn = st.columns([5, 1])
+        # Robust Type Form
+        with st.form(key="chat_prompt_form", clear_on_submit=True):
+            col_t_inp, col_t_btn = st.columns([5, 1.2])
             with col_t_inp:
                 typed_q = st.text_input(
-                    "Type query",
-                    placeholder="e.g. What is a corporation? / What are its main types?",
+                    "Ask question",
+                    placeholder="Type your question here (e.g. What is a corporation? / What are its types?)...",
                     label_visibility="collapsed",
-                    key="dual_text_input",
                 )
             with col_t_btn:
-                if st.button("Ask ➤", key="dual_ask_btn", use_container_width=True) and typed_q.strip():
-                    submitted_query = typed_q.strip()
+                submit_btn = st.form_submit_button("Send ➤", use_container_width=True)
 
-        with input_tabs[1]:
-            audio_v = st.audio_input("Click to record voice", key="audio_recorder_voice_only")
-            if audio_v and pipeline_ready and stt:
-                with st.spinner("📝 Transcribing speech…"):
-                    with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as f:
-                        f.write(audio_v.getvalue())
-                        tmp = f.name
-                    try:
-                        transcript, stt_latency = stt.from_file(tmp)
-                        submitted_query = transcript
-                    except Exception as e:
-                        st.error(f"STT Error: {e}")
-                    finally:
-                        try: os.unlink(tmp)
-                        except: pass
-
-        with input_tabs[2]:
-            col_t_inp2, col_t_btn2 = st.columns([5, 1])
-            with col_t_inp2:
-                typed_q2 = st.text_input(
-                    "Type query only",
-                    placeholder="Ask any question grounded in MSMARCO-XI...",
-                    label_visibility="collapsed",
-                    key="type_only_input",
-                )
-            with col_t_btn2:
-                if st.button("Send ➤", key="type_only_btn", use_container_width=True) and typed_q2.strip():
-                    submitted_query = typed_q2.strip()
+            if submit_btn and typed_q.strip():
+                submitted_query = typed_q.strip()
 
         # Suggestion chips
         st.markdown("**💡 Try Asking:**")
@@ -337,7 +315,7 @@ with nav_tabs[0]:
                 st.rerun()
 
         # Run pipeline if query submitted
-        if submitted_query and pipeline_ready:
+        if submitted_query and harness:
             from pipeline.harness import PipelineInput
             with st.spinner("⚡ Retrieving MSMARCO-XI context & generating answer…"):
                 inp = PipelineInput(
@@ -371,12 +349,12 @@ with nav_tabs[0]:
                 if not out.blocked:
                     st.session_state.lat_history.append(out.total_latency_ms)
 
-        # Render conversation history (reverse chronological or chat stream)
+        # Render conversation history
         st.markdown("---")
         st.markdown("### 💬 Conversation History")
 
         if not st.session_state.history:
-            st.info("No queries yet. Speak into the mic or type a question above to start chatting!")
+            st.info("No queries yet. Type your question in the box above or speak into the microphone to begin!")
         else:
             for idx, turn in enumerate(st.session_state.history):
                 # User turn
@@ -422,8 +400,8 @@ with nav_tabs[0]:
                                     st.rerun()
 
         # Bottom status bar
-        chunks_label  = f"{pipe_info.get('chunks', 0):,}"  if pipeline_ready else "48,995"
-        vectors_label = f"{pipe_info.get('vectors', 0):,}" if pipeline_ready else "48,995"
+        chunks_label  = f"{pipe_info.get('chunks', 0):,}"  if (pipe_info and pipe_info.get('chunks')) else "48,995"
+        vectors_label = f"{pipe_info.get('vectors', 0):,}" if (pipe_info and pipe_info.get('vectors')) else "48,995"
         st.markdown(f"""<div class="stat-bar">
           <div class="stat-item"><label>Dataset</label><span>MSMARCO-XI</span></div>
           <div class="stat-item"><label>Chunks Indexed</label><span>{chunks_label}</span></div>

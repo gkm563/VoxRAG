@@ -14,10 +14,10 @@ venv/
 env/
 .env
 
-# ── Data / Index (too large for git) ─────────────────────────────────────────
-data/
-*.faiss
-*.jsonl
+# ── Data / Index ─────────────────────────────────────────────────────────────
+data/*.parquet
+data/msmarco_subset.parquet
+*.parquet
 
 # ── Benchmark results ─────────────────────────────────────────────────────────
 benchmark_results.json
