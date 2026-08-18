@@ -16,9 +16,23 @@
   <b>VoxRAG</b> is an ultra-low latency, voice-interactive Retrieval-Augmented Generation system designed for continuous multi-turn dialogue, real-time grounding verification, and multi-strategy vector search over large-scale multilingual knowledge corpora.
 </p>
 
-[**🚀 Live Application**](https://voxrag.streamlit.app/) • [**📊 Architecture Documentation**](https://docs-three-dusky-37.vercel.app/) • [**📑 Benchmark Report**](#-performance--latency-benchmarks) • [**👥 Core Team**](#-authors--contributors)
+<p align="center">
+  <a href="https://voxrag.streamlit.app/"><b>🚀 Launch Live Web App</b></a> • 
+  <a href="https://docs-three-dusky-37.vercel.app/"><b>📊 Technical Architecture Guide</b></a> • 
+  <a href="#-performance--latency-benchmarks"><b>📑 Latency Benchmarks</b></a> • 
+  <a href="#-authors--contributors"><b>👥 Engineering Team</b></a>
+</p>
 
 </div>
+
+---
+
+## 📖 About VoxRAG
+
+> **VoxRAG** is an end-to-end Voice & Text conversational intelligence engine designed to solve the critical latency, grounding, and memory challenges in conversational retrieval systems. Built on the **48,995-passage MSMARCO-XI multilingual dataset**, VoxRAG executes full two-way voice conversational retrieval and grounded synthesis in **under 150ms (P50: 142ms)**.
+>
+> 🔗 **Live Demo Application**: [https://voxrag.streamlit.app/](https://voxrag.streamlit.app/)  
+> 🔗 **Interactive Architecture Whitepaper**: [https://docs-three-dusky-37.vercel.app/](https://docs-three-dusky-37.vercel.app/)
 
 ---
 
