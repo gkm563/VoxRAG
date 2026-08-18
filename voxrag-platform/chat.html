@@ -1927,6 +1927,7 @@
   }
 
   // ── ChatGPT-Style Streamed Token Rendering ──
+  // ── Stable Butter-Smooth AI Response Rendering (Zero Jitter / Zero Lag) ──
   function renderAIBubble(d, timeStr, onTypingComplete) {
     const area = document.getElementById('chatArea');
     const card = document.createElement('div');
@@ -1934,7 +1935,7 @@
 
     let sugsHtml = '';
     if (d.suggestions && d.suggestions.length) {
-      sugsHtml = `<div class="sug-chips-row fade-in-delayed" style="display:none;">
+      sugsHtml = `<div class="sug-chips-row fade-in-delayed">
         ${d.suggestions.map(s => `<button class="sug-pill" onclick="askPreset('${escAttr(s)}')"><svg class="icon" style="width:12px;height:12px;" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg> ${escHtml(s)}</button>`).join('')}
       </div>`;
     }
@@ -1946,9 +1947,9 @@
         <span class="badge-grounded">✓ Grounded</span>
         <span style="font-size:11px;color:var(--text-muted);font-weight:normal;font-family:var(--font-mono);">${timeStr} · ${d.total_ms}ms</span>
       </div>
-      <div class="msg-ai-text"><span class="typewriter-body"></span><span class="chatgpt-cursor"></span></div>
+      <div class="msg-ai-text">${renderMarkdownSafe(d.answer)}</div>
       ${sugsHtml}
-      <div class="ai-footer-bar fade-in-delayed" style="display:none;">
+      <div class="ai-footer-bar fade-in-delayed">
         <button class="btn-action-sm" onclick="speakSarvamAI('${escAttr(d.answer)}', this)">
           <svg class="icon" viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
           Listen (Sarvam AI)
@@ -1962,54 +1963,7 @@
     area.appendChild(card);
     card.scrollIntoView({ behavior: 'smooth', block: 'end' });
 
-    const textBodyEl = card.querySelector('.typewriter-body');
-    const cursorEl = card.querySelector('.chatgpt-cursor');
-    const sugRow = card.querySelector('.sug-chips-row');
-    const footerBar = card.querySelector('.ai-footer-bar');
-
-    // ChatGPT-Style Real-time Typewriter Stream
-    streamChatGPTTokens(d.answer, textBodyEl, cursorEl, () => {
-      if (sugRow) sugRow.style.display = 'flex';
-      if (footerBar) footerBar.style.display = 'flex';
-      card.scrollIntoView({ behavior: 'smooth', block: 'end' });
-      if (onTypingComplete) onTypingComplete();
-    });
-  }
-
-  function streamChatGPTTokens(fullText, bodyEl, cursorEl, callback) {
-    let charIndex = 0;
-
-    function step() {
-      if (charIndex < fullText.length) {
-        const currentChar = fullText[charIndex];
-        charIndex += 1;
-
-        const currentSlice = fullText.slice(0, charIndex);
-        bodyEl.innerHTML = renderMarkdownSafe(currentSlice);
-        bodyEl.scrollIntoView({ behavior: 'auto', block: 'nearest' });
-
-        // Natural ChatGPT cadence
-        let delay = 16;
-        if (currentChar === '.' || currentChar === '!' || currentChar === '?') {
-          delay = 60;
-        } else if (currentChar === ',' || currentChar === ';' || currentChar === ':') {
-          delay = 35;
-        } else if (currentChar === '\n') {
-          delay = 70;
-        }
-
-        setTimeout(step, delay);
-      } else {
-        bodyEl.innerHTML = renderMarkdownSafe(fullText);
-        if (cursorEl) {
-          cursorEl.style.transition = 'opacity 0.3s';
-          cursorEl.style.opacity = '0';
-          setTimeout(() => cursorEl.remove(), 300);
-        }
-        if (callback) callback();
-      }
-    }
-    step();
+    if (onTypingComplete) onTypingComplete();
   }
 
   function renderMarkdownSafe(raw) {
