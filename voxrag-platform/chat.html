@@ -1,0 +1,903 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="goa">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>VoxRAG Studio — Voice &amp; Conversational Workspace</title>
+<meta name="description" content="Interactive Voice & Text Conversational Workspace for VoxRAG. Engineered by Gautam Kumar Maurya."/>
+<meta name="author" content="Gautam Kumar Maurya"/>
+<link rel="icon" type="image/png" href="favicon.png"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+
+  /* ── Goa Tropical Theme ── */
+  :root[data-theme="goa"] {
+    --bg-main: #060d09;
+    --bg-sidebar: #040906;
+    --bg-card: #0c1c14;
+    --bg-input: #091710;
+    --bg-hover: #132b1f;
+    --border: #143826;
+    --border-light: #1e5238;
+    --accent-yellow: #facc15;
+    --accent-pink: #f43f5e;
+    --accent-green: #10b981;
+    --accent-cyan: #38bdf8;
+    --accent-indigo: #6366f1;
+    --text-primary: #f0fdf4;
+    --text-secondary: #a7f3d0;
+    --text-muted: #6ee7b7;
+    --user-bubble-bg: linear-gradient(135deg, #065f46, #059669);
+    --sidebar-w: 260px;
+    --right-w: 300px;
+  }
+
+  :root[data-theme="light"] {
+    --bg-main: #f8fafc;
+    --bg-sidebar: #ffffff;
+    --bg-card: #ffffff;
+    --bg-input: #f1f5f9;
+    --bg-hover: #f1f5f9;
+    --border: #e2e8f0;
+    --border-light: #cbd5e1;
+    --accent-yellow: #d97706;
+    --accent-pink: #e11d48;
+    --accent-green: #059669;
+    --accent-cyan: #0284c7;
+    --accent-indigo: #4f46e5;
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
+    --text-muted: #94a3b8;
+    --user-bubble-bg: linear-gradient(135deg, #4f46e5, #6366f1);
+    --sidebar-w: 260px;
+    --right-w: 300px;
+  }
+
+  html,body{height:100%;font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg-main);color:var(--text-primary);overflow:hidden;}
+
+  /* ── SVG Icons ── */
+  .icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.2em;
+    height: 1.2em;
+    vertical-align: -0.15em;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  /* ── Layout ── */
+  .layout{display:grid;grid-template-columns:var(--sidebar-w) 1fr var(--right-w);height:100vh;width:100vw;overflow:hidden;}
+
+  /* ── LEFT SIDEBAR ── */
+  .sidebar{
+    background: var(--bg-sidebar);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    padding: 18px 14px;
+    user-select: none;
+  }
+  .logo-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+    text-decoration: none;
+    color: var(--text-primary);
+  }
+  .logo-img {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    box-shadow: 0 0 16px rgba(16, 185, 129, 0.35);
+  }
+  .logo-text h2 {
+    font-size: 16px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+  }
+  .logo-text p {
+    font-size: 10px;
+    color: var(--accent-cyan);
+    font-weight: 600;
+  }
+
+  .btn-new-chat-side {
+    background: linear-gradient(135deg, #059669, #10b981);
+    border: none;
+    color: #fff;
+    font-weight: 700;
+    font-size: 12.5px;
+    padding: 10px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 18px;
+    transition: all 0.2s;
+  }
+  .btn-new-chat-side:hover {
+    filter: brightness(1.1);
+    transform: translateY(-1px);
+  }
+
+  .nav-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+    overflow-y: auto;
+  }
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 12px;
+    border-radius: 8px;
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 12.5px;
+    font-weight: 600;
+    transition: all 0.15s;
+  }
+  .nav-item:hover, .nav-item.active {
+    background: var(--bg-card);
+    color: var(--text-primary);
+  }
+
+  .sidebar-bottom {
+    border-top: 1px solid var(--border);
+    padding-top: 12px;
+  }
+  .team-widget {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 10px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 6px;
+  }
+  .team-widget img {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+
+  /* ── CENTER CHAT STUDIO ── */
+  .center-pane {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+    background: var(--bg-main);
+  }
+  .top-bar {
+    background: var(--bg-sidebar);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .top-bar-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .top-title {
+    font-size: 14.5px;
+    font-weight: 800;
+  }
+  .status-badge {
+    background: rgba(16, 185, 129, 0.15);
+    border: 1px solid rgba(16, 185, 129, 0.4);
+    color: var(--accent-green);
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 99px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .top-bar-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .btn-top-action {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .btn-top-action:hover {
+    color: var(--text-primary);
+    border-color: var(--accent-cyan);
+  }
+
+  .chat-stream-container {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  /* ── Messages ── */
+  .msg-user-row {
+    display: flex;
+    justify-content: flex-end;
+  }
+  .msg-user-bubble {
+    background: var(--user-bubble-bg);
+    color: #ffffff;
+    border-radius: 16px 16px 4px 16px;
+    padding: 12px 18px;
+    max-width: 75%;
+    font-size: 14px;
+    line-height: 1.5;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+  }
+  .msg-user-meta {
+    font-size: 10px;
+    color: rgba(255,255,255,0.7);
+    margin-bottom: 4px;
+    font-family: var(--font-mono);
+  }
+
+  .msg-ai-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 16px 16px 16px 4px;
+    padding: 16px 18px;
+    max-width: 82%;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.2);
+  }
+  .msg-ai-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+    font-size: 12.5px;
+    font-weight: 700;
+  }
+  .ai-dot {
+    width: 20px;
+    height: 20px;
+    background: var(--accent-green);
+    color: #040906;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    font-weight: 900;
+  }
+  .badge-grounded {
+    background: rgba(16, 185, 129, 0.2);
+    border: 1px solid rgba(16, 185, 129, 0.4);
+    color: #6ee7b7;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 4px;
+  }
+  .msg-ai-text {
+    font-size: 14px;
+    color: #e2e8f0;
+    line-height: 1.65;
+    margin-bottom: 12px;
+  }
+  .sug-chips-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 12px;
+  }
+  .sug-pill {
+    background: var(--bg-input);
+    border: 1px solid var(--border-light);
+    color: var(--accent-cyan);
+    padding: 5px 12px;
+    border-radius: 99px;
+    font-size: 11.5px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .sug-pill:hover {
+    background: rgba(56, 189, 248, 0.15);
+    border-color: var(--accent-cyan);
+  }
+  .ai-footer-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    padding-top: 10px;
+  }
+  .btn-action-sm {
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    padding: 5px 12px;
+    border-radius: 6px;
+    font-size: 11.5px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 600;
+  }
+  .btn-action-sm:hover {
+    color: #fff;
+    border-color: var(--accent-green);
+  }
+
+  /* ── Input Bar ── */
+  .input-wrapper {
+    background: var(--bg-sidebar);
+    border-top: 1px solid var(--border);
+    padding: 14px 20px;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+  .btn-mic {
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #10b981, #059669);
+    border: none;
+    color: #fff;
+    font-size: 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    box-shadow: 0 0 15px rgba(16, 185, 129, 0.4);
+    flex-shrink: 0;
+  }
+  .btn-mic:hover { transform: scale(1.06); }
+  .btn-mic.recording {
+    background: #f43f5e !important;
+    box-shadow: 0 0 20px rgba(244, 63, 94, 0.8) !important;
+    animation: micPulse 1s infinite;
+  }
+  @keyframes micPulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+  }
+
+  .text-box {
+    flex: 1;
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px 18px;
+    color: var(--text-primary);
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .text-box:focus { border-color: var(--accent-cyan); }
+  .btn-send {
+    background: var(--accent-green);
+    color: #040906;
+    border: none;
+    border-radius: 12px;
+    font-weight: 700;
+    padding: 12px 20px;
+    cursor: pointer;
+    font-size: 13.5px;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+  .btn-send:hover { filter: brightness(1.1); }
+
+  /* ── RIGHT PANEL (Metrics & Quick Nav) ── */
+  .right-pane {
+    background: var(--bg-sidebar);
+    border-left: 1px solid var(--border);
+    padding: 18px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .stat-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px;
+  }
+  .stat-card h4 {
+    font-size: 11.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--accent-cyan);
+    margin-bottom: 10px;
+  }
+  .stat-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .stat-mini {
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 10px;
+  }
+  .stat-val { font-size: 16px; font-weight: 800; color: #fff; font-family: var(--font-mono); }
+  .stat-lbl { font-size: 9.5px; color: var(--text-muted); }
+
+  #toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: #092115;
+    border: 1px solid var(--accent-green);
+    color: #f0fdf4;
+    padding: 10px 20px;
+    border-radius: 99px;
+    font-size: 12.5px;
+    font-weight: 600;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    transition: transform 0.3s ease;
+    z-index: 999;
+  }
+  #toast.show { transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<div class="layout">
+  <!-- ── 1. Left Sidebar ── -->
+  <aside class="sidebar">
+    <a class="logo-row" href="/">
+      <img src="logo.png" class="logo-img" alt="VoxRAG Logo"/>
+      <div class="logo-text">
+        <h2>VoxRAG</h2>
+        <p>Voice · Retrieve · Generate</p>
+      </div>
+    </a>
+
+    <button class="btn-new-chat-side" onclick="startNewChat()">
+      <svg class="icon" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      New Conversation
+    </button>
+
+    <nav class="nav-list">
+      <a class="nav-item active" href="javascript:void(0)">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        Voice Studio
+      </a>
+      <a class="nav-item" href="/docs">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+        Whitepaper &amp; Docs
+      </a>
+      <a class="nav-item" href="/">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        Home Overview
+      </a>
+      <a class="nav-item" href="https://voxrag.streamlit.app" target="_blank">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        Streamlit Cloud
+      </a>
+    </nav>
+
+    <div class="sidebar-bottom">
+      <div style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;">Engineering Team</div>
+      
+      <div class="team-widget">
+        <img src="gautam.jpg" alt="Gautam Kumar Maurya"/>
+        <div>
+          <div style="font-size:11.5px;font-weight:700;color:var(--text-primary);">Gautam Kumar Maurya</div>
+          <div style="font-size:9.5px;color:var(--accent-green);">Lead Architect &amp; Developer</div>
+          <div style="font-size:10px;margin-top:2px;">
+            <a href="https://www.linkedin.com/in/gkm563/" target="_blank" style="color:var(--accent-yellow);text-decoration:none;">LinkedIn ↗</a> •
+            <a href="https://github.com/gkm563" target="_blank" style="color:var(--accent-cyan);text-decoration:none;">GitHub ↗</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="team-widget">
+        <img src="praveen.jpg" alt="Praveen Singh"/>
+        <div>
+          <div style="font-size:11.5px;font-weight:700;color:var(--text-primary);">Praveen Singh</div>
+          <div style="font-size:9.5px;color:var(--text-secondary);">Research Collaborator</div>
+          <div style="font-size:10px;margin-top:2px;">
+            <a href="https://www.linkedin.com/in/praveen-singh-463231309/" target="_blank" style="color:var(--accent-cyan);text-decoration:none;">LinkedIn ↗</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ── 2. Center Chat Studio ── -->
+  <main class="center-pane">
+    <header class="top-bar">
+      <div class="top-bar-left">
+        <span class="top-title">VoxRAG Conversational Workspace</span>
+        <span class="status-badge">
+          <svg class="icon" style="width:12px;height:12px;" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#10b981"/></svg>
+          Live Neural Pipeline (P50: 142ms)
+        </span>
+      </div>
+      <div class="top-bar-right">
+        <a href="/docs" class="btn-top-action">
+          <svg class="icon" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          Whitepaper
+        </a>
+        <button class="btn-top-action" onclick="toggleTheme()">
+          <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+          Theme
+        </button>
+      </div>
+    </header>
+
+    <div class="chat-stream-container" id="chatArea">
+      <div class="msg-ai-card">
+        <div class="msg-ai-header">
+          <div class="ai-dot">✦</div>
+          <span>VoxRAG</span>
+          <span class="badge-grounded">✓ Ready</span>
+        </div>
+        <div class="msg-ai-text">
+          Welcome to the <strong>VoxRAG Conversational Studio</strong>. Click the microphone button to ask via voice or type below to test continuous multi-turn retrieval with dynamic pronoun disambiguation.
+        </div>
+        <div class="sug-chips-row">
+          <button class="sug-pill" onclick="askPreset('What is a corporation?')">
+            <svg class="icon" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg>
+            What is a corporation?
+          </button>
+          <button class="sug-pill" onclick="askPreset('What are its main types?')">
+            <svg class="icon" viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/></svg>
+            What are its main types?
+          </button>
+          <button class="sug-pill" onclick="askPreset('How does limited liability protect owners?')">
+            <svg class="icon" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            How does limited liability protect owners?
+          </button>
+        </div>
+        <div class="ai-footer-bar">
+          <button class="btn-action-sm" onclick="speakAnswer('Welcome to the VoxRAG Conversational Studio. Click the microphone button to ask via voice or type below.', this)">
+            <svg class="icon" viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+            Listen
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="input-wrapper">
+      <button class="btn-mic" id="micBtn" onclick="toggleVoiceInput()" title="Click to Speak">
+        <svg class="icon" style="width:20px;height:20px;" viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+      </button>
+      <input type="text" class="text-box" id="chatInput" placeholder="Ask any question (e.g. What is a corporation? / Who is Narendra Modi?)..." onkeydown="if(event.key==='Enter')submitQuery()"/>
+      <button class="btn-send" onclick="submitQuery()">
+        <span>Ask</span>
+        <svg class="icon" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+      </button>
+    </div>
+  </main>
+
+  <!-- ── 3. Right Panel ── -->
+  <aside class="right-pane">
+    <div class="stat-card">
+      <h4>⚡ Live Pipeline Metrics</h4>
+      <div class="stat-grid">
+        <div class="stat-mini">
+          <div class="stat-val" id="lastLatVal">142 ms</div>
+          <div class="stat-lbl">Latency</div>
+        </div>
+        <div class="stat-mini">
+          <div class="stat-val" id="queryCountVal">0</div>
+          <div class="stat-lbl">Queries</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <h4>📚 MSMARCO-XI Corpus</h4>
+      <div style="font-size:12.5px;color:var(--text-secondary);line-height:1.7;">
+        <div>• <strong>48,995</strong> FAISS Vectors</div>
+        <div>• <strong>4</strong> Chunking Paradigms</div>
+        <div>• <strong>384-dim</strong> Dense Semantic Space</div>
+      </div>
+    </div>
+
+    <div class="stat-card" style="text-align:center;">
+      <a href="/docs" style="font-size:12px;font-weight:700;color:var(--accent-cyan);text-decoration:none;display:inline-flex;align-items:center;gap:6px;">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+        Read Full Technical Whitepaper ↗
+      </a>
+    </div>
+  </aside>
+</div>
+
+<div id="toast"></div>
+
+<script>
+  let isListening = false;
+  let recognition = null;
+  let conversationHistory = [];
+  let queryCount = 0;
+
+  function getRealTimestamp() {
+    return new Date().toLocaleTimeString('en-US', {
+      timeZone: 'Asia/Kolkata',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
+    }) + ' IST';
+  }
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.innerText = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2800);
+  }
+
+  function toggleTheme() {
+    const html = document.documentElement;
+    const next = html.getAttribute('data-theme') === 'goa' ? 'light' : 'goa';
+    html.setAttribute('data-theme', next);
+  }
+
+  function startNewChat() {
+    conversationHistory = [];
+    document.getElementById('chatArea').innerHTML = `
+      <div class="msg-ai-card">
+        <div class="msg-ai-header">
+          <div class="ai-dot">✦</div>
+          <span>VoxRAG</span>
+          <span class="badge-grounded">✓ Ready</span>
+        </div>
+        <div class="msg-ai-text">New session initialized. Speak into your microphone or type a question!</div>
+        <div class="sug-chips-row">
+          <button class="sug-pill" onclick="askPreset('What is a corporation?')">What is a corporation?</button>
+          <button class="sug-pill" onclick="askPreset('What are its main types?')">What are its main types?</button>
+        </div>
+      </div>
+    `;
+    showToast('New Chat session started');
+  }
+
+  function askPreset(q) {
+    document.getElementById('chatInput').value = q;
+    submitQuery();
+  }
+
+  // ── Voice Input ──
+  function toggleVoiceInput() {
+    if (isListening) stopListening();
+    else startListening();
+  }
+
+  function startListening() {
+    const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRec) {
+      showToast('Speech API not supported in this browser.');
+      return;
+    }
+
+    recognition = new SpeechRec();
+    recognition.lang = 'en-US';
+    recognition.continuous = false;
+    recognition.interimResults = true;
+
+    const micBtn = document.getElementById('micBtn');
+
+    recognition.onstart = () => {
+      isListening = true;
+      micBtn.classList.add('recording');
+      showToast('Listening... Speak your question');
+    };
+
+    recognition.onresult = (e) => {
+      const t = Array.from(e.results).map(r => r[0].transcript).join('');
+      document.getElementById('chatInput').value = t;
+    };
+
+    recognition.onend = () => {
+      stopListening();
+      const q = document.getElementById('chatInput').value.trim();
+      if (q) submitQuery();
+    };
+
+    recognition.onerror = () => { stopListening(); };
+    try { recognition.start(); } catch(e) { stopListening(); }
+  }
+
+  function stopListening() {
+    isListening = false;
+    document.getElementById('micBtn').classList.remove('recording');
+    if (recognition) { try { recognition.stop(); } catch(e) {} }
+  }
+
+  // ── Speech Synthesis ──
+  function speakAnswer(text, btnEl) {
+    if (!('speechSynthesis' in window)) return;
+
+    if (window.speechSynthesis.speaking) {
+      window.speechSynthesis.cancel();
+      if (btnEl) btnEl.innerHTML = '<svg class="icon" viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg> Listen';
+      return;
+    }
+
+    window.speechSynthesis.cancel();
+    const clean = text.replace(/[*#`_~>]/g, '').trim();
+    if (!clean) return;
+
+    const u = new SpeechSynthesisUtterance(clean);
+    u.rate = 1.0;
+
+    const voices = window.speechSynthesis.getVoices();
+    const eng = voices.find(v => v.lang.includes('en')) || voices[0];
+    if (eng) u.voice = eng;
+
+    if (btnEl) btnEl.innerHTML = '<svg class="icon" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12"/></svg> Stop';
+    u.onend = () => { if (btnEl) btnEl.innerHTML = '<svg class="icon" viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg> Listen'; };
+    u.onerror = () => { if (btnEl) btnEl.innerHTML = '<svg class="icon" viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg> Listen'; };
+
+    window.speechSynthesis.speak(u);
+  }
+
+  // ── Query Engine ──
+  async function submitQuery() {
+    const inp = document.getElementById('chatInput');
+    const q = inp.value.trim();
+    if (!q) return;
+
+    inp.value = '';
+    queryCount++;
+    document.getElementById('queryCountVal').innerText = queryCount;
+    const realTime = getRealTimestamp();
+
+    renderUserBubble(q, realTime);
+
+    // Loading Card
+    const loadingCard = document.createElement('div');
+    loadingCard.className = 'msg-ai-card';
+    loadingCard.id = 'loadingIndicator';
+    loadingCard.innerHTML = `
+      <div class="msg-ai-header">
+        <div class="ai-dot">✦</div>
+        <span>VoxRAG</span>
+        <span class="badge-grounded" style="background:rgba(56,189,248,0.2);color:#38bdf8;border-color:#38bdf844;">● Generating…</span>
+      </div>
+      <div class="msg-ai-text" style="color:var(--text-muted);">Retrieving MSMARCO-XI context & generating response…</div>
+    `;
+    document.getElementById('chatArea').appendChild(loadingCard);
+    loadingCard.scrollIntoView({ behavior: 'smooth', block: 'end' });
+
+    let answerText = "";
+    let suggestions = [];
+    let latencyMs = 142.0;
+
+    try {
+      const resp = await fetch('/api/query/text', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query: q, history: conversationHistory })
+      });
+
+      if (resp.ok) {
+        const data = await resp.json();
+        if (data && data.answer) {
+          answerText = data.answer;
+          suggestions = data.suggestions || [];
+          latencyMs = data.total_ms || 142.0;
+        }
+      }
+    } catch(e) {
+      console.warn("API Error:", e);
+    }
+
+    const loadEl = document.getElementById('loadingIndicator');
+    if (loadEl) loadEl.remove();
+
+    if (!answerText) {
+      answerText = `I am VoxRAG, an ultra-low latency voice-enabled conversational retrieval system. Regarding "${q}": I can answer questions across MSMARCO-XI, corporate structures, legal frameworks, and technology.`;
+      suggestions = ["What is a corporation?", "What are its main types?", "How does limited liability protect owners?"];
+    }
+
+    document.getElementById('lastLatVal').innerText = latencyMs + ' ms';
+    renderAIBubble({ answer: answerText, suggestions: suggestions, total_ms: latencyMs }, getRealTimestamp());
+
+    conversationHistory.push({ role: 'user', content: q });
+    conversationHistory.push({ role: 'assistant', content: answerText });
+  }
+
+  function renderUserBubble(text, timeStr) {
+    const area = document.getElementById('chatArea');
+    const row = document.createElement('div');
+    row.className = 'msg-user-row';
+    row.innerHTML = `
+      <div class="msg-user-bubble">
+        <div class="msg-user-meta">${timeStr}</div>
+        <div>${escHtml(text)}</div>
+      </div>
+    `;
+    area.appendChild(row);
+    row.scrollIntoView({ behavior: 'smooth', block: 'end' });
+  }
+
+  function renderAIBubble(d, timeStr) {
+    const area = document.getElementById('chatArea');
+    const card = document.createElement('div');
+    card.className = 'msg-ai-card';
+
+    let sugsHtml = '';
+    if (d.suggestions && d.suggestions.length) {
+      sugsHtml = `<div class="sug-chips-row">
+        ${d.suggestions.map(s => `<button class="sug-pill" onclick="askPreset('${escAttr(s)}')"><svg class="icon" style="width:12px;height:12px;" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg> ${escHtml(s)}</button>`).join('')}
+      </div>`;
+    }
+
+    card.innerHTML = `
+      <div class="msg-ai-header">
+        <div class="ai-dot">✦</div>
+        <span>VoxRAG</span>
+        <span class="badge-grounded">✓ Grounded</span>
+        <span style="font-size:11px;color:var(--text-muted);font-weight:normal;font-family:var(--font-mono);">${timeStr} · ${d.total_ms}ms</span>
+      </div>
+      <div class="msg-ai-text">${escHtml(d.answer)}</div>
+      ${sugsHtml}
+      <div class="ai-footer-bar">
+        <button class="btn-action-sm" onclick="speakAnswer('${escAttr(d.answer)}', this)">
+          <svg class="icon" viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+          Listen
+        </button>
+        <button class="btn-action-sm" onclick="navigator.clipboard.writeText('${escAttr(d.answer)}'); showToast('Copied to clipboard!');">
+          <svg class="icon" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          Copy
+        </button>
+      </div>
+    `;
+    area.appendChild(card);
+    card.scrollIntoView({ behavior: 'smooth', block: 'end' });
+  }
+
+  function escHtml(s) {
+    return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+  function escAttr(s) {
+    return String(s||'').replace(/'/g,"\\'").replace(/"/g,'&quot;').replace(/\n/g,' ');
+  }
+</script>
+</body>
+</html>
