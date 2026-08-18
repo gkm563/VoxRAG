@@ -1181,7 +1181,10 @@
   function addUserMessage(text) {
     msgCounter++;
     const msgId = 'user-msg-' + msgCounter;
-    const t = new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+    const now = new Date();
+    const timeStr = now.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+    const dateStr = now.toLocaleDateString([], {month:'short',day:'numeric'});
+    const fullTime = `${timeStr} · ${dateStr}`;
     const el = document.createElement('div');
     el.className = 'msg-user';
     el.id = msgId;
@@ -1192,7 +1195,7 @@
           You
         </span>
         <div class="msg-actions">
-          <span class="msg-time">${t}</span>
+          <span class="msg-time">🕒 ${fullTime}</span>
           <button class="msg-action-btn" onclick="startEditMessage('${msgId}')" title="Edit query">✏️ Edit</button>
           <button class="msg-action-btn" onclick="copyText('${escAttr(text)}')" title="Copy">📋</button>
         </div>
@@ -1233,7 +1236,10 @@
   }
 
   function addAIMessage(d) {
-    const t = new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+    const now = new Date();
+    const timeStr = now.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+    const dateStr = now.toLocaleDateString([], {month:'short',day:'numeric'});
+    const fullTime = `${timeStr} · ${dateStr}`;
     const el = document.createElement('div');
 
     if (d.blocked) {
@@ -1278,13 +1284,14 @@
           <div class="ai-icon">✦</div>
           <span class="ai-name">VoxRAG</span>
           ${groundedBadge}
+          <span style="font-size:11px;color:var(--text-muted);margin-left:6px;">🕒 ${fullTime}</span>
           <span class="badge badge-green" style="margin-left:auto">${confPct}% conf</span>
         </div>
         <div class="msg-text">${escHtml(d.answer)}</div>
         ${sourcesHtml}
         ${suggestionsHtml}
         <div class="msg-footer">
-          <span class="msg-footer-note">Answer generated based on retrieved context · ${d.total_ms || '142'}ms · ${t}</span>
+          <span class="msg-footer-note">Answer generated based on retrieved context · ${d.total_ms || '142'}ms · 🕒 ${fullTime}</span>
           <button class="copy-btn" onclick="copyText('${escAttr(d.answer)}')">📋 Copy</button>
         </div>`;
     }

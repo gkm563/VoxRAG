@@ -284,7 +284,7 @@ if query_to_run and harness:
     st.session_state.messages.append({
         "role": "user",
         "content": query_to_run,
-        "time": time.strftime("%H:%M"),
+        "time": time.strftime("%I:%M %p · %b %d"),
     })
 
     # 2. Run RAG Pipeline
@@ -312,7 +312,7 @@ if query_to_run and harness:
             "total_ms": out.total_latency_ms,
             "sources": out.sources,
             "suggestions": getattr(out, "suggestions", []),
-            "time": time.strftime("%H:%M"),
+            "time": time.strftime("%I:%M %p · %b %d"),
         })
 
         if not out.blocked:
@@ -321,11 +321,14 @@ if query_to_run and harness:
 
 # ── Render Clean Conversation Stream ──────────────────────────────────────────
 for m_idx, msg in enumerate(st.session_state.messages):
+    t_str = msg.get("time", time.strftime("%I:%M %p · %b %d"))
     if msg["role"] == "user":
         with st.chat_message("user"):
+            st.markdown(f"<div style='font-size:11px;color:#8892a4;margin-bottom:4px;'><b>👤 You</b> · 🕒 {t_str}</div>", unsafe_allow_html=True)
             st.write(msg["content"])
     else:
         with st.chat_message("assistant"):
+            st.markdown(f"<div style='font-size:11px;color:#8892a4;margin-bottom:4px;'><b>✦ VoxRAG</b> · 🕒 {t_str}</div>", unsafe_allow_html=True)
             st.write(msg["content"])
 
             if not msg.get("blocked"):
@@ -339,6 +342,7 @@ for m_idx, msg in enumerate(st.session_state.messages):
                   <span class="meta-tag tag-speed">⚡ {lat_val}ms</span>
                   <span class="meta-tag tag-grounded">{grnd_tag}</span>
                   <span class="meta-tag">🎯 {conf_pct}% confidence</span>
+                  <span class="meta-tag">🕒 {t_str}</span>
                   <span class="meta-tag">📚 MSMARCO-XI</span>
                 </div>
                 """, unsafe_allow_html=True)
