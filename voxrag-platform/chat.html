@@ -1495,6 +1495,11 @@
     };
 
     recognition.onresult = (e) => {
+      // 1. Acoustic Isolation: If AI is speaking, ignore all microphone capture!
+      if (isAiSpeaking) {
+        return;
+      }
+
       let interim = '';
       let final = '';
       for (let i = 0; i < e.results.length; ++i) {
@@ -1507,26 +1512,23 @@
       const text = (final || interim).trim();
       if (!text) return;
 
+      // 2. Acoustic Echo Guard: If microphone heard speaker output matching AI's own words, discard it!
+      if (lastSpokenAiText && isEchoOfLastResponse(text, lastSpokenAiText)) {
+        console.warn("Acoustic echo filtered out:", text);
+        return;
+      }
+
       accumulatedVoiceText = text;
       document.getElementById('chatInput').value = text;
-
-      // ── BARGE-IN INTERRUPTION DETECTED ──
-      if (isAiSpeaking) {
-        stopAnySpeech();
-        if (isVoiceCallModalOpen) {
-          setOrbState('listening', 'Interruption Detected · Listening…', `"${text}"`);
-        }
-        showToast('⚡ Interrupted — Listening to your query');
-      }
 
       if (isVoiceCallModalOpen) {
         document.getElementById('callTranscriptBox').innerText = `"${text}"`;
       }
 
-      // Snappy responsive silence detector (300ms after speech pause -> immediate trigger)
+      // Snappy responsive silence detector (350ms after speech pause -> immediate trigger)
       if (speechSilenceTimer) clearTimeout(speechSilenceTimer);
       speechSilenceTimer = setTimeout(() => {
-        if (accumulatedVoiceText && isListening && !isSubmitting) {
+        if (accumulatedVoiceText && isListening && !isSubmitting && !isAiSpeaking) {
           const q = accumulatedVoiceText;
           accumulatedVoiceText = "";
           stopListening();
@@ -1536,7 +1538,7 @@
           }
           submitQuery('voice', q);
         }
-      }, 300);
+      }, 350);
     };
 
     recognition.onend = () => {
@@ -1547,10 +1549,16 @@
         speechSilenceTimer = null;
       }
 
+      // If AI started speaking, do not process microphone residue or re-arm
+      if (isAiSpeaking) {
+        accumulatedVoiceText = "";
+        return;
+      }
+
       const q = accumulatedVoiceText || document.getElementById('chatInput').value.trim();
       accumulatedVoiceText = "";
 
-      if (q && !isSubmitting) {
+      if (q && !isSubmitting && !isEchoOfLastResponse(q, lastSpokenAiText)) {
         lastQuerySource = 'voice';
         if (isVoiceCallModalOpen) {
           setOrbState('thinking', 'Retrieving & Generating…', `"${q}"`);
@@ -1558,12 +1566,12 @@
         submitQuery('voice', q);
       } else {
         if (isVoiceCallModalOpen && !isCallMuted && !isAiSpeaking && !isSubmitting) {
-          // Re-arm listening if silence in Voice Call mode
+          // Re-arm listening only when completely silent and AI is not speaking
           setTimeout(() => {
             if (isVoiceCallModalOpen && !isListening && !isAiSpeaking && !isSubmitting) {
               startListening();
             }
-          }, 200);
+          }, 250);
         }
       }
     };
@@ -1576,10 +1584,15 @@
         speechSilenceTimer = null;
       }
 
+      if (isAiSpeaking) {
+        accumulatedVoiceText = "";
+        return;
+      }
+
       const q = accumulatedVoiceText || document.getElementById('chatInput').value.trim();
       accumulatedVoiceText = "";
 
-      if (q && !isSubmitting) {
+      if (q && !isSubmitting && !isEchoOfLastResponse(q, lastSpokenAiText)) {
         lastQuerySource = 'voice';
         if (isVoiceCallModalOpen) {
           setOrbState('thinking', 'Retrieving & Generating…', `"${q}"`);
@@ -1608,6 +1621,18 @@
     if (recognition) {
       try { recognition.stop(); } catch(e) {}
     }
+  }
+
+  // ── Acoustic Echo Guard ──
+  let lastSpokenAiText = "";
+  function isEchoOfLastResponse(userInput, aiOutput) {
+    if (!userInput || !aiOutput) return false;
+    const inClean = userInput.toLowerCase().replace(/[^a-z0-9]/g, '');
+    const aiClean = aiOutput.toLowerCase().replace(/[^a-z0-9]/g, '');
+    if (inClean.length < 5) return false;
+    if (aiClean.includes(inClean)) return true;
+    if (inClean.includes(aiClean) && aiClean.length > 8) return true;
+    return false;
   }
 
   // ── Pre-load System Voices and Unlock Audio ──
@@ -1639,41 +1664,36 @@
     } catch(e) {}
   }
 
-  // ── Instant Zero-Latency Voice Engine with Barge-In ──
+  // ── Instant Zero-Latency Voice Engine with Acoustic Isolation ──
   function speakAnswer(text, btnEl, onCompleteCallback) {
     stopAnySpeech();
+    stopListening(); // CRITICAL: Stop microphone so speakers never feed into mic!
+
     const clean = text.replace(/[*#`_~>\[\]\(\)\\]/g, '').replace(/https?:\/\/\S+/g, '').replace(/\s+/g, ' ').trim();
     if (!clean) return;
 
     isAiSpeaking = true;
+    lastSpokenAiText = clean; // Store for echo filtering
 
     if (btnEl) btnEl.innerHTML = '<svg class="icon" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12"/></svg> Stop';
     
     if (isVoiceCallModalOpen) {
       setOrbState('speaking', 'VoxRAG Speaking…', clean);
-      // Arm continuous barge-in listener during speech playback
-      startListening(true);
     }
 
     const onPlaybackComplete = () => {
       isAiSpeaking = false;
       if (btnEl) btnEl.innerHTML = '<svg class="icon" viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg> Listen';
       
-      if (isVoiceCallModalOpen) {
-        setOrbState('listening', 'Listening to you…', 'Speak your next question…');
-        setTimeout(() => {
-          if (isVoiceCallModalOpen && !isCallMuted && !isListening && !isAiSpeaking && !isSubmitting) {
-            startListening();
-          }
-        }, 200);
-      } else if (lastQuerySource === 'voice' && autoVoiceReply && !isListening && !isSubmitting) {
-        // Continuous hands-free loop for voice queries
-        setTimeout(() => {
-          if (!isListening && !isAiSpeaking && !isSubmitting) {
-            startListening();
-          }
-        }, 300);
-      }
+      // Delay 400ms after speech ends so speaker reverb clears before opening mic!
+      setTimeout(() => {
+        if (isVoiceCallModalOpen && !isCallMuted && !isListening && !isAiSpeaking && !isSubmitting) {
+          setOrbState('listening', 'Listening to you…', 'Speak your next question…');
+          startListening();
+        } else if (lastQuerySource === 'voice' && autoVoiceReply && !isListening && !isAiSpeaking && !isSubmitting) {
+          startListening();
+        }
+      }, 400);
 
       if (onCompleteCallback) onCompleteCallback();
     };
