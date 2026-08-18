@@ -35,8 +35,8 @@ if hasattr(st, "secrets"):
 
 # ── Page config ───────────────────────────────────────────────────────────────
 st.set_page_config(
-    page_title="VoxRAG — #RAGInGoa Voice & Text RAG",
-    page_icon="🌴",
+    page_title="VoxRAG — Voice-Enabled RAG System (#RAGInGoa)",
+    page_icon="assets/logo.png" if os.path.exists("assets/logo.png") else "🌴",
     layout="wide",
     initial_sidebar_state="expanded",
 )
@@ -183,9 +183,17 @@ stt = load_stt()
 
 # ── 1. LEFT SIDEBAR ───────────────────────────────────────────────────────────
 with st.sidebar:
-    st.markdown("""
+    import base64
+    logo_b64 = ""
+    if os.path.exists("assets/logo.png"):
+        with open("assets/logo.png", "rb") as lf:
+            logo_b64 = base64.b64encode(lf.read()).decode("utf-8")
+
+    logo_img_tag = f'<img src="data:image/png;base64,{logo_b64}" style="width:36px;height:36px;border-radius:8px;box-shadow:0 0 10px rgba(56,189,248,0.4);" />' if logo_b64 else '<div style="width:34px;height:34px;border-radius:8px;background:linear-gradient(135deg,#6c63ff,#ec4899);display:flex;align-items:center;justify-content:center;font-size:17px;color:white;">🌴</div>'
+
+    st.markdown(f"""
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
-      <div style="width:34px;height:34px;border-radius:8px;background:linear-gradient(135deg,#6c63ff,#ec4899);display:flex;align-items:center;justify-content:center;font-size:17px;color:white;">🌴</div>
+      {logo_img_tag}
       <div>
         <div style="font-size:15px;font-weight:800;color:#f0fdf4;">VoxRAG</div>
         <div style="font-size:10px;color:#6ee7b7;">Voice &amp; Text RAG</div>
