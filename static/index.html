@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>VoxRAG — Voice-Enabled RAG System</title>
+<title>VoxRAG — Voice & Type Enabled RAG System</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
 <style>
@@ -82,42 +82,53 @@
   .tab-pane::-webkit-scrollbar{width:4px;}
   .tab-pane::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px;}
 
-  /* ── Voice Card ── */
-  .voice-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:20px 24px;box-shadow:var(--card-shadow);}
-  .voice-card-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px;}
-  .voice-card-header h3{font-size:15px;font-weight:600;}
-  .voice-card-header p{font-size:12px;color:var(--text-secondary);margin-top:2px;}
-  .type-toggle{display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--bg-hover);cursor:pointer;font-size:12px;color:var(--text-secondary);}
-  .type-toggle:hover{color:var(--text-primary);border-color:var(--accent);}
-  .voice-visualizer{display:flex;align-items:center;justify-content:center;gap:16px;margin-bottom:18px;}
-  .waveform{display:flex;align-items:center;gap:3px;height:48px;}
-  .wave-bar{width:3px;border-radius:3px;background:var(--accent);opacity:0.4;transition:height 0.1s;animation:wave 1.2s ease-in-out infinite;}
+  /* ── Unified Dual-Input Card (Voice + Type) ── */
+  .unified-input-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:18px 22px;box-shadow:var(--card-shadow);display:flex;flex-direction:column;gap:14px;}
+  .input-header-row{display:flex;justify-content:space-between;align-items:center;}
+  .input-mode-tabs{display:flex;gap:6px;background:var(--bg-hover);padding:3px;border-radius:var(--radius-sm);border:1px solid var(--border);}
+  .mode-tab{padding:5px 12px;border-radius:6px;font-size:12px;font-weight:600;color:var(--text-secondary);cursor:pointer;background:transparent;border:none;}
+  .mode-tab.active{background:var(--accent);color:white;box-shadow:0 2px 8px #6c63ff44;}
+
+  /* Typing Area */
+  .type-box-wrapper{display:flex;gap:10px;align-items:center;background:var(--bg-hover);border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 12px;}
+  .type-box-wrapper:focus-within{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-dim);}
+  .type-box-input{flex:1;background:transparent;border:none;outline:none;font-size:14px;color:var(--text-primary);font-family:inherit;}
+  .type-box-input::placeholder{color:var(--text-muted);}
+  .prompt-send-btn{background:linear-gradient(135deg,var(--accent),#a855f7);border:none;color:white;width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:15px;flex-shrink:0;}
+  .prompt-send-btn:hover{opacity:0.85;transform:scale(1.05);}
+  .prompt-send-btn:disabled{opacity:0.4;cursor:not-allowed;transform:none;}
+  .prompt-mic-inline{background:var(--bg-card);border:1px solid var(--border);color:var(--text-primary);width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:15px;flex-shrink:0;}
+  .prompt-mic-inline:hover{border-color:var(--accent);color:var(--accent);}
+  .prompt-mic-inline.recording{background:var(--red);color:white;animation:pulse 1s infinite;}
+
+  /* Voice Big Visualizer Box */
+  .voice-box-container{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:12px 0 6px;}
+  .voice-visualizer{display:flex;align-items:center;justify-content:center;gap:16px;margin-bottom:12px;}
+  .waveform{display:flex;align-items:center;gap:3px;height:40px;}
+  .wave-bar{width:3px;border-radius:3px;background:var(--accent);opacity:0.3;transition:height 0.1s;animation:wave 1.2s ease-in-out infinite;}
   .wave-bar:nth-child(1){height:8px;animation-delay:0s;}
-  .wave-bar:nth-child(2){height:20px;animation-delay:0.1s;}
-  .wave-bar:nth-child(3){height:32px;animation-delay:0.2s;}
-  .wave-bar:nth-child(4){height:44px;animation-delay:0.3s;}
-  .wave-bar:nth-child(5){height:38px;animation-delay:0.4s;}
-  .wave-bar:nth-child(6){height:28px;animation-delay:0.5s;}
-  .wave-bar:nth-child(7){height:18px;animation-delay:0.6s;}
-  .wave-bar:nth-child(8){height:10px;animation-delay:0.7s;}
+  .wave-bar:nth-child(2){height:18px;animation-delay:0.1s;}
+  .wave-bar:nth-child(3){height:28px;animation-delay:0.2s;}
+  .wave-bar:nth-child(4){height:38px;animation-delay:0.3s;}
+  .wave-bar:nth-child(5){height:32px;animation-delay:0.4s;}
+  .wave-bar:nth-child(6){height:24px;animation-delay:0.5s;}
+  .wave-bar:nth-child(7){height:14px;animation-delay:0.6s;}
+  .wave-bar:nth-child(8){height:8px;animation-delay:0.7s;}
   @keyframes wave{0%,100%{transform:scaleY(0.4);}50%{transform:scaleY(1);opacity:0.9;}}
   .waveform.active .wave-bar{opacity:1;}
-  .mic-btn{width:64px;height:64px;border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:22px;position:relative;flex-shrink:0;color:white;
+  .mic-btn-main{width:56px;height:56px;border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:22px;color:white;
     background:linear-gradient(135deg,var(--accent),#a855f7);box-shadow:0 0 0 0 #6c63ff55;}
-  .mic-btn:hover{transform:scale(1.05);box-shadow:0 0 0 8px #6c63ff22;}
-  .mic-btn.recording{animation:micPulse 1s infinite;background:linear-gradient(135deg,var(--red),#ff4444);}
+  .mic-btn-main:hover{transform:scale(1.05);box-shadow:0 0 0 8px #6c63ff22;}
+  .mic-btn-main.recording{animation:micPulse 1s infinite;background:linear-gradient(135deg,var(--red),#ff4444);}
   @keyframes micPulse{0%{box-shadow:0 0 0 0 #ff6b6b55;}70%{box-shadow:0 0 0 16px #ff6b6b00;}100%{box-shadow:0 0 0 0 #ff6b6b00;}}
-  .voice-status{text-align:center;font-size:12px;color:var(--text-secondary);}
-  .voice-status span{color:var(--green);font-weight:600;}
+  .voice-status-text{font-size:12px;color:var(--text-secondary);text-align:center;}
+  .voice-status-text span{color:var(--green);font-weight:600;}
 
-  /* ── Text Input ── */
-  .text-input-row{display:flex;gap:10px;align-items:flex-end;margin-top:8px;}
-  .text-input-row input{flex:1;background:var(--bg-hover);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 16px;font-size:14px;color:var(--text-primary);font-family:inherit;outline:none;}
-  .text-input-row input:focus{border-color:var(--accent);}
-  .text-input-row input::placeholder{color:var(--text-muted);}
-  .send-btn{width:44px;height:44px;border-radius:var(--radius-sm);border:none;background:linear-gradient(135deg,var(--accent),#a855f7);color:white;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;}
-  .send-btn:hover{opacity:0.85;transform:scale(1.05);}
-  .send-btn:disabled{opacity:0.4;cursor:not-allowed;transform:none;}
+  /* Quick Suggestion Chips */
+  .chips-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:2px;}
+  .chips-label{font-size:11px;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:0.04em;}
+  .prompt-chip{background:var(--bg-hover);border:1px solid var(--border);border-radius:99px;padding:4px 12px;font-size:11.5px;color:var(--text-secondary);cursor:pointer;}
+  .prompt-chip:hover{border-color:var(--accent);color:var(--text-primary);background:var(--accent-dim);}
 
   /* ── Messages with ChatGPT-style Edit System ── */
   .msg-user{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:14px 18px;box-shadow:var(--card-shadow);position:relative;}
@@ -270,7 +281,7 @@
     <nav class="nav">
       <div class="nav-item active" onclick="setNav(this,'chat')">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
-        Chat
+        Chat &amp; Ask
       </div>
       <div class="nav-item" onclick="setNav(this,'analytics')">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
@@ -316,8 +327,8 @@
   <main class="main">
     <div class="top-bar">
       <div class="top-bar-left">
-        <h1 id="pageTitle">Voice-Enabled RAG System</h1>
-        <p id="pageSubtitle">Speech to Answer with Retrieval Augmented Generation</p>
+        <h1 id="pageTitle">Voice &amp; Type RAG System</h1>
+        <p id="pageSubtitle">Ask by speaking or typing with real-time retrieval-augmented generation</p>
       </div>
       <div class="top-bar-right">
         <button class="mode-badge-btn" onclick="toggleTheme()" id="topThemeBtn">🌓 Switch Mode</button>
@@ -332,20 +343,23 @@
       </div>
     </div>
 
-    <!-- 1. CHAT TAB -->
+    <!-- 1. CHAT TAB (Unified Voice + Typing Interface) -->
     <div class="tab-pane active" id="pane-chat">
-      <div class="voice-card">
-        <div class="voice-card-header">
+      <div class="unified-input-card">
+        <div class="input-header-row">
           <div>
-            <h3>Ask your question</h3>
-            <p>Speak or type your question below</p>
+            <h3 style="font-size:14.5px;font-weight:600;">Ask VoxRAG</h3>
+            <p style="font-size:11.5px;color:var(--text-secondary);margin-top:2px;">Type your question below or click the microphone to speak</p>
           </div>
-          <button class="type-toggle" id="typeToggleBtn" onclick="toggleInputMode()">
-            ⌨️ Type instead
-          </button>
+          <div class="input-mode-tabs">
+            <button class="mode-tab active" id="tabModeBoth" onclick="setInputMode('both')">⚡ Dual Mode</button>
+            <button class="mode-tab" id="tabModeType" onclick="setInputMode('type')">⌨️ Typing</button>
+            <button class="mode-tab" id="tabModeVoice" onclick="setInputMode('voice')">🎙️ Voice</button>
+          </div>
         </div>
 
-        <div id="voiceUI">
+        <!-- Voice Visualizer Box (Visible in Dual and Voice modes) -->
+        <div class="voice-box-container" id="voiceBoxArea">
           <div class="voice-visualizer">
             <div class="waveform" id="waveform">
               <div class="wave-bar"></div><div class="wave-bar"></div>
@@ -353,7 +367,7 @@
               <div class="wave-bar"></div><div class="wave-bar"></div>
               <div class="wave-bar"></div><div class="wave-bar"></div>
             </div>
-            <button class="mic-btn" id="micBtn" onclick="toggleRecording()" title="Click to record">
+            <button class="mic-btn-main" id="micBtn" onclick="toggleRecording()" title="Click to record voice">
               🎙️
             </button>
             <div class="waveform" id="waveform2">
@@ -363,16 +377,27 @@
               <div class="wave-bar"></div><div class="wave-bar"></div>
             </div>
           </div>
-          <div class="voice-status" id="voiceStatus">
-            Click the microphone to start recording
+          <div class="voice-status-text" id="voiceStatus">
+            Click the microphone to speak, or type your question below
           </div>
         </div>
 
-        <div id="textUI" style="display:none;">
-          <div class="text-input-row">
-            <input type="text" id="textInput" placeholder="Type your question here (e.g. What is a corporation?)..." onkeydown="if(event.key==='Enter')sendText()"/>
-            <button class="send-btn" id="sendBtn" onclick="sendText()" title="Send">➤</button>
-          </div>
+        <!-- Typing Box (Always readily accessible) -->
+        <div class="type-box-wrapper" id="typeBoxArea">
+          <input type="text" class="type-box-input" id="textInput" 
+                 placeholder="Type your question here (e.g. What is a corporation?)..." 
+                 onkeydown="if(event.key==='Enter')sendText()"/>
+          <button class="prompt-mic-inline" id="micBtnInline" onclick="toggleRecording()" title="Record voice">🎙️</button>
+          <button class="prompt-send-btn" id="sendBtn" onclick="sendText()" title="Send query">➤</button>
+        </div>
+
+        <!-- Suggestion Chips -->
+        <div class="chips-row">
+          <span class="chips-label">Try asking:</span>
+          <button class="prompt-chip" onclick="askSuggestion('What is a corporation?')">🏢 What is a corporation?</button>
+          <button class="prompt-chip" onclick="askSuggestion('How does FAISS vector search work?')">🔍 How does FAISS work?</button>
+          <button class="prompt-chip" onclick="askSuggestion('What is the MSMARCO dataset used for?')">📚 MSMARCO dataset</button>
+          <button class="prompt-chip" onclick="askSuggestion('Explain dense passage retrieval')">⚡ Dense passage retrieval</button>
         </div>
       </div>
 
@@ -413,7 +438,7 @@
           <div style="display:flex;flex-direction:column;gap:12px;margin-top:10px;">
             <div>
               <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;">
-                <span>Speech-to-Text (Sarvam AI / Whisper)</span>
+                <span>Speech-to-Text (Sarvam AI / Groq Whisper)</span>
                 <span style="font-weight:600" id="anaStageStt">~65ms</span>
               </div>
               <div style="background:var(--border);height:8px;border-radius:4px;">
@@ -478,7 +503,7 @@
           <div style="background:var(--bg-hover);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px;">
             <div style="font-size:24px;margin-bottom:8px;">🎙️</div>
             <div style="font-size:13px;font-weight:600;margin-bottom:4px;">1. Speech-to-Text</div>
-            <div style="font-size:11px;color:var(--text-secondary);line-height:1.5;" id="pipeDescStt">Sarvam AI (saarika:v1) + OpenAI Whisper fallback. 16kHz sample rate.</div>
+            <div style="font-size:11px;color:var(--text-secondary);line-height:1.5;" id="pipeDescStt">Sarvam AI (saarika:v1) + Groq Whisper turbo fallback. 16kHz audio.</div>
           </div>
           <div style="background:var(--bg-hover);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px;">
             <div style="font-size:24px;margin-bottom:8px;">✂️</div>
@@ -613,7 +638,7 @@
       <div class="pipeline-flow">
         <div class="pipe-step">
           <div class="pipe-icon">🎙️</div>
-          <p>Voice Input</p>
+          <p>Voice / Type</p>
           <small>Sarvam STT</small>
           <div class="pipe-ms" id="pipeMs1">~65ms</div>
         </div>
@@ -704,7 +729,6 @@
   let audioChunks = [];
   let speechRec = null;
   let liveTranscript = '';
-  let textMode = false;
   let latHistory = [];
   let chartCtx = null;
 
@@ -717,6 +741,37 @@
     setInterval(loadAnalytics, 5000);
     setInterval(loadLogs, 4000);
   });
+
+  // ── Input Mode Selector ──
+  function setInputMode(mode) {
+    document.querySelectorAll('.mode-tab').forEach(b => b.classList.remove('active'));
+    const voiceBox = document.getElementById('voiceBoxArea');
+    const typeBox = document.getElementById('typeBoxArea');
+    const inlineMic = document.getElementById('micBtnInline');
+
+    if (mode === 'both') {
+      document.getElementById('tabModeBoth').classList.add('active');
+      voiceBox.style.display = 'flex';
+      typeBox.style.display = 'flex';
+      inlineMic.style.display = 'flex';
+    } else if (mode === 'type') {
+      document.getElementById('tabModeType').classList.add('active');
+      voiceBox.style.display = 'none';
+      typeBox.style.display = 'flex';
+      inlineMic.style.display = 'none';
+      document.getElementById('textInput').focus();
+    } else if (mode === 'voice') {
+      document.getElementById('tabModeVoice').classList.add('active');
+      voiceBox.style.display = 'flex';
+      typeBox.style.display = 'none';
+    }
+  }
+
+  // ── Ask Suggestion Chip ──
+  function askSuggestion(question) {
+    document.getElementById('textInput').value = question;
+    sendText();
+  }
 
   // ── Theme Switcher ──
   function toggleTheme() {
@@ -742,7 +797,7 @@
     if (target) target.classList.add('active');
 
     const titleMap = {
-      'chat': ['Voice-Enabled RAG System', 'Speech to Answer with Retrieval Augmented Generation'],
+      'chat': ['Voice & Type RAG System', 'Ask by speaking or typing with real-time retrieval-augmented generation'],
       'analytics': ['Latency & Pipeline Analytics', 'Performance metrics, P50/P70/P100 analysis and stage timings'],
       'pipeline': ['Pipeline Architecture & Flow', 'End-to-end component specifications and indexing status'],
       'guardrails': ['Guardrails & Safety Control', 'Input/Output verification, injection checks and hallucination guards'],
@@ -781,6 +836,7 @@
         const display = (liveTranscript + ' ' + interim).trim();
         if (display) {
           document.getElementById('voiceStatus').innerHTML = `<span>● Listening:</span> "${escHtml(display)}"`;
+          document.getElementById('textInput').value = display;
         }
       };
     }
@@ -966,14 +1022,6 @@
     ctx.setLineDash([]);
   }
 
-  function toggleInputMode() {
-    textMode = !textMode;
-    document.getElementById('voiceUI').style.display = textMode ? 'none' : 'block';
-    document.getElementById('textUI').style.display  = textMode ? 'block' : 'none';
-    document.getElementById('typeToggleBtn').innerHTML= textMode ? '🎙️ Voice instead' : '⌨️ Type instead';
-    if (textMode) setTimeout(() => document.getElementById('textInput').focus(), 50);
-  }
-
   async function toggleRecording() {
     if (!isRecording) await startRecording();
     else               stopRecording();
@@ -999,6 +1047,7 @@
 
       document.getElementById('micBtn').classList.add('recording');
       document.getElementById('micBtn').textContent = '⏹️';
+      document.getElementById('micBtnInline').classList.add('recording');
       document.getElementById('voiceStatus').innerHTML = '<span>● Recording...</span> Speak your question now';
       document.getElementById('waveform').classList.add('active');
       document.getElementById('waveform2').classList.add('active');
@@ -1015,6 +1064,7 @@
     isRecording = false;
     document.getElementById('micBtn').classList.remove('recording');
     document.getElementById('micBtn').textContent = '🎙️';
+    document.getElementById('micBtnInline').classList.remove('recording');
     document.getElementById('voiceStatus').textContent = 'Processing speech with Sarvam AI...';
     document.getElementById('waveform').classList.remove('active');
     document.getElementById('waveform2').classList.remove('active');
@@ -1062,6 +1112,7 @@
     document.getElementById('voiceStatus').textContent = 'Click the microphone to start recording';
   }
 
+  // ── Send Typed Text Query ──
   async function sendText() {
     const input = document.getElementById('textInput');
     const query = input.value.trim();
