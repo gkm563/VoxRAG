@@ -47,7 +47,13 @@
 
 ---
 
-## 🏛️ System Architecture
+## 🏛️ End-to-End System Execution Flow
+
+<div align="center">
+  <img src="assets/architecture_flow.png" alt="VoxRAG End-to-End Execution Flowchart" width="700" style="border-radius:14px;border:1px solid #2c3850;box-shadow:0 8px 30px rgba(0,0,0,0.5);" />
+</div>
+
+<br/>
 
 ```mermaid
 flowchart TD
