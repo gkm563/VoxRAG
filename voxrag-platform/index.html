@@ -3,16 +3,16 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>VoxRAG — Sub-200ms Voice-Enabled Conversational RAG Engine</title>
+  <title>VoxRAG — Sub-200ms Voice Conversational Intelligence Platform</title>
   
-  <meta name="description" content="Introducing VoxRAG: The production-grade Voice-Enabled Conversational RAG engine with multi-turn memory, 4-strategy chunking, and sub-200ms latency on MSMARCO-XI. Engineered by Gautam Kumar Maurya." />
+  <meta name="description" content="Introducing VoxRAG: The sub-200ms Voice-Enabled Conversational Retrieval-Augmented Generation engine. Learn what it is, how it works, and how to use it. Engineered by Gautam Kumar Maurya." />
   <meta name="author" content="Gautam Kumar Maurya" />
-  <meta name="keywords" content="VoxRAG, Voice RAG, Conversational AI, FAISS, MSMARCO-XI, Sarvam AI, Gautam Kumar Maurya, Low Latency AI" />
+  <meta name="keywords" content="VoxRAG, Voice AI, Conversational RAG, FAISS, MSMARCO-XI, Low Latency, Gautam Kumar Maurya" />
   
   <!-- Open Graph / Twitter -->
   <meta property="og:type" content="website" />
-  <meta property="og:title" content="VoxRAG — Sub-200ms Voice Conversational RAG Engine" />
-  <meta property="og:description" content="Real-time voice retrieval-augmented generation with 4 chunking paradigms and continuous multi-turn memory." />
+  <meta property="og:title" content="VoxRAG — Sub-200ms Voice-Enabled Conversational RAG Engine" />
+  <meta property="og:description" content="Discover VoxRAG: 2-way voice conversational retrieval, 4 multi-strategy chunking paradigms, and sub-150ms grounded inference." />
   <meta property="og:image" content="logo.png" />
   <meta property="og:url" content="https://voxrag-platform.vercel.app/" />
 
@@ -51,19 +51,19 @@
       line-height: 1.6;
       overflow-x: hidden;
       background-image: 
-        radial-gradient(circle at 50% 0%, rgba(16, 185, 129, 0.12) 0%, transparent 60%),
-        radial-gradient(circle at 10% 40%, rgba(56, 189, 248, 0.05) 0%, transparent 40%),
+        radial-gradient(circle at 50% 0%, rgba(16, 185, 129, 0.14) 0%, transparent 60%),
+        radial-gradient(circle at 10% 40%, rgba(56, 189, 248, 0.06) 0%, transparent 40%),
         radial-gradient(circle at 90% 70%, rgba(251, 191, 36, 0.04) 0%, transparent 40%);
     }
 
-    /* ── SVG Icons Helper ── */
+    /* ── SVG Icons ── */
     .icon {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      width: 1.25em;
-      height: 1.25em;
-      vertical-align: -0.2em;
+      width: 1.2em;
+      height: 1.2em;
+      vertical-align: -0.18em;
       fill: none;
       stroke: currentColor;
       stroke-width: 2;
@@ -105,7 +105,7 @@
     .nav-menu {
       display: flex;
       align-items: center;
-      gap: 28px;
+      gap: 26px;
     }
     .nav-link {
       color: var(--text-secondary);
@@ -118,7 +118,7 @@
     .nav-actions {
       display: flex;
       align-items: center;
-      gap: 14px;
+      gap: 12px;
     }
     .btn-nav-ghost {
       color: var(--text-primary);
@@ -192,7 +192,7 @@
       100% { opacity: 0.5; transform: scale(0.9); }
     }
     .hero h1 {
-      font-size: 54px;
+      font-size: 56px;
       font-weight: 900;
       letter-spacing: -0.04em;
       line-height: 1.12;
@@ -206,9 +206,9 @@
       -webkit-text-fill-color: transparent;
     }
     .hero p.lead {
-      font-size: 18px;
+      font-size: 18.5px;
       color: var(--text-secondary);
-      max-width: 760px;
+      max-width: 780px;
       margin: 0 auto 36px;
       line-height: 1.6;
     }
@@ -218,6 +218,7 @@
       justify-content: center;
       gap: 16px;
       margin-bottom: 50px;
+      flex-wrap: wrap;
     }
     .btn-hero-primary {
       background: linear-gradient(135deg, #059669, #10b981);
@@ -256,7 +257,7 @@
       background: var(--bg-surface-hover);
     }
 
-    /* ── Metrics Banner ── */
+    /* ── Metrics Strip ── */
     .metrics-strip {
       max-width: 1050px;
       margin: 0 auto 80px;
@@ -292,7 +293,7 @@
       letter-spacing: 0.04em;
     }
 
-    /* ── Section Structure ── */
+    /* ── Section Containers ── */
     .section-container {
       max-width: 1200px;
       margin: 0 auto 100px;
@@ -320,34 +321,103 @@
     .section-desc {
       font-size: 16px;
       color: var(--text-secondary);
-      max-width: 680px;
+      max-width: 720px;
       margin: 0 auto;
     }
 
-    /* ── Features Grid ── */
-    .features-grid {
+    /* ── "What is VoxRAG?" Comparison Box ── */
+    .overview-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 28px;
+      margin-bottom: 40px;
+    }
+    .overview-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: 20px;
+      padding: 32px 28px;
+    }
+    .overview-card.problem {
+      border-color: rgba(244, 63, 94, 0.3);
+      background: rgba(244, 63, 94, 0.02);
+    }
+    .overview-card.solution {
+      border-color: rgba(16, 185, 129, 0.4);
+      background: rgba(16, 185, 129, 0.03);
+    }
+    .card-header-badge {
+      font-size: 11.5px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      padding: 4px 12px;
+      border-radius: 99px;
+      display: inline-block;
+      margin-bottom: 16px;
+    }
+    .problem .card-header-badge {
+      background: rgba(244, 63, 94, 0.15);
+      color: #f87171;
+    }
+    .solution .card-header-badge {
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--emerald-400);
+    }
+    .overview-card h3 {
+      font-size: 22px;
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 14px;
+    }
+    .overview-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .overview-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 13.5px;
+      color: var(--text-secondary);
+      line-height: 1.55;
+    }
+    .overview-list li strong { color: #f8fafc; }
+
+    /* ── How to Use Step-by-Step ── */
+    .steps-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: 24px;
+      margin-top: 30px;
     }
-    .feature-card {
+    .step-card {
       background: var(--bg-surface);
       border: 1px solid var(--border-subtle);
       border-radius: 18px;
-      padding: 28px 24px;
-      transition: all 0.25s ease;
-      display: flex;
-      flex-direction: column;
+      padding: 30px 24px;
+      position: relative;
+      transition: all 0.25s;
     }
-    .feature-card:hover {
+    .step-card:hover {
       border-color: var(--emerald-500);
       background: var(--bg-surface-elevated);
       transform: translateY(-3px);
-      box-shadow: 0 10px 30px rgba(0,0,0,0.35);
     }
-    .feature-icon-wrapper {
-      width: 46px;
-      height: 46px;
+    .step-number {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      font-size: 28px;
+      font-weight: 900;
+      color: rgba(255,255,255,0.06);
+      font-family: var(--font-mono);
+    }
+    .step-icon-wrap {
+      width: 48px;
+      height: 48px;
       border-radius: 12px;
       background: rgba(16, 185, 129, 0.12);
       border: 1px solid rgba(16, 185, 129, 0.3);
@@ -355,16 +425,16 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      margin-bottom: 18px;
+      margin-bottom: 20px;
       font-size: 22px;
     }
-    .feature-card h3 {
+    .step-card h3 {
       font-size: 18px;
       font-weight: 800;
       color: #fff;
       margin-bottom: 10px;
     }
-    .feature-card p {
+    .step-card p {
       font-size: 13.5px;
       color: var(--text-secondary);
       line-height: 1.65;
@@ -471,9 +541,7 @@
       border-color: #3b82f6;
       background: rgba(59, 130, 246, 0.06);
     }
-    .flow-node.stage-node {
-      border-color: var(--border-accent);
-    }
+    .flow-node.stage-node { border-color: var(--border-accent); }
     .flow-node.data-node {
       border-color: #f59e0b;
       background: rgba(245, 158, 11, 0.05);
@@ -483,9 +551,7 @@
       border-color: #ef4444;
       background: rgba(239, 68, 68, 0.05);
     }
-    .flow-node.full-stage {
-      max-width: 620px;
-    }
+    .flow-node.full-stage { max-width: 620px; }
     .flow-node.active-highlight {
       border-color: var(--emerald-400) !important;
       background: rgba(16, 185, 129, 0.15) !important;
@@ -522,16 +588,8 @@
       justify-content: space-between;
       gap: 8px;
     }
-    .fn-title {
-      font-size: 14.5px;
-      font-weight: 800;
-      color: #fff;
-    }
-    .fn-sub {
-      font-size: 12px;
-      color: var(--text-secondary);
-      margin-top: 2px;
-    }
+    .fn-title { font-size: 14.5px; font-weight: 800; color: #fff; }
+    .fn-sub { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
     .fn-lat {
       font-family: var(--font-mono);
       font-size: 11px;
@@ -562,17 +620,10 @@
       background: rgba(56, 189, 248, 0.15);
       box-shadow: 0 0 25px rgba(56, 189, 248, 0.5);
     }
-    .diamond-inner {
-      transform: rotate(-45deg);
-      text-align: center;
-    }
-    .diamond-title {
-      font-size: 13px;
-      font-weight: 800;
-      color: #fff;
-    }
+    .diamond-inner { transform: rotate(-45deg); text-align: center; }
+    .diamond-title { font-size: 13px; font-weight: 800; color: #fff; }
 
-    /* Connectors & Laser Beams */
+    /* Connectors */
     .flow-connector-vertical {
       width: 2px;
       height: 32px;
@@ -594,7 +645,6 @@
       100% { top: 100%; }
     }
 
-    /* Branch Rows */
     .flow-split-row {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -603,11 +653,7 @@
       max-width: 680px;
       margin: 6px 0;
     }
-    .flow-branch {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
+    .flow-branch { display: flex; flex-direction: column; align-items: center; }
     .branch-pill {
       font-size: 11px;
       font-weight: 700;
@@ -645,7 +691,6 @@
       overflow: hidden;
     }
 
-    /* Guard Split */
     .flow-guard-row {
       display: grid;
       grid-template-columns: 1fr 1.6fr;
@@ -654,13 +699,8 @@
       max-width: 720px;
       margin: 6px 0;
     }
-    .guard-col {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
+    .guard-col { display: flex; flex-direction: column; align-items: center; }
 
-    /* Joint Retrieval Row & Corpus Cylinder */
     .retrieval-joint-row {
       display: grid;
       grid-template-columns: 1.8fr 1fr;
@@ -688,6 +728,52 @@
     .cyl-icon { color: var(--amber-400); font-size: 24px; }
     .cyl-title { font-size: 13px; font-weight: 800; color: #fff; }
     .cyl-sub { font-size: 11px; color: var(--text-secondary); }
+
+    /* ── Features Grid ── */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+    }
+    .feature-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: 18px;
+      padding: 28px 24px;
+      transition: all 0.25s ease;
+      display: flex;
+      flex-direction: column;
+    }
+    .feature-card:hover {
+      border-color: var(--emerald-500);
+      background: var(--bg-surface-elevated);
+      transform: translateY(-3px);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+    }
+    .feature-icon-wrapper {
+      width: 46px;
+      height: 46px;
+      border-radius: 12px;
+      background: rgba(16, 185, 129, 0.12);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      color: var(--emerald-400);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 18px;
+      font-size: 22px;
+    }
+    .feature-card h3 {
+      font-size: 18px;
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 10px;
+    }
+    .feature-card p {
+      font-size: 13.5px;
+      color: var(--text-secondary);
+      line-height: 1.65;
+    }
 
     /* ── Benchmarks Table ── */
     .benchmarks-card {
@@ -840,6 +926,8 @@
     @media (max-width: 900px) {
       .hero h1 { font-size: 36px; }
       .metrics-strip { grid-template-columns: repeat(2, 1fr); }
+      .overview-grid { grid-template-columns: 1fr; }
+      .steps-grid { grid-template-columns: 1fr; }
       .features-grid { grid-template-columns: 1fr; }
       .team-grid { grid-template-columns: 1fr; }
       .flow-split-row { grid-template-columns: 1fr; }
@@ -859,8 +947,10 @@
     </a>
 
     <nav class="nav-menu">
-      <a href="#features" class="nav-link">Capabilities</a>
+      <a href="#about" class="nav-link">About</a>
+      <a href="#how-to-use" class="nav-link">How to Use</a>
       <a href="#architecture" class="nav-link">System Flow</a>
+      <a href="#features" class="nav-link">Capabilities</a>
       <a href="#benchmarks" class="nav-link">Benchmarks</a>
       <a href="/docs" class="nav-link">Whitepaper</a>
       <a href="#team" class="nav-link">Team</a>
@@ -882,15 +972,15 @@
   <section class="hero">
     <div class="hero-badge">
       <span class="pulse-dot"></span>
-      Sub-200ms Voice Conversational Intelligence
+      Sub-200ms Voice Conversational Intelligence Platform
     </div>
     
     <h1>
-      The Ultra-Fast <span class="gradient-text">Voice-Enabled</span> Conversational RAG Engine
+      The Next-Generation <span class="gradient-text">Voice-Enabled</span> Conversational RAG Engine
     </h1>
 
     <p class="lead">
-      VoxRAG executes end-to-end speech recognition, continuous multi-turn pronoun disambiguation, 4-strategy dense passage retrieval, and grounded neural inference across 48,995 passages in under 150ms.
+      VoxRAG eliminates the lag in Conversational AI. Speak naturally with continuous multi-turn pronoun memory, 4-strategy dense passage retrieval over 48,995 chunks, and real-time grounded synthesis in under 150ms.
     </p>
 
     <div class="hero-ctas">
@@ -925,66 +1015,103 @@
     </div>
   </section>
 
-  <!-- ── Features Section ── -->
-  <section class="section-container" id="features">
+  <!-- ── 1. "What is VoxRAG?" Problem vs Breakthrough ── -->
+  <section class="section-container" id="about">
     <div class="section-header">
-      <div class="section-tag">Core Capabilities</div>
-      <h2 class="section-title">Architected for Speed, Precision &amp; Memory</h2>
-      <p class="section-desc">Six engineered pillars that make continuous voice conversations instant and hallucination-free.</p>
+      <div class="section-tag">Platform Overview</div>
+      <h2 class="section-title">What is VoxRAG &amp; Why Does It Matter?</h2>
+      <p class="section-desc">Traditional AI chatbots are slow, forget context across turns, and hallucinate facts. VoxRAG was built to fundamentally solve this.</p>
     </div>
 
-    <div class="features-grid">
-      <div class="feature-card">
-        <div class="feature-icon-wrapper">
-          <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-        </div>
-        <h3>Sub-200ms Full Pipeline</h3>
-        <p>Eliminates roundtrip serialization bottlenecks with parallelized neural pipelines, completing speech-to-grounded-text in 142ms.</p>
+    <div class="overview-grid">
+      <!-- Traditional Problem -->
+      <div class="overview-card problem">
+        <span class="card-header-badge">The Problem in Traditional RAG</span>
+        <h3>Why Voice Conversations Break</h3>
+        <ul class="overview-list">
+          <li>
+            <svg class="icon" style="color:#f87171;" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+            <div><strong>Sluggish Latency (&gt;1.5 seconds)</strong>: Voice calls feel awkward and robotic due to serial roundtrips.</div>
+          </li>
+          <li>
+            <svg class="icon" style="color:#f87171;" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+            <div><strong>Context Amnesia</strong>: Shorthand questions like <em>"What are its types?"</em> fail because standard vector search loses the original subject.</div>
+          </li>
+          <li>
+            <svg class="icon" style="color:#f87171;" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+            <div><strong>Naive Character Splitting</strong>: Fixed 500-char chunking cuts sentences in half, causing inaccurate and hallucinated answers.</div>
+          </li>
+        </ul>
       </div>
 
-      <div class="feature-card">
-        <div class="feature-icon-wrapper">
-          <svg class="icon" viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
-        </div>
-        <h3>Two-Way Voice Intelligence</h3>
-        <p>Native Web Speech Recognition coupled with high-throughput neural STT and 1-click audio speech synthesis output.</p>
-      </div>
-
-      <div class="feature-card">
-        <div class="feature-icon-wrapper">
-          <svg class="icon" viewBox="0 0 24 24"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
-        </div>
-        <h3>4-Strategy Chunking Matrix</h3>
-        <p>Fixed-overlap, sentence-boundary, paragraph structural, and semantic embedding variance clustering across MSMARCO-XI.</p>
-      </div>
-
-      <div class="feature-card">
-        <div class="feature-icon-wrapper">
-          <svg class="icon" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
-        </div>
-        <h3>Continuous Multi-Turn Memory</h3>
-        <p>Context formulation engine dynamically resolves shorthand pronouns (<em>"What are its types?"</em>) to preserve latent conversational subjects.</p>
-      </div>
-
-      <div class="feature-card">
-        <div class="feature-icon-wrapper">
-          <svg class="icon" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
-        </div>
-        <h3>Cosine Grounding Guardrails</h3>
-        <p>Pre-inference prompt injection sanitization and post-inference embedding cosine alignment to verify factual fidelity.</p>
-      </div>
-
-      <div class="feature-card">
-        <div class="feature-icon-wrapper">
-          <svg class="icon" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
-        </div>
-        <h3>FAISS FlatIP Inner-Product Search</h3>
-        <p>Normalized 384-dimensional dense vectors with exact dot-product SIMD parallelization over 48,995 corpus passages.</p>
+      <!-- The VoxRAG Solution -->
+      <div class="overview-card solution">
+        <span class="card-header-badge">The VoxRAG Engineering Breakthrough</span>
+        <h3>Sub-200ms Conversational Intelligence</h3>
+        <ul class="overview-list">
+          <li>
+            <svg class="icon" style="color:var(--emerald-400);" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="9 12 11 14 15 10"/></svg>
+            <div><strong>142ms Real-Time Pipeline</strong>: Parallelized STT, FAISS FlatIP retrieval, and Groq LPU inference deliver instantaneous voice replies.</div>
+          </li>
+          <li>
+            <svg class="icon" style="color:var(--emerald-400);" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="9 12 11 14 15 10"/></svg>
+            <div><strong>Continuous Coreference Memory</strong>: Dynamically rewrites follow-up pronouns to preserve topics across multi-turn dialogues.</div>
+          </li>
+          <li>
+            <svg class="icon" style="color:var(--emerald-400);" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="9 12 11 14 15 10"/></svg>
+            <div><strong>4-Strategy Ingestion Matrix</strong>: Blends semantic clustering, paragraph structure, sentence boundaries, and sliding overlaps over 48,995 chunks.</div>
+          </li>
+        </ul>
       </div>
     </div>
   </section>
 
-  <!-- ── Architecture Section (Exact Branching Flowchart Visualizer) ── -->
+  <!-- ── 2. How to Use VoxRAG (3 Easy Steps) ── -->
+  <section class="section-container" id="how-to-use">
+    <div class="section-header">
+      <div class="section-tag">User Guide</div>
+      <h2 class="section-title">How to Use VoxRAG in 3 Simple Steps</h2>
+      <p class="section-desc">Get started in seconds — talk hands-free or type questions in our interactive workspace.</p>
+    </div>
+
+    <div class="steps-grid">
+      <div class="step-card">
+        <div class="step-number">01</div>
+        <div class="step-icon-wrap">
+          <svg class="icon" viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+        </div>
+        <h3>1. Speak or Type Your Query</h3>
+        <p>Click the microphone button or launch <strong>"Voice Call Mode"</strong>. Speak naturally in English, Hindi, or Indian dialects. VoxRAG captures speech with sub-70ms neural transcription.</p>
+      </div>
+
+      <div class="step-card">
+        <div class="step-number">02</div>
+        <div class="step-icon-wrap">
+          <svg class="icon" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        </div>
+        <h3>2. Instant Neural Retrieval (<150ms)</h3>
+        <p>The system applies security guardrails, resolves pronouns from previous turns, searches 48,995 FAISS vectors, and generates a grounded factual response.</p>
+      </div>
+
+      <div class="step-card">
+        <div class="step-number">03</div>
+        <div class="step-icon-wrap">
+          <svg class="icon" viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
+        </div>
+        <h3>3. Listen &amp; Continue Conversation</h3>
+        <p>VoxRAG immediately speaks the answer aloud. In continuous mode, the microphone auto-rearms so you can ask your next follow-up without touching any buttons.</p>
+      </div>
+    </div>
+
+    <div style="display:flex;justify-content:center;margin-top:36px;">
+      <a href="/chat" class="btn-hero-primary">
+        <svg class="icon" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        Launch Interactive Studio &amp; Start Talking
+      </a>
+    </div>
+  </section>
+
+  <!-- ── 3. Interactive Architecture Flowchart Visualizer ── -->
   <section class="section-container" id="architecture">
     <div class="section-header">
       <div class="section-tag">Interactive Architecture Flow</div>
@@ -1217,7 +1344,66 @@
     </div>
   </section>
 
-  <!-- ── Benchmarks Section ── -->
+  <!-- ── 4. Core Capabilities Section ── -->
+  <section class="section-container" id="features">
+    <div class="section-header">
+      <div class="section-tag">Core Capabilities</div>
+      <h2 class="section-title">Architected for Speed, Precision &amp; Memory</h2>
+      <p class="section-desc">Six engineered pillars that make continuous voice conversations instant and hallucination-free.</p>
+    </div>
+
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon-wrapper">
+          <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        </div>
+        <h3>Sub-200ms Full Pipeline</h3>
+        <p>Eliminates roundtrip serialization bottlenecks with parallelized neural pipelines, completing speech-to-grounded-text in 142ms.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon-wrapper">
+          <svg class="icon" viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+        </div>
+        <h3>Two-Way Voice Intelligence</h3>
+        <p>Native Web Speech Recognition coupled with high-throughput neural STT and 1-click audio speech synthesis output.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon-wrapper">
+          <svg class="icon" viewBox="0 0 24 24"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+        </div>
+        <h3>4-Strategy Chunking Matrix</h3>
+        <p>Fixed-overlap, sentence-boundary, paragraph structural, and semantic embedding variance clustering across MSMARCO-XI.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon-wrapper">
+          <svg class="icon" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+        </div>
+        <h3>Continuous Multi-Turn Memory</h3>
+        <p>Context formulation engine dynamically resolves shorthand pronouns (<em>"What are its types?"</em>) to preserve latent conversational subjects.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon-wrapper">
+          <svg class="icon" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
+        </div>
+        <h3>Cosine Grounding Guardrails</h3>
+        <p>Pre-inference prompt injection sanitization and post-inference embedding cosine alignment to verify factual fidelity.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon-wrapper">
+          <svg class="icon" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+        </div>
+        <h3>FAISS FlatIP Inner-Product Search</h3>
+        <p>Normalized 384-dimensional dense vectors with exact dot-product SIMD parallelization over 48,995 corpus passages.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── 5. Benchmarks Section ── -->
   <section class="section-container" id="benchmarks">
     <div class="section-header">
       <div class="section-tag">Verified Performance</div>
@@ -1291,7 +1477,7 @@
     </div>
   </section>
 
-  <!-- ── Team Section ── -->
+  <!-- ── 6. Team Section ── -->
   <section class="section-container" id="team">
     <div class="section-header">
       <div class="section-tag">Engineering Leadership</div>
@@ -1339,7 +1525,7 @@
     <div class="cta-banner">
       <h2>Experience Sub-200ms Voice RAG Today</h2>
       <p>Speak with the live neural pipeline or test continuous multi-turn dialogue right in your browser.</p>
-      <div style="display:flex;justify-content:center;gap:14px;">
+      <div style="display:flex;justify-content:center;gap:14px;flex-wrap:wrap;">
         <a href="/chat" class="btn-hero-primary">
           <svg class="icon" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
           Launch Interactive Studio
