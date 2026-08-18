@@ -38,14 +38,16 @@ Guidelines for your response:
 3. Structure your explanation naturally: start with a direct definition/core answer, followed by key principles, examples, or breakdown.
 4. Keep the tone friendly, authoritative, articulate, and natural for both voice speech playback and visual reading.
 5. If the user asks a multi-turn follow-up (e.g. "What are its types?", "Who is he?", "How does that work?"), seamlessly resolve all pronouns and context from previous conversation turns.
-6. Format your response cleanly and naturally. Use bold key terms (**term**) for readability, clean bullet points for lists, and concise section headers (### Header). Never output raw pipe-table delimiter strings (like |---|---|) or repetitive separator dashes (---) so that text is clean, elegant, and articulate for both visual reading and speech audio flow.`;
+6. Format your response cleanly and naturally. Use bold key terms (**term**) for readability, clean bullet points for lists, and concise section headers (### Header). Never output raw pipe-table delimiter strings (like |---|---|) or repetitive separator dashes (---) so that text is clean, elegant, and articulate for both visual reading and speech audio flow.
+7. Always prioritize and answer the user's latest query directly. If the user shifts to a new topic (e.g. asking about science, personal greetings, technology, or history), immediately pivot and answer the new question cleanly without getting stuck on earlier topics.`;
 
   const messages = [{ role: 'system', content: systemPrompt }];
 
   if (Array.isArray(history)) {
-    for (const turn of history.slice(-8)) {
+    // Keep last 4 turns max for crisp multi-turn pronoun memory without context clutter
+    for (const turn of history.slice(-4)) {
       if (turn && turn.role && turn.content) {
-        messages.push({ role: turn.role, content: turn.content });
+        messages.push({ role: turn.role, content: turn.content.slice(0, 400) });
       }
     }
   }

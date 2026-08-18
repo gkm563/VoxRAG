@@ -1373,6 +1373,7 @@
 
   // ── ChatGPT-Style Voice Call Mode ──
   function openVoiceCallModal() {
+    unlockAudioEngine();
     isVoiceCallModalOpen = true;
     lastQuerySource = 'voice';
     document.getElementById('voiceCallOverlay').classList.add('active');
@@ -1441,6 +1442,7 @@
 
   // ── Voice Input (Speech Recognition with Single-Turn VAD & Barge-In) ──
   function toggleVoiceInput() {
+    unlockAudioEngine();
     if (isAiSpeaking) {
       // Barge-in: user clicked mic while AI is talking -> STOP AI immediately & listen to user!
       stopAnySpeech();
@@ -1608,10 +1610,39 @@
     }
   }
 
+  // ── Pre-load System Voices and Unlock Audio ──
+  let systemVoices = [];
+  function loadSystemVoices() {
+    if ('speechSynthesis' in window) {
+      systemVoices = window.speechSynthesis.getVoices() || [];
+    }
+  }
+  if ('speechSynthesis' in window) {
+    window.speechSynthesis.onvoiceschanged = loadSystemVoices;
+    loadSystemVoices();
+  }
+
+  function unlockAudioEngine() {
+    if ('speechSynthesis' in window) {
+      try {
+        window.speechSynthesis.cancel();
+        window.speechSynthesis.resume();
+        loadSystemVoices();
+      } catch(e) {}
+    }
+    try {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (AudioCtx) {
+        const ctx = new AudioCtx();
+        if (ctx.state === 'suspended') ctx.resume();
+      }
+    } catch(e) {}
+  }
+
   // ── Instant Zero-Latency Voice Engine with Barge-In ──
   function speakAnswer(text, btnEl, onCompleteCallback) {
     stopAnySpeech();
-    const clean = text.replace(/[*#`_~>\[\]\(\)\\]/g, '').trim();
+    const clean = text.replace(/[*#`_~>\[\]\(\)\\]/g, '').replace(/https?:\/\/\S+/g, '').replace(/\s+/g, ' ').trim();
     if (!clean) return;
 
     isAiSpeaking = true;
@@ -1657,32 +1688,74 @@
       return;
     }
 
-    window.speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(cleanText);
-    u.rate = 1.15; // Natural energetic pacing
+    try {
+      window.speechSynthesis.cancel();
+      window.speechSynthesis.resume();
+    } catch(e) {}
+
+    // Take first 1-3 complete sentences (up to 300 chars) for crisp conversational speech
+    let snippet = cleanText;
+    if (snippet.length > 300) {
+      const dot = snippet.indexOf('.', 160);
+      if (dot !== -1 && dot < 320) snippet = snippet.slice(0, dot + 1);
+      else snippet = snippet.slice(0, 300);
+    }
+
+    const u = new SpeechSynthesisUtterance(snippet);
+    u.rate = 1.12; // Crisp, human-like energetic pacing
+    u.pitch = 1.0;
     u.lang = 'en-IN';
 
-    const voices = window.speechSynthesis.getVoices();
-    // High-quality voice selection
+    if (!systemVoices || systemVoices.length === 0) {
+      loadSystemVoices();
+    }
+
+    const voices = systemVoices.length > 0 ? systemVoices : window.speechSynthesis.getVoices();
+    // High-quality voice selection: Indian English > Natural Neural > US English > General English
     const engVoice = voices.find(v => (v.lang === 'en-IN' || v.lang === 'en_IN') && !v.name.includes('David')) ||
                      voices.find(v => v.lang === 'en-IN' || v.lang === 'en_IN') ||
-                     voices.find(v => v.name.includes('Natural') || v.name.includes('Google') || v.name.includes('Neural')) ||
+                     voices.find(v => v.name.includes('Natural') || v.name.includes('Google') || v.name.includes('Neural') || v.name.includes('Samantha')) ||
                      voices.find(v => v.lang === 'en-US' || v.lang === 'en_US') ||
                      voices.find(v => v.lang.startsWith('en'));
+
     if (engVoice) {
       u.voice = engVoice;
       u.lang = engVoice.lang;
     }
 
-    u.onend = () => {
-      isAiSpeaking = false;
-      if (finishHandler) finishHandler();
-    };
-    u.onerror = () => {
+    let finished = false;
+    const finishOnce = () => {
+      if (finished) return;
+      finished = true;
       isAiSpeaking = false;
       if (finishHandler) finishHandler();
     };
 
+    u.onend = finishOnce;
+    u.onerror = (e) => {
+      console.warn("Speech error:", e);
+      finishOnce();
+    };
+
+    // Chrome Watchdog: Prevent Chrome from pausing SpeechSynthesis mid-stream
+    const watchdog = setInterval(() => {
+      if (!finished && window.speechSynthesis.speaking) {
+        window.speechSynthesis.resume();
+      } else {
+        clearInterval(watchdog);
+      }
+    }, 1500);
+
+    // Timeout safety fallback
+    const maxWaitMs = Math.max(3500, (snippet.length / 12) * 1000 + 2500);
+    setTimeout(() => {
+      if (!finished) {
+        clearInterval(watchdog);
+        finishOnce();
+      }
+    }, maxWaitMs);
+
+    isAiSpeaking = true;
     window.speechSynthesis.speak(u);
   }
 
